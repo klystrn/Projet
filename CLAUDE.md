@@ -83,6 +83,59 @@ shipped code — always download/export the actual asset file locally (as
 was done for `projet-split-hero/assets/spectrum.jpg`) rather than linking
 the API URL directly.
 
+## Copy source of truth — IMPORTANT, read before editing home-page copy
+
+**The home pages are NOT written from the pitch deck.** The user explicitly
+redirected this: home-page content comes from Andrei's existing landing app,
+`https://github.com/AndreiYo037/projet-landing`, specifically
+`src/lib/content.ts` (plus a little hardcoded copy in `src/components/Hero.tsx`).
+
+That repo is a different owner, so `add_repo` refuses it (cross-tier). It is
+public, though, and `git clone https://github.com/AndreiYo037/projet-landing.git`
+works through the session's git proxy. The deployed site
+(`projet-landing.vercel.app`) is **blocked** by this environment's network
+policy — WebFetch, headless Chromium and curl all get a 403 at the gateway, so
+clone the repo instead of trying to fetch the URL.
+
+`tools-build-pages.py` at the repo root regenerates `business.html` and
+`builders.html` from that copy. It is a one-shot generator, not a build step —
+run it, commit the HTML, and the site stays dependency-free. Edit the generator
+rather than the two HTML files directly, or the next run will overwrite you.
+
+### What the product actually is (per that content)
+
+Challenge-based talent discovery: a business **posts a challenge** from its
+backlog, **students compete** on it, businesses **review real output instead of
+resumes**, and top performers advance to interviews/internships. Tagline:
+"Where real work is the strongest hiring signal."
+
+Business model is `Pay to publish a challenge` for businesses and `Join free`
+for students.
+
+### Deck-era content that was REMOVED — do not reintroduce
+
+The earlier build of these pages was written from the pitch deck and framed
+the product around a **live 15-minute defense scored on a rubric**. None of
+that exists in Andrei's content, so it was all cut from the home pages:
+
+- the live defense / defense demo / rubric (Ownership 40% etc.)
+- the Schmidt, Oh & Shaffer validity chart
+- S$250 listing / S$500 unlock pricing
+- Hack & Hire pilot traction (120+ builders, 7 companies, 10+ defenses, 2 hires)
+  and the Block71 @ NUS proof strip
+- the per-audience FAQ
+
+Two things still carry the deck framing and were deliberately left alone —
+**flag them rather than silently reconciling**: `projet-landing.html` (the
+legacy "overview" page) and the "Who/what Projet is" section at the top of
+this file.
+
+**Terminology conflict, unresolved:** Andrei's content says "Students"; the
+user has consistently asked for the mode to be called **"Builder"**
+(`builders.html`, the chooser, "Builder or business"). Current compromise —
+the mode switch says Business/Builder, while body copy keeps Andrei's
+"students" wording. Worth settling with the user.
+
 ## Site architecture / user flow (decided)
 
 The user flow is now wired end to end:

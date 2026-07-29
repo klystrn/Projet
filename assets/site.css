@@ -309,7 +309,9 @@ nav.links a:hover{color:var(--ink);}
 .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center;}
 @media (max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
 .hero-eyebrow-row{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:22px;}
-.hero h1{font-size:clamp(44px,6.2vw,78px); margin:0 0 20px;}
+/* 58px ceiling, not 78px: the headlines are full sentences now, and at 78px the
+   business one ran to five lines and pushed the CTAs below the fold */
+.hero h1{font-size:clamp(36px,4.4vw,58px); margin:0 0 20px; line-height:1.06;}
 .hero h1 .accent{color:var(--orange);}
 .hero-sub{font-size:18px; line-height:1.55; color:var(--ink-soft); max-width:520px; margin-bottom:32px;}
 .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;}
@@ -317,6 +319,13 @@ nav.links a:hover{color:var(--ink);}
 .hero-stats b{color:var(--ink); font-weight:700;}
 .hero-stats span{display:inline-flex; align-items:center; gap:7px;}
 .dot{width:5px; height:5px; border-radius:50%; background:var(--orange); display:inline-block;}
+
+/* the mission line under the hero CTAs — prose, not a data point, so it does
+   not use the mono .hero-stats treatment */
+.hero-mission{
+  font-size:14.5px; line-height:1.6; color:var(--ink-soft); max-width:44ch;
+  padding-left:15px; border-left:2px solid var(--line);
+}
 
 .hero-visual{
   position:relative; border-radius:24px; overflow:hidden; aspect-ratio:1/1.02;
@@ -374,6 +383,62 @@ nav.links a:hover{color:var(--ink);}
 .stat-num{font-family:'JetBrains Mono'; font-weight:700; font-size:clamp(26px,3vw,34px); color:var(--orange); margin-bottom:10px;}
 .stat-label{font-size:14px; color:var(--ink-soft); line-height:1.45;}
 .source-note{margin-top:16px; font-family:'JetBrains Mono'; font-size:10.5px; color:#9c988c; text-transform:uppercase; letter-spacing:.06em;}
+
+/* ---------- PAIN POINTS ---------- */
+.pain-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+@media (max-width:900px){ .pain-grid{grid-template-columns:1fr;} }
+.pain-card{
+  position:relative; padding:28px 26px 26px;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+}
+.pain-card::before{
+  content:''; position:absolute; top:0; left:26px; right:26px; height:2px;
+  background:var(--orange); border-radius:0 0 2px 2px;
+}
+.pain-card h3{font-size:19px; margin-bottom:10px;}
+.pain-card p{font-size:14.5px; line-height:1.6; color:var(--ink-soft);}
+
+/* ---------- OFFER / SOLUTIONS ---------- */
+.offer-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+@media (max-width:900px){ .offer-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:600px){ .offer-grid{grid-template-columns:1fr;} }
+.offer-card{background:#fff; padding:28px 26px;}
+.offer-num{
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.1em; color:var(--orange); display:block; margin-bottom:12px;
+}
+.offer-card h3{font-size:17.5px; margin-bottom:9px;}
+.offer-card p{font-size:14px; line-height:1.6; color:var(--ink-soft);}
+
+/* ---------- BUSINESS MODEL ---------- */
+.model-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+@media (max-width:800px){ .model-grid{grid-template-columns:1fr;} }
+.model-card{border-radius:var(--radius); padding:34px 30px; border:1px solid var(--line);}
+.model-card.dark{background:var(--ink); color:#fff; border-color:var(--ink);}
+.model-card.light{background:var(--paper-warm);}
+.model-card h3{font-size:22px; margin-bottom:20px;}
+.model-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:13px;}
+.model-list li{
+  position:relative; padding-left:28px; font-size:15px; line-height:1.5; color:var(--ink-soft);
+}
+.model-card.dark .model-list li{color:rgba(255,255,255,.78);}
+.model-list li::before{
+  content:''; position:absolute; left:0; top:6px;
+  width:15px; height:8px; border-left:2px solid var(--orange); border-bottom:2px solid var(--orange);
+  transform:rotate(-45deg);
+}
+.model-free{
+  display:inline-block; margin-top:22px;
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--orange);
+}
+@media (max-width:640px){ .model-card{padding:26px 22px;} }
+
+/* how-it-works with four steps rather than five */
+.steps-grid.steps-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:900px){ .steps-grid.steps-4{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:520px){ .steps-grid.steps-4{grid-template-columns:1fr;} }
 
 /* ---------- COMPARISON ---------- */
 .compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
