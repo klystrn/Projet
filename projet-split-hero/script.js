@@ -40,6 +40,19 @@
 
   buildBars();
 
+  /* Remember which side was chosen so the signup form can preselect the right
+     role, and so a returning visitor isn't re-segmented from scratch. */
+  panels.forEach(function (panel) {
+    panel.addEventListener("click", function () {
+      try {
+        var a = panel.getAttribute("data-audience");
+        localStorage.setItem("projet:mode", a === "student" ? "builder" : a);
+      } catch (e) {
+        /* private mode / storage disabled — the choice just isn't remembered */
+      }
+    });
+  });
+
   /* True only for focus that should behave like hover (keyboard tabbing),
      not the incidental focus a touch tap puts on a link. */
   function keyboardFocused(el) {

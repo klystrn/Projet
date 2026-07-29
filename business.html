@@ -1,15 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Projet for businesses — Hire on proof, not on prompts.</title>
-<meta name="description" content="Post a real brief from your backlog. Watch every candidate defend their work live before you decide.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
+<meta name="description" content="Post a real brief from your backlog. Watch every candidate defend their work live, on a rubric, before you decide.">
+<link rel="canonical" href="https://myprojet.co/business.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Projet">
+<meta property="og:url" content="https://myprojet.co/business.html">
+<meta property="og:title" content="Projet for businesses — Hire on proof, not on prompts.">
+<meta property="og:description" content="Post a real brief from your backlog. Watch every candidate defend their work live, on a rubric, before you decide.">
+<meta property="og:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Projet — hiring on proof.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Projet for businesses — Hire on proof, not on prompts.">
+<meta name="twitter:description" content="Post a real brief from your backlog. Watch every candidate defend their work live, on a rubric, before you decide.">
+<meta name="twitter:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta name="theme-color" content="#14130f">
+<!-- content animates in via .reveal; without JS it must not stay invisible -->
+<noscript><style>.reveal{opacity:1 !important; transform:none !important;}</style></noscript>
+<script>document.documentElement.classList.remove("no-js");</script>
 </head>
 <body>
 
@@ -28,7 +46,8 @@
     </nav>
     <div class="nav-cta">
       <a href="builders.html" class="audience-switch">For builders <span class="arrow">&#8594;</span></a>
-      <a href="#final-cta" class="btn btn-primary btn-sm">Post a brief</a>
+      <a href="login.html" class="nav-auth">Log in</a>
+      <a href="signup.html?role=business" class="btn btn-primary btn-sm">Post a brief</a>
     </div>
     <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
       <span class="nav-toggle-bars" aria-hidden="true"></span>
@@ -41,8 +60,8 @@
     <a href="#faq">FAQ</a>
     <a href="#pricing">Pricing</a>
     <div class="mobile-menu-ctas">
-      <a href="builders.html" class="btn btn-ghost">For builders &#8594;</a>
-      <a href="#final-cta" class="btn btn-primary">Post a brief</a>
+      <a href="login.html" class="btn btn-ghost">Log in</a>
+      <a href="signup.html?role=business" class="btn btn-primary">Post a brief</a>
     </div>
   </div>
 </header>
@@ -169,6 +188,7 @@
             <span class="tag">Auto-fail</span>
             <p>Cannot explain their own core files. Contradicts their own submission.</p>
           </div>
+
           <p class="defense-foot">Projet writes the rubric. You run the call — so the judgement stays where the risk sits.</p>
         </div>
         <div class="rubric-card reveal">
@@ -197,6 +217,56 @@
             <div class="rubric-track"><div class="rubric-fill" data-fill="15"></div></div>
           </div>
         </div>
+      </div>
+      <!-- Illustrative sample defense, not a recording of a real candidate.
+           Uses the same fictional brief as the hero mock for continuity. -->
+      <div class="dd" data-defense-demo>
+        <div class="dd-head">
+          <span class="dd-brief">Brief · Rebuild the pricing page conversion flow</span>
+          <span class="dd-live">Live · 15 min</span>
+        </div>
+
+        <div class="dd-switch" role="tablist" aria-label="Defense outcome">
+          <button type="button" role="tab" data-dd-tab="pass" aria-selected="true">They built it</button>
+          <button type="button" role="tab" data-dd-tab="fail" aria-selected="false">They pasted it</button>
+        </div>
+
+        <div data-dd-pane="pass" role="tabpanel">
+          <ol class="dd-thread">
+            <li class="dd-turn dd-q"><span class="dd-who">Hiring manager</span>
+              <p>Walk me to where you handle a failed payment, and tell me why it lives there.</p></li>
+            <li class="dd-turn dd-a"><span class="dd-who">Candidate #14</span>
+              <p>It's in the checkout reducer, not the API layer — I wanted retries to survive a page refresh, so the state had to outlive the request.</p></li>
+            <li class="dd-turn dd-q"><span class="dd-who">Hiring manager</span>
+              <p>What breaks first if we put this in front of ten thousand people tomorrow?</p></li>
+            <li class="dd-turn dd-a"><span class="dd-who">Candidate #14</span>
+              <p>The optimistic UI. I assumed one card per session — concurrent tabs would double-count. I'd move the guard server-side and key it on the payment intent.</p></li>
+          </ol>
+          <div class="dd-verdict">
+            <span class="dd-verdict-label">Owned the decisions, named a real failure mode, extended the work unprompted.</span>
+            <span class="dd-score pass">Defended 4.6 / 5 · Pass</span>
+          </div>
+        </div>
+
+        <div data-dd-pane="fail" role="tabpanel" hidden>
+          <ol class="dd-thread">
+            <li class="dd-turn dd-q"><span class="dd-who">Hiring manager</span>
+              <p>Walk me to where you handle a failed payment, and tell me why it lives there.</p></li>
+            <li class="dd-turn dd-a"><span class="dd-who">Candidate #14</span>
+              <p>It should be in one of the checkout files — I'd have to look. That part follows best practices for error handling.</p></li>
+            <li class="dd-turn dd-q"><span class="dd-who">Hiring manager</span>
+              <p>What breaks first if we put this in front of ten thousand people tomorrow?</p></li>
+            <li class="dd-turn dd-a"><span class="dd-who">Candidate #14</span>
+              <p>It's built to scale, so it should hold up fine.</p></li>
+          </ol>
+          <div class="dd-verdict">
+            <span class="dd-verdict-label">Couldn't navigate their own files, and no answer survived a follow-up question.</span>
+            <span class="dd-score fail">Auto-fail</span>
+          </div>
+        </div>
+
+        <p class="dd-note">Sample defense · the same rubric your team scores against</p>
+        <div class="dd-note" style="padding-top:0;"><button type="button" class="dd-replay" data-dd-replay>Replay</button></div>
       </div>
     </div>
   </section>
@@ -327,8 +397,8 @@
         <h2>Hiring is the last place where nobody checks who did the work.</h2>
         <p>Post your first brief and watch the defense before you ever commit to an interview.</p>
         <div class="final-cta-btns">
-          <a href="#" class="btn btn-white">Post a brief</a>
-          <a href="#" class="btn btn-outline-white">Talk to us</a>
+          <a href="signup.html?role=business" class="btn btn-white">Post a brief</a>
+          <a href="signup.html?role=business" class="btn btn-outline-white">Talk to us</a>
         </div>
       </div>
     </div>

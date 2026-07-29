@@ -239,6 +239,26 @@ mechanic details).
      layout — carried over from the previous design, double check it still
      reads well with the new curved asset.
 
+## Auth / accounts (front end only)
+
+`login.html` and `signup.html` exist and are reachable from every content
+page's nav ("Log in" + the primary CTA, which now points at
+`signup.html?role=…`). **They are front end only — no credentials go
+anywhere.** Validation, error/pending states and the fetch call are all
+written; each form just needs its empty `data-endpoint` attribute pointed at
+a real route. With no endpoint set the form says accounts aren't connected
+yet rather than faking a success.
+
+**Division of labour: this repo is front end / UI-UX only. The API and the
+MongoDB layer are Andrei's (co-founder).** The full contract — request
+bodies, response shapes, how `role` is resolved, and what still needs a
+decision (sessions, password reset, CSRF) — is in `BACKEND-HANDOFF.md`.
+Read that before touching the auth forms.
+
+The split-hero chooser writes the chosen side to
+`localStorage["projet:mode"]`, which pre-selects the role on the signup form
+for returning visitors.
+
 ## Known issues / open tasks
 
 1. **`projet-split-hero` visual check — mostly done.** The bar cascade and

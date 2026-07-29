@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in to Projet</title>
+<meta name="description" content="Log in to your Projet account.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<meta name="theme-color" content="#14130f">
+</head>
+<body>
+
+<div class="auth-page">
+
+  <aside class="auth-aside">
+    <img class="texture" src="assets/fluid.webp" alt="">
+    <a href="projet-split-hero/index.html" class="logo">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="logo-word">Projet</span>
+    </a>
+    <p class="auth-quote">The submission is the ticket. The defense is the decision.</p>
+    <div class="auth-stats">
+      <span><b>120+</b> builders</span>
+      <span><b>7</b> companies</span>
+      <span><b>10+</b> live defenses</span>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="auth-lede">Pick up where your briefs and defenses left off.</p>
+
+      <div class="auth-status" id="authStatus" role="status" aria-live="polite"></div>
+
+      <!--
+        FRONT-END ONLY. No credentials are sent anywhere yet.
+        Backend hook: site.js reads data-endpoint and POSTs JSON
+        {email, password} to it. Point it at the real route
+        (e.g. /api/auth/login) and the form starts working as-is.
+      -->
+      <form id="loginForm" data-auth-form data-endpoint="" novalidate>
+
+        <div class="field">
+          <label for="li-email">Email</label>
+          <input id="li-email" name="email" type="email" autocomplete="email" required>
+          <span class="err">Please enter a valid email address.</span>
+        </div>
+
+        <div class="field">
+          <label for="li-password">Password</label>
+          <input id="li-password" name="password" type="password" autocomplete="current-password" required>
+          <span class="err">Please enter your password.</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit">Log in</button>
+      </form>
+
+      <p class="auth-alt">New to Projet? <a href="signup.html">Create an account</a></p>
+    </div>
+  </main>
+
+</div>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -85,6 +85,192 @@
     });
   }
 
+  /* ------------------------------------------------------------------
+     AUTH FORMS — front end only.
+
+     Validation, error and pending states are all real. Submission is the
+     one piece that is not: the form POSTs JSON to whatever URL sits in its
+     data-endpoint attribute, and does nothing when that is empty (the
+     current state). Backend owner: set data-endpoint on the <form> in
+     login.html / signup.html and this starts working unchanged.
+
+     Expected contract:
+       POST <endpoint>  Content-Type: application/json
+       signup body  {role, name, email, password}
+       login  body  {email, password}
+       200 -> {redirect?: string}   non-200 -> {message?: string}
+     ------------------------------------------------------------------ */
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function fieldValid(input) {
+    var v = input.value.trim();
+    if (input.hasAttribute('required') && !v) return false;
+    if (input.type === 'email' && !EMAIL_RE.test(v)) return false;
+    var min = parseInt(input.getAttribute('minlength'), 10);
+    if (min && v.length < min) return false;
+    return true;
+  }
+
+  function markField(input) {
+    var ok = fieldValid(input);
+    input.setAttribute('aria-invalid', ok ? 'false' : 'true');
+    return ok;
+  }
+
+  document.querySelectorAll('[data-auth-form]').forEach(function (form) {
+    var status = document.getElementById('authStatus');
+    var submit = form.querySelector('[type="submit"]');
+    var inputs = Array.prototype.slice.call(form.querySelectorAll('input:not([type="radio"])'));
+
+    function say(kind, msg) {
+      if (!status) return;
+      status.className = 'auth-status show ' + kind;
+      status.textContent = msg;
+    }
+
+    // only nag about a field once the user has already left it invalid
+    inputs.forEach(function (input) {
+      input.addEventListener('blur', function () {
+        if (input.value.trim()) markField(input);
+      });
+      input.addEventListener('input', function () {
+        if (input.getAttribute('aria-invalid') === 'true') markField(input);
+      });
+    });
+
+    // carry the side chosen on the split-hero into the signup role picker
+    var stored = null;
+    try { stored = localStorage.getItem('projet:mode'); } catch (e) {}
+    var param = new URLSearchParams(location.search).get('role');
+    var role = param || stored;
+    if (role) {
+      var pick = form.querySelector('input[name="role"][value="' + role + '"]');
+      if (pick) pick.checked = true;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var firstBad = null;
+      inputs.forEach(function (input) {
+        if (!markField(input) && !firstBad) firstBad = input;
+      });
+      if (firstBad) {
+        firstBad.focus();
+        say('err', 'Please fix the highlighted fields.');
+        return;
+      }
+
+      var endpoint = form.getAttribute('data-endpoint');
+      if (!endpoint) {
+        // Deliberate: better to say the wiring is pending than to fake a
+        // success and leave someone believing they have an account.
+        say('pending', 'Accounts aren’t connected yet — this form is the finished front end, waiting on the API.');
+        return;
+      }
+
+      var body = {};
+      new FormData(form).forEach(function (v, k) { body[k] = v; });
+
+      submit.setAttribute('aria-busy', 'true');
+      say('pending', 'One moment…');
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (!res.ok) throw new Error(data.message || 'Something went wrong. Please try again.');
+            return data;
+          });
+        })
+        .then(function (data) {
+          window.location.href = data.redirect || 'business.html';
+        })
+        .catch(function (err) {
+          submit.removeAttribute('aria-busy');
+          say('err', err.message || 'Something went wrong. Please try again.');
+        });
+    });
+  });
+
+  /* ------------------------------------------------------------------
+     DEFENSE DEMO — plays a scripted transcript one turn at a time, and
+     lets the visitor flip between the two outcomes of the same question.
+     Content lives in the HTML so it still reads with JS off.
+     ------------------------------------------------------------------ */
+  document.querySelectorAll('[data-defense-demo]').forEach(function (demo) {
+    var tabs = demo.querySelectorAll('[data-dd-tab]');
+    var panes = demo.querySelectorAll('[data-dd-pane]');
+    var replay = demo.querySelector('[data-dd-replay]');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var timers = [];
+
+    function clearTimers() {
+      timers.forEach(clearTimeout);
+      timers = [];
+    }
+
+    function play(pane) {
+      clearTimers();
+      var turns = pane.querySelectorAll('.dd-turn');
+      var verdict = pane.querySelector('.dd-verdict');
+      turns.forEach(function (t) { t.classList.remove('in'); });
+      if (verdict) verdict.classList.remove('in');
+
+      if (reduced) {
+        turns.forEach(function (t) { t.classList.add('in'); });
+        if (verdict) verdict.classList.add('in');
+        return;
+      }
+      turns.forEach(function (turn, i) {
+        timers.push(setTimeout(function () { turn.classList.add('in'); }, 520 * i + 180));
+      });
+      if (verdict) {
+        timers.push(setTimeout(function () { verdict.classList.add('in'); }, 520 * turns.length + 260));
+      }
+    }
+
+    function show(name) {
+      tabs.forEach(function (t) {
+        t.setAttribute('aria-selected', t.getAttribute('data-dd-tab') === name ? 'true' : 'false');
+      });
+      panes.forEach(function (p) {
+        var on = p.getAttribute('data-dd-pane') === name;
+        p.hidden = !on;
+        if (on) {
+          demo.classList.toggle('dd--fail', name === 'fail');
+          play(p);
+        }
+      });
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () { show(tab.getAttribute('data-dd-tab')); });
+    });
+    if (replay) {
+      replay.addEventListener('click', function () {
+        var open = demo.querySelector('[data-dd-pane]:not([hidden])');
+        if (open) play(open);
+      });
+    }
+
+    // hold the animation until it's actually on screen
+    var started = false;
+    var ddIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !started) {
+          started = true;
+          var open = demo.querySelector('[data-dd-pane]:not([hidden])');
+          if (open) play(open);
+        }
+      });
+    }, { threshold: 0.3 });
+    ddIO.observe(demo);
+  });
+
   // FAQ accordion — one open at a time
   document.querySelectorAll('.faq-item').forEach(function (item) {
     var btn = item.querySelector('.faq-q');
