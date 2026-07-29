@@ -116,6 +116,53 @@ carried its own copy of the same ~14KB of CSS — this was extracted once to
 kill that duplication). Page-specific tweaks (e.g. the builder page's blue
 accent overrides) live in a small inline `<style>` block in that page only.
 
+### Mobile / responsive
+
+All four pages are responsive and verified with no horizontal overflow from
+320px up. Breakpoints in `assets/site.css`: **900px** (nav collapses to a
+hamburger), **640px** (main phone layout), **480px / 420px / 359px** (fine
+adjustments), and **760px** for `projet-split-hero`. Notable decisions:
+
+- **Mobile nav.** Below 900px the inline links are replaced by a hamburger
+  (`#navToggle`) opening `#mobileMenu`, which holds the section links plus
+  the audience switch and CTAs. The primary CTA stays in the header bar down
+  to 359px. Toggle logic is in `assets/site.js` (closes on link tap, Escape,
+  and on resize past the breakpoint).
+- **`.hero` / `.section` use longhand vertical padding.** They must *not*
+  use the `padding: Xpx 0` shorthand: both are applied alongside `.wrap` on
+  the same element, have equal specificity, and sit later in the file, so a
+  shorthand silently zeroes `.wrap`'s horizontal padding and flattens every
+  page against the viewport edge on mobile. This was a real (long-standing)
+  bug — it was invisible on desktop only because `.wrap`'s `max-width`
+  centred the content anyway.
+- **Evidence chart** (`.bar-row`) restacks at 640px: its fixed 180px label
+  column left the bar just 134px wide on a 390px screen, so the label moves
+  to its own row above a full-width bar.
+- **`projet-split-hero` on touch** shows both panels' description copy
+  outright and navigates on a **single tap**, rather than reproducing the
+  desktop hover-reveal as a two-tap preview. A first tap that only previews
+  reads as a dead tap on the one screen whose whole job is choosing a side,
+  and the hidden copy left an empty gap holding its place. Desktop keeps the
+  hover reveal + 5/8 expand unchanged.
+- **Hover state is driven by the `data-hover` attribute**, not bare `:hover`.
+  Touch browsers emulate a sticky `:hover` that otherwise left one panel's
+  copy stuck open. `:hover` survives only inside `@media (hover:hover)` as a
+  no-JS fallback.
+- **Keyboard focus is gated on `:focus-visible`** (`keyboardFocused()` in
+  `projet-split-hero/script.js`). Tapping a link also focuses it, which used
+  to set `data-hover` *before* the click handler ran — so the click saw
+  "already previewed" and navigated immediately, meaning the touch preview
+  never actually worked.
+- The split-hero band is **clipped** (`overflow:hidden`) and thinned on
+  mobile. Its bars are meant to fan past the seam into empty panel margin on
+  desktop; once the panels stack, that same overflow ran straight through the
+  headline and CTA.
+- `.final-cta` has a **scrim** over the swirl texture — white copy vanished
+  into the artwork's bright cream/orange passages, worst on mobile where the
+  block is short enough to put the light part directly behind the headline.
+- `[id]{scroll-margin-top:92px}` keeps in-page anchor targets from landing
+  underneath the sticky header.
+
 ### `projet-landing.html`
 A single-file marketing/overview page (static HTML/CSS/JS, no build step).
 The "scroll story" version: hero, problem stats, take-homes-broke

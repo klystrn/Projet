@@ -93,8 +93,12 @@ a{color:inherit; text-decoration:none;}
   transition:opacity .6s var(--ease);
 }
 .panel--student .panel-content{ align-items:flex-end; text-align:right; margin-left:auto; }
-.panel:hover .panel-content,
+.split[data-hover="business"] .panel--business .panel-content,
+.split[data-hover="student"]  .panel--student  .panel-content,
 .panel:focus-within .panel-content{ opacity:1; }
+@media (hover:hover){
+  .panel:hover .panel-content{ opacity:1; }
+}
 
 .panel-eyebrow{
   font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--orange);
@@ -109,20 +113,42 @@ a{color:inherit; text-decoration:none;}
   transform:translateY(10px);
   transition:opacity .5s var(--ease), transform .5s var(--ease);
 }
-.panel:hover .panel-copy,
+/* Reveal is driven by the data-hover attribute (set by JS on mouseenter AND on
+   the first touch tap) rather than by :hover alone — touch devices emulate a
+   sticky :hover that would otherwise leave one panel's copy stuck open. */
+.split[data-hover="business"] .panel--business .panel-copy,
+.split[data-hover="student"]  .panel--student  .panel-copy,
 .panel:focus-within .panel-copy{ opacity:1; transform:translateY(0); }
+/* mouse-capable devices keep a pure-CSS fallback if JS hasn't run yet */
+@media (hover:hover){
+  .panel:hover .panel-copy{ opacity:1; transform:translateY(0); }
+}
+/* Touch has no hover, and this screen exists to help someone choose a side —
+   so the description is shown outright rather than hidden behind an extra tap
+   that would also leave an empty gap holding its place. */
+@media (hover:none){
+  .panel-copy{ opacity:1; transform:none; }
+}
 .panel-cta{
   margin-top:12px; display:inline-flex; align-items:center; gap:9px;
   font-size:12.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
   padding:11px 18px; border-radius:999px; border:1px solid rgba(255,255,255,.35);
   transition:background .3s var(--ease), border-color .3s var(--ease);
 }
-.panel--business:hover .panel-cta,
+/* active-panel styling keyed off data-hover for the same reason as .panel-copy */
+.split[data-hover="business"] .panel--business .panel-cta,
 .panel--business:focus-within .panel-cta{ background:var(--orange); border-color:var(--orange); }
-.panel--student:hover .panel-cta,
+.split[data-hover="student"] .panel--student .panel-cta,
 .panel--student:focus-within .panel-cta{ background:var(--blue); border-color:var(--blue); }
 .panel-cta .cta-arrow{ transition:transform .3s var(--ease); }
-.panel:hover .cta-arrow, .panel:focus-within .cta-arrow{ transform:translateX(3px); }
+.split[data-hover="business"] .panel--business .cta-arrow,
+.split[data-hover="student"]  .panel--student  .cta-arrow,
+.panel:focus-within .cta-arrow{ transform:translateX(3px); }
+@media (hover:hover){
+  .panel--business:hover .panel-cta{ background:var(--orange); border-color:var(--orange); }
+  .panel--student:hover  .panel-cta{ background:var(--blue); border-color:var(--blue); }
+  .panel:hover .cta-arrow{ transform:translateX(3px); }
+}
 .panel:focus-visible{ outline:2px solid #fff; outline-offset:-4px; }
 
 /* ---------- THE STRIPE ---------- */
@@ -168,27 +194,49 @@ a{color:inherit; text-decoration:none;}
 
 /* ---------- MOBILE: band rotates, panels stack ---------- */
 @media (max-width:760px){
-  :root{ --stripe-w:clamp(110px, 26vh, 170px); --band-len:100vw; }
+  :root{
+    /* thinner band on mobile so it reads as a divider between the two stacked
+       panels rather than a block occupying the middle third of the screen */
+    --stripe-w:clamp(76px, 13vh, 104px);
+    /* bars only slightly exceed the band, so most of the shear stays on-screen
+       once the band is clipped (below) instead of travelling out of view */
+    --bar-w:calc(var(--stripe-w) * 1.35);
+    --band-len:100vw;
+  }
 
   .split{ flex-direction:column; }
-  .panel{ align-items:flex-end; }
-  .panel-content{ padding:0 8vw; max-width:none; }
-  .panel--student .panel-content{ align-items:flex-start; text-align:left; margin-left:0; }
-  .panel-copy{ max-width:none; }
-  .panel-title{ font-size:clamp(30px,9vw,46px); }
 
-  .panel--business{ background:radial-gradient(120% 100% at 50% 0%, rgba(255,91,36,.16), transparent 62%), var(--ink); }
-  .panel--student { background:radial-gradient(120% 100% at 50% 100%, rgba(47,107,255,.16), transparent 62%), var(--ink); }
-
-  /* rotate the whole band 90°: bars now stack across the screen and shear vertically */
-  .stripe{ flex:0 0 var(--stripe-w); }
+  /* Clip the band on mobile. On desktop the bars are meant to fan out past the
+     seam into the panels; stacked vertically that same overflow runs straight
+     through the panel headline and CTA instead of into empty margin. */
+  .stripe{ flex:0 0 var(--stripe-w); overflow:hidden; }
   .stripe-inner{
     inset:auto;
     position:absolute; top:50%; left:50%;
     width:var(--stripe-w);
     height:var(--band-len);
+    /* 90° rotation maps each bar's horizontal shear onto the screen's vertical
+       axis — so bars push away from the tapped panel, same as on desktop */
     transform:translate(-50%,-50%) rotate(90deg);
   }
+
+  .panel{ align-items:center; }
+  .panel-content{ padding:0 24px; max-width:none; gap:9px; }
+  .panel--student .panel-content{ align-items:flex-start; text-align:left; margin-left:0; }
+  .panel-copy{ max-width:34ch; }
+  .panel-title{ font-size:clamp(30px,9vw,46px); }
+  .panel-cta{ margin-top:14px; padding:13px 20px; }
+
+  .panel--business{ background:radial-gradient(120% 100% at 50% 0%, rgba(255,91,36,.16), transparent 62%), var(--ink); }
+  .panel--student { background:radial-gradient(120% 100% at 50% 100%, rgba(47,107,255,.16), transparent 62%), var(--ink); }
+}
+
+/* short viewports (landscape phones): reclaim vertical space */
+@media (max-width:760px) and (max-height:560px){
+  :root{ --stripe-w:clamp(52px, 11vh, 72px); }
+  .panel-title{ font-size:clamp(24px,7vw,34px); }
+  .panel-copy{ font-size:13.5px; }
+  .panel-cta{ margin-top:9px; padding:10px 16px; font-size:11.5px; }
 }
 
 /* ---------- REDUCED MOTION ---------- */

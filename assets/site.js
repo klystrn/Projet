@@ -52,6 +52,39 @@
     fillIO.observe(el);
   });
 
+  // mobile nav
+  var navToggle = document.getElementById('navToggle');
+  var mobileMenu = document.getElementById('mobileMenu');
+  if (navToggle && mobileMenu) {
+    function setMenu(open) {
+      mobileMenu.classList.toggle('open', open);
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+
+    navToggle.addEventListener('click', function () {
+      setMenu(!mobileMenu.classList.contains('open'));
+    });
+
+    // any nav choice closes the sheet — including same-page anchors, which
+    // otherwise scroll away behind a menu that's still covering the page
+    mobileMenu.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setMenu(false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
+        setMenu(false);
+        navToggle.focus();
+      }
+    });
+
+    // rotating past the breakpoint hides the toggle; drop the open state with it
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 900) setMenu(false);
+    });
+  }
+
   // FAQ accordion — one open at a time
   document.querySelectorAll('.faq-item').forEach(function (item) {
     var btn = item.querySelector('.faq-q');

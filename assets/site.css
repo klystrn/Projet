@@ -63,6 +63,10 @@ img{display:block; max-width:100%;}
   display:inline-block;
 }
 
+/* anchor targets must clear the sticky header, or in-page nav lands with the
+   section heading hidden behind it */
+[id]{scroll-margin-top:92px;}
+
 /* reveal-on-scroll */
 .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
 .reveal.in{opacity:1; transform:translateY(0);}
@@ -91,8 +95,61 @@ header.nav{
 .logo-word{font-family:'Satoshi'; font-weight:900; font-size:22px; color:var(--ink); letter-spacing:-0.02em; display:flex; align-items:center; gap:6px;}
 nav.links{display:flex; align-items:center; gap:28px; font-size:14px; font-weight:500; color:var(--ink-soft);}
 nav.links a:hover{color:var(--ink);}
-@media (max-width:900px){ nav.links{display:none;} }
 .nav-cta{display:flex; align-items:center; gap:14px;}
+
+/* ---------- MOBILE NAV (hamburger) ---------- */
+.nav-toggle{
+  display:none;
+  width:44px; height:44px; flex:none;      /* 44px = comfortable touch target */
+  align-items:center; justify-content:center;
+  background:transparent; border:1px solid var(--line); border-radius:12px;
+  cursor:pointer; padding:0;
+}
+.nav-toggle-bars{position:relative; width:18px; height:12px; display:block;}
+.nav-toggle-bars::before, .nav-toggle-bars::after{
+  content:''; position:absolute; left:0; width:100%; height:2px;
+  background:var(--ink); border-radius:2px;
+  transition:transform .28s var(--ease), top .28s var(--ease);
+}
+.nav-toggle-bars::before{top:0;}
+.nav-toggle-bars::after{top:10px;}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before{top:5px; transform:rotate(45deg);}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after{top:5px; transform:rotate(-45deg);}
+
+.mobile-menu{display:none;}
+.mobile-menu a{display:block; padding:15px 0; font-size:17px; font-weight:700; border-bottom:1px solid var(--line);}
+.mobile-menu a:last-of-type{border-bottom:none;}
+.mobile-menu-ctas{display:flex; flex-direction:column; gap:10px; padding-top:16px;}
+.mobile-menu-ctas .btn{width:100%; padding:14px 22px;}
+
+@media (max-width:900px){
+  nav.links{display:none;}
+  .nav-toggle{display:flex;}
+  /* secondary nav actions move into the menu; keep only the primary CTA in the bar */
+  .nav-cta .audience-switch,
+  .nav-cta .btn-ghost{display:none;}
+  .mobile-menu.open{
+    display:block;
+    padding:4px 32px 22px;
+    border-top:1px solid var(--line);
+    animation:menuIn .26s var(--ease);
+  }
+  @keyframes menuIn{ from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
+}
+@media (max-width:640px){
+  .mobile-menu.open{padding:4px 20px 22px;}
+}
+/* keep the primary CTA in the bar as long as it fits: tighten it rather than
+   dropping the only always-visible conversion path */
+@media (max-width:480px){
+  .nav-inner{gap:10px;}
+  .logo-word{font-size:19px;}
+  .nav-cta .btn{padding:9px 13px; font-size:12.5px;}
+}
+/* below this the three items genuinely collide — CTA falls back to the menu */
+@media (max-width:359px){
+  .nav-cta{display:none;}
+}
 
 /* audience switch chip: small pill linking to the sibling business/builder page */
 .audience-switch{
@@ -129,7 +186,10 @@ nav.links a:hover{color:var(--ink);}
 .btn-sm{padding:9px 16px; font-size:13px;}
 
 /* ---------- HERO ---------- */
-.hero{padding:64px 0 40px; position:relative;}
+/* vertical padding only — horizontal padding belongs to .wrap, and a shorthand
+   here would out-rank it (same specificity, later in the file) and flatten the
+   page against the viewport edge on mobile. Same reason .section uses longhand. */
+.hero{padding-top:64px; padding-bottom:40px; position:relative;}
 .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center;}
 @media (max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
 .hero-eyebrow-row{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:22px;}
@@ -186,8 +246,8 @@ nav.links a:hover{color:var(--ink);}
 .proof-strip b{color:var(--ink); font-weight:700;}
 
 /* ---------- PROBLEM ---------- */
-.section{padding:104px 0;}
-@media (max-width:640px){ .section{padding:72px 0;} }
+.section{padding-top:104px; padding-bottom:104px;}
+@media (max-width:640px){ .section{padding-top:72px; padding-bottom:72px;} }
 .section-head{max-width:680px; margin-bottom:52px;}
 .section-head h2{font-size:clamp(30px,4vw,46px); margin:14px 0 16px;}
 .section-head p{font-size:17px; color:var(--ink-soft); line-height:1.6;}
@@ -314,7 +374,9 @@ nav.links a:hover{color:var(--ink);}
   max-height:0; overflow:hidden; transition:max-height .4s var(--ease);
 }
 .faq-a-inner{padding:0 4px 24px; font-size:15px; line-height:1.6; color:var(--ink-soft); max-width:720px;}
-.faq-item.open .faq-a{max-height:240px;}
+/* generous ceiling: answers wrap to many more lines on narrow screens, and a
+   tight max-height silently clips them mid-sentence */
+.faq-item.open .faq-a{max-height:600px;}
 
 /* ---------- PRICING ---------- */
 .price-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;}
@@ -333,12 +395,25 @@ nav.links a:hover{color:var(--ink);}
 .calc-row.total{font-weight:700; color:var(--orange); border-top:1px solid var(--ink); margin-top:4px;}
 
 /* ---------- FINAL CTA ---------- */
+/* wrapper keeps .wrap's responsive horizontal padding; only the tail spacing is ours */
+.final-cta-wrap{padding-bottom:100px;}
+@media (max-width:640px){ .final-cta-wrap{padding-bottom:64px;} }
+
+.traction-section{background:var(--paper-warm); border-radius:28px;}
+
 .final-cta{
   position:relative; border-radius:28px; overflow:hidden; padding:90px 48px; text-align:center;
   background:linear-gradient(155deg,#ff9a5a 0%, #ff5b24 20%, #7a3f8f 48%, #1c3d8f 74%, #0c1638 100%);
   color:#fff;
 }
 .final-cta img.texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85;}
+/* scrim: the swirl has bright cream/orange passages that white copy disappears
+   into — worst on mobile, where the block is short enough that the light part
+   of the image lands directly behind the headline */
+.final-cta::after{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(180deg, rgba(10,16,42,.58), rgba(10,16,42,.34) 45%, rgba(10,16,42,.62));
+}
 .final-cta-inner{position:relative; z-index:2; max-width:640px; margin:0 auto;}
 .final-cta h2{font-size:clamp(30px,4.4vw,50px); color:#fff; margin-bottom:18px;}
 .final-cta p{font-size:17px; color:rgba(255,255,255,.85); margin-bottom:34px; line-height:1.5;}
@@ -356,3 +431,92 @@ footer{padding:64px 0 40px; border-top:1px solid var(--line); margin-top:20px;}
 .footer-bottom{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:24px; border-top:1px solid var(--line); font-family:'JetBrains Mono'; font-size:11.5px; color:#9c988c;}
 
 ::selection{background:var(--orange); color:#fff;}
+
+/* ==================================================================
+   MOBILE / SMALL-SCREEN REFINEMENTS
+   The layout grids already collapse via their own breakpoints above;
+   this block handles spacing, touch targets, and the few components
+   that need to be restructured rather than just narrowed.
+   ================================================================== */
+
+@media (max-width:900px){
+  .hero{padding-top:44px; padding-bottom:24px;}
+  .hero-grid{gap:36px;}
+  .defense-grid{gap:36px;}
+}
+
+@media (max-width:640px){
+  /* --- rhythm --- */
+  .section-head{margin-bottom:36px;}
+  .section-head p{font-size:16px;}
+  .hero-sub{font-size:16.5px; margin-bottom:26px;}
+
+  /* --- hero CTAs: full-width stacked buttons are far easier to hit --- */
+  .hero-ctas{flex-direction:column; align-items:stretch; gap:10px;}
+  .hero-ctas .btn{width:100%; padding:15px 22px;}
+
+  /* --- hero stats: the inline dot separators orphan onto their own lines
+         once the row wraps, so switch to a stacked list and drop them --- */
+  .hero-stats{flex-direction:column; gap:8px; font-size:13px;}
+  .hero-stats .dot{display:none;}
+
+  .hero-visual{aspect-ratio:1/1.12;}
+  .hero-card{width:92%; bottom:18px; padding:15px 16px;}
+  .hero-card-title{font-size:13.5px;}
+  .cand-left{font-size:12px; gap:7px;}
+  .cand-score{display:block; font-size:10px;}
+
+  /* --- proof strip: read as stacked lines, not a cramped wrapped row --- */
+  .proof-strip{padding:16px 0;}
+  .proof-strip .wrap{flex-direction:column; gap:8px; font-size:11.5px;}
+
+  /* --- cards / panels --- */
+  .stat-cell{padding:22px 18px;}
+  .compare-card{padding:26px 22px; min-height:0;}
+  .compare-card h3{font-size:23px;}
+  .evidence-side{padding:22px;}
+  .price-card{padding:26px 22px;}
+  .quote-card{padding:20px;}
+  .rubric-card{padding:22px 18px;}
+  .autofail{padding:17px 18px;}
+
+  /* --- evidence chart: a fixed 180px label column leaves the bar with
+         almost no room at 390px, so stack the label above its own bar --- */
+  .bar-row{
+    grid-template-columns:1fr auto;
+    grid-template-areas:'label label' 'track value';
+    gap:7px 12px;
+    padding:14px 0;
+  }
+  .bar-label{grid-area:label; font-size:13px;}
+  .bar-track{grid-area:track;}
+  .bar-val{grid-area:value; font-size:12px;}
+
+  /* --- how-it-works: the connector line between badges is meaningless
+         once the steps stack into a single column --- */
+  .steps-grid{gap:26px;}
+  .step-badge::after{display:none !important;}
+
+  /* --- FAQ: bigger tap target, tighter type --- */
+  .faq-q{padding:20px 0; font-size:16px; gap:14px;}
+  .faq-a-inner{font-size:14.5px; padding-bottom:20px;}
+
+  /* --- final CTA --- */
+  .final-cta{border-radius:22px;}
+  .final-cta p{font-size:16px; margin-bottom:26px;}
+  .final-cta-btns{flex-direction:column; align-items:stretch;}
+  .final-cta-btns .btn{width:100%; padding:15px 22px;}
+
+  /* --- traction block sits in a rounded card; trim its inset --- */
+  .traction-section{border-radius:22px;}
+
+  /* --- footer --- */
+  footer{padding-top:48px;}
+  .footer-grid{gap:28px; margin-bottom:34px;}
+  .footer-bottom{flex-direction:column; align-items:flex-start; gap:8px;}
+}
+
+@media (max-width:420px){
+  .footer-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr;}
+}

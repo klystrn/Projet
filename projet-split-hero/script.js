@@ -40,6 +40,16 @@
 
   buildBars();
 
+  /* True only for focus that should behave like hover (keyboard tabbing),
+     not the incidental focus a touch tap puts on a link. */
+  function keyboardFocused(el) {
+    try {
+      return el.matches(":focus-visible");
+    } catch (e) {
+      return !isTouch; // pre-:focus-visible browsers: assume mouse/keyboard
+    }
+  }
+
   /* ---------- Hover / focus drives which side the bars shear away from ---------- */
   panels.forEach(function (panel) {
     var audience = panel.getAttribute("data-audience");
@@ -50,7 +60,12 @@
     panel.addEventListener("mouseleave", function () {
       if (!isTouch) split.removeAttribute("data-hover");
     });
+    /* Keyboard focus mirrors hover. Guarded by :focus-visible because tapping
+       a link on touch also focuses it — and firing this on tap would mark the
+       panel "already previewed" before the click handler below runs, so the
+       first tap would navigate instead of previewing. */
     panel.addEventListener("focus", function () {
+      if (!keyboardFocused(panel)) return;
       split.setAttribute("data-hover", audience);
     });
     panel.addEventListener("blur", function () {
@@ -58,33 +73,24 @@
     });
   });
 
-  /* ---------- Touch: first tap previews (bars shear, panel grows), ----------
-     second tap — or tapping the CTA directly — follows the link. */
+  /* ---------- Touch ----------
+     No preview step here: on touch both panels already show their copy (see
+     styles.css), so a tap is an unambiguous choice and follows the link
+     natively. An intercepted first tap would read as a dead tap on the one
+     screen whose entire job is letting someone pick a side.
+
+     We only light the chosen side up briefly, so the tap is acknowledged
+     while the next page loads. */
   if (isTouch) {
     panels.forEach(function (panel) {
       var audience = panel.getAttribute("data-audience");
-
       panel.addEventListener(
-        "click",
-        function (e) {
-          var alreadyPreviewed = split.getAttribute("data-hover") === audience;
-          var hitCta = e.target.closest(".panel-cta");
-
-          if (alreadyPreviewed || hitCta) {
-            return; // let the link navigate
-          }
-
-          e.preventDefault();
+        "touchstart",
+        function () {
           split.setAttribute("data-hover", audience);
         },
-        { passive: false }
+        { passive: true }
       );
-    });
-
-    document.addEventListener("click", function (e) {
-      if (!e.target.closest(".panel")) {
-        split.removeAttribute("data-hover");
-      }
     });
   }
 })();

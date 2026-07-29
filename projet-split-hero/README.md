@@ -52,9 +52,33 @@ npx serve .
   offset down slightly) and only fades/slides into place on that panel's
   `:hover`/`:focus-within` — so the reveal itself is the payoff for engaging
   a side, not something you see for free at rest.
-- Each panel is an `<a>`, so keyboard focus (`:focus-within`) triggers the
-  same expand state as hover — tab to a panel and it grows, same as
-  hovering it.
+- Each panel is an `<a>`, so keyboard focus triggers the same expand state as
+  hover — tab to a panel and it grows, same as hovering it.
+
+## Touch / mobile behaviour
+
+The desktop mechanic is hover-driven, and touch has no hover, so the mobile
+build adapts rather than emulates:
+
+- **Both panels show their copy outright**, and a **single tap navigates.**
+  An earlier build intercepted the first tap to "preview" the panel; that
+  reads as a dead tap on the one screen whose entire job is letting someone
+  pick a side, and the hidden copy left an empty gap holding its place.
+- **State is driven by the `data-hover` attribute on `#split`**, not bare
+  `:hover`. Touch browsers emulate a sticky `:hover` that would otherwise
+  leave one panel's copy stuck open after a tap. `:hover` still applies
+  inside `@media (hover:hover)` as a no-JS fallback.
+- **Keyboard focus is gated behind `:focus-visible`** (`keyboardFocused()`
+  in `script.js`). Tapping a link also focuses it — without this guard the
+  focus handler fired on tap and set state before the click handler ran.
+- Below 760px the panels stack, and the band is **clipped and thinned** into
+  a horizontal divider between them. The 90° rotation maps each bar's
+  horizontal shear onto the screen's vertical axis, so bars still push away
+  from the active side. Clipping matters: the bars are designed to fan past
+  the seam into empty panel margin, and once stacked that overflow otherwise
+  runs straight through the headline and CTA.
+- A `max-height:560px` query trims type and band thickness for landscape
+  phones.
 
 ## Known placeholders to swap before shipping
 
