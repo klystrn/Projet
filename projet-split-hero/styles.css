@@ -140,7 +140,7 @@ a{color:inherit; text-decoration:none;}
   height:calc(var(--band-len) / var(--n) + 1px);   /* +1px kills sub-pixel seams */
   top:calc(var(--i) * var(--band-len) / var(--n));
 
-  background-image:url('assets/spectrum.jpg');
+  background-image:url('../assets/spectrum.webp');
   background-size:var(--bar-w) var(--band-len);     /* whole image, sliced across all bars */
   background-position:0 calc(-1 * var(--i) * var(--band-len) / var(--n));
   background-repeat:no-repeat;
