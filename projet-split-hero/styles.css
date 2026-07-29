@@ -103,7 +103,14 @@ a{color:inherit; text-decoration:none;}
 .panel-title{
   font-weight:900; font-size:clamp(32px,4.6vw,60px); letter-spacing:-0.02em; line-height:1;
 }
-.panel-copy{ font-size:15px; line-height:1.5; color:rgba(255,255,255,.72); max-width:320px; }
+.panel-copy{
+  font-size:15px; line-height:1.5; color:rgba(255,255,255,.72); max-width:320px;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease);
+}
+.panel:hover .panel-copy,
+.panel:focus-within .panel-copy{ opacity:1; transform:translateY(0); }
 .panel-cta{
   margin-top:12px; display:inline-flex; align-items:center; gap:9px;
   font-size:12.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
@@ -189,4 +196,5 @@ a{color:inherit; text-decoration:none;}
   .split{ animation:none; opacity:1; }
   .bar{ transition-duration:.001ms; transition-delay:0ms !important; }
   .panel{ transition-duration:.001ms; }
+  .panel-copy{ transition-duration:.001ms; }
 }
