@@ -61,6 +61,29 @@ a{color:inherit; text-decoration:none;}
 }
 .nav-overview:hover{color:#fff; border-color:rgba(255,255,255,.55);}
 
+/* returning-visitor shortcut — skips re-segmenting someone who already chose */
+.return-chip{
+  position:absolute; top:calc(var(--nav-h) + 14px); left:50%; transform:translateX(-50%);
+  z-index:25; display:inline-flex; align-items:center; gap:9px;
+  padding:9px 16px; border-radius:999px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(8px);
+  font-size:11.5px; font-weight:600; letter-spacing:.04em;
+  color:rgba(255,255,255,.72); white-space:nowrap;
+  animation:chipIn .6s var(--ease) .5s both;
+  transition:background .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease);
+}
+.return-chip:hover{background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.4); color:#fff;}
+.return-chip[hidden]{display:none;}
+.return-dot{width:6px; height:6px; border-radius:50%; background:var(--orange); flex:none;}
+.return-chip.is-builder .return-dot{background:var(--blue);}
+.return-go{transition:transform .25s var(--ease);}
+.return-chip:hover .return-go{transform:translateX(3px);}
+@keyframes chipIn{from{opacity:0; transform:translate(-50%,-8px);} to{opacity:1; transform:translate(-50%,0);}}
+@media (max-width:760px){
+  .return-chip{top:calc(var(--nav-h) + 8px); font-size:10.5px; padding:8px 13px;}
+}
+
 .stage-foot{
   position:absolute; left:0; right:0; bottom:0; z-index:20;
   display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;

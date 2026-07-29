@@ -33,10 +33,16 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="projet-split-hero/index.html" class="logo">
+    <div class="nav-left">
+      <a href="projet-split-hero/index.html" class="logo">
       <span class="logo-mark" aria-hidden="true"></span>
       <span class="logo-word">Projet</span>
     </a>
+      <div class="mode-switch" role="group" aria-label="Switch mode">
+        <a href="business.html" class="mode-opt" aria-current="page">Business</a>
+        <a href="builders.html" class="mode-opt">Builder</a>
+      </div>
+    </div>
     <nav class="links">
       <a href="#how-it-works">How it works</a>
       <a href="#defense">The defense</a>
@@ -45,15 +51,18 @@
       <a href="#pricing">Pricing</a>
     </nav>
     <div class="nav-cta">
-      <a href="builders.html" class="audience-switch">For builders <span class="arrow">&#8594;</span></a>
       <a href="login.html" class="nav-auth">Log in</a>
-      <a href="signup.html?role=business" class="btn btn-primary btn-sm">Post a brief</a>
+      <a href="signup.html?role=business" class="btn btn-primary btn-sm">Sign up</a>
     </div>
     <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
       <span class="nav-toggle-bars" aria-hidden="true"></span>
     </button>
   </div>
   <div class="mobile-menu" id="mobileMenu">
+    <div class="mode-switch" role="group" aria-label="Switch mode">
+        <a href="business.html" class="mode-opt" aria-current="page">Business</a>
+        <a href="builders.html" class="mode-opt">Builder</a>
+      </div>
     <a href="#how-it-works">How it works</a>
     <a href="#defense">The defense</a>
     <a href="#evidence">Evidence</a>
@@ -61,7 +70,7 @@
     <a href="#pricing">Pricing</a>
     <div class="mobile-menu-ctas">
       <a href="login.html" class="btn btn-ghost">Log in</a>
-      <a href="signup.html?role=business" class="btn btn-primary">Post a brief</a>
+      <a href="signup.html?role=business" class="btn btn-primary">Sign up</a>
     </div>
   </div>
 </header>
@@ -386,6 +395,10 @@
         <div class="calc-row total"><span>Quarter</span><span>S$7,250</span></div>
         <p class="price-desc" style="margin-top:14px;">An agency charges S$3–5k to place one intern, once, with no verified work attached. No success fee — hires made off-platform are uncollectable, so the unlock prices that value upfront.</p>
       </div>
+    </div>
+    <div class="price-cta reveal">
+      <p>Your first brief takes about 20 minutes to shape. You only pay to unlock a name once you've watched the defense and decided.</p>
+      <a href="signup.html?role=business" class="btn btn-orange">Post your first brief</a>
     </div>
   </section>
 

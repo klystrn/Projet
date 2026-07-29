@@ -53,6 +53,29 @@
     });
   });
 
+  /* Offer that remembered side back as a shortcut. The two panels stay exactly
+     as they are — this is an extra door, not a redirect, so someone who wants
+     the other side (or is on a shared machine) is never forced down it. */
+  (function () {
+    var chip = document.getElementById("returnChip");
+    var label = document.getElementById("returnLabel");
+    if (!chip || !label) return;
+
+    var mode = null;
+    try {
+      mode = localStorage.getItem("projet:mode");
+    } catch (e) {
+      return;
+    }
+    if (mode !== "business" && mode !== "builder") return;
+
+    var isBuilder = mode === "builder";
+    chip.href = isBuilder ? "../builders.html" : "../business.html";
+    label.textContent = "Continue as a " + (isBuilder ? "builder" : "business");
+    chip.classList.toggle("is-builder", isBuilder);
+    chip.hidden = false;
+  })();
+
   /* True only for focus that should behave like hover (keyboard tabbing),
      not the incidental focus a touch tap puts on a link. */
   function keyboardFocused(el) {
