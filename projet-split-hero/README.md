@@ -58,9 +58,11 @@ npx serve .
 
 ## Known placeholders to swap before shipping
 
-- **Navigation targets** — `href="/business"` and `href="/students"` on
-  the two panels are placeholders. Point them at the real routes once
-  they exist.
+- **Navigation targets** — resolved. The two panels link to the real
+  audience home pages, `../business.html` and `../builders.html` (paths
+  are relative since this folder sits one level below the repo root).
+  Update these if the pages ever move or a real router replaces the
+  static-file layout.
 - **Logo mark** — the nav logo is a small CSS-drawn circle standing in
   for the real Projet icon, so the prototype has zero external asset
   dependencies. Swap in the real exported logomark (SVG/PNG) whenever

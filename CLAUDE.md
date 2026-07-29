@@ -83,25 +83,68 @@ shipped code — always download/export the actual asset file locally (as
 was done for `projet-split-hero/assets/spectrum.jpg`) rather than linking
 the API URL directly.
 
-## What's in this folder
+## Site architecture / user flow (decided)
+
+The user flow is now wired end to end:
+
+```
+projet-split-hero/index.html   (the actual landing page / entry point)
+        │  choose Business or Builder
+        ├──► business.html     (audience-specific home, Willo-style structure)
+        └──► builders.html     (audience-specific home, Willo-style structure)
+
+projet-landing.html is now a secondary "Overview" page (audience-agnostic,
+reachable from either home page's footer / logo-adjacent link) — it's no
+longer the primary entry point.
+```
+
+`business.html` and `builders.html` both follow a problem-first narrative
+(modeled on how tool-first SaaS pages like Willo's are commonly structured —
+explain the pain before pitching the product): hero opens on the *problem*
+for that audience specifically (not a product statement), then a proof
+strip, problem/stat section, take-homes-broke comparison, how-it-works,
+the defense (signature feature), evidence (validity chart), traction
+(quotes + stats), an FAQ section (new — addresses that audience's likely
+objections), pricing (business page only — the builder page explains it's
+free to the candidate instead), and a final CTA. Copy is voiced per
+audience but every stat/rubric number/price is the same underlying fact
+from the pitch deck — nothing was invented per-audience.
+
+All three pages plus `projet-split-hero/` now share one stylesheet and one
+script file: `assets/site.css` and `assets/site.js` (previously each page
+carried its own copy of the same ~14KB of CSS — this was extracted once to
+kill that duplication). Page-specific tweaks (e.g. the builder page's blue
+accent overrides) live in a small inline `<style>` block in that page only.
 
 ### `projet-landing.html`
-A single-file, full marketing landing page prototype (static HTML/CSS/JS,
-no build step). This is the "scroll story" version: hero, problem stats,
-take-homes-broke comparison, 5-step how-it-works, an interactive defense
-rubric section with animated bars, the Schmidt/Oh/Shaffer evidence chart,
-traction stats, pricing cards, final CTA, footer. Content is drawn directly
-from the pitch deck (`Projet_consultant` project files / uploaded pitch
-deck PDF), upgraded from an earlier, more generic draft that lived at
-`https://projet-landing.vercel.app/`.
+A single-file marketing/overview page (static HTML/CSS/JS, no build step).
+The "scroll story" version: hero, problem stats, take-homes-broke
+comparison, 5-step how-it-works, an interactive defense rubric section
+with animated bars, the Schmidt/Oh/Shaffer evidence chart, traction stats,
+pricing cards, final CTA, footer. Content is drawn directly from the pitch
+deck (`Projet_consultant` project files / uploaded pitch deck PDF),
+upgraded from an earlier, more generic draft that lived at
+`https://projet-landing.vercel.app/` (that URL is blocked by this
+environment's network policy — CLAUDE-in-this-repo has never actually
+fetched it; treat this file's content as the source of truth instead of
+trying to diff against the old draft).
 
-**Status**: Functionally complete as a prototype. The Figma-hosted favicon,
-logo mark, and hero/final-CTA texture images have been swapped for local
-files (`/assets/favicon.svg`, a CSS-drawn `.logo-mark`, and
-`/assets/spectrum.jpg`) so the page no longer depends on expiring Figma
-export URLs. The texture is a generated placeholder standing in for the
-real fluid-swirl composite (see "Known issues" #4) — swap it for the real
-export whenever that's available.
+**Status**: Functionally complete as a secondary overview page. No longer
+the primary entry point (see "Site architecture" above) — its hero now
+offers two direct links ("I'm hiring" / "I'm building") into
+`business.html` / `builders.html` instead of the old JS toggle that swapped
+hero copy in place. The Figma-hosted favicon, logo mark, and hero/final-CTA
+texture images have been swapped for local files (`assets/favicon.svg`, a
+CSS-drawn `.logo-mark`, and `assets/spectrum.webp`) so the page no longer
+depends on expiring Figma export URLs. The texture is a generated
+placeholder standing in for the real fluid-swirl composite (see "Known
+issues" #4) — swap it for the real export whenever that's available.
+
+### `business.html` / `builders.html`
+The two audience-specific home pages a visitor actually lands on after
+picking a path in `projet-split-hero/`. See "Site architecture" above for
+the shared structure. Both are single, self-contained HTML files that pull
+in `assets/site.css` and `assets/site.js` — no page-specific build step.
 
 ### `projet-split-hero/`
 A second, separate prototype: a full-viewport "choose your path" landing
@@ -176,12 +219,11 @@ mechanic details).
    has actually done that export yet — ask, or check if a better swirl
    asset already exists before re-deriving it. Once it exists, swap it in
    for the placeholder mentioned in #3.
-5. **Navigation between the two prototypes isn't wired up.** `projet-split-hero`'s
-   panels link to placeholder `/business` and `/students` routes. Nothing
-   currently connects the split-hero chooser to `projet-landing.html` (which
-   is written as a single, audience-agnostic marketing page — it may need
-   to be split into business/student variants, or the chooser may need to
-   deep-link into anchors within it — this wasn't decided in the chat).
+5. **Resolved.** `projet-split-hero`'s panels now link to `business.html`
+   and `builders.html` (relative paths, `../business.html` /
+   `../builders.html` from inside the `projet-split-hero/` folder) — real
+   audience-specific home pages, not placeholder routes. See "Site
+   architecture / user flow" above for the full picture.
 6. **No real backend/routing exists.** Everything so far is static
    HTML/CSS/JS prototypes with no framework, no build step, and no actual
    page-to-page navigation implemented.
