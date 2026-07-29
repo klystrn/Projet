@@ -83,7 +83,12 @@ header.nav{
   display:flex; align-items:center; justify-content:space-between; gap:24px;
 }
 @media (max-width:640px){ .nav-inner{padding:14px 20px;} }
+/* Real exported logomark (assets/logo-dark.png / logo-white.png) replaces the
+   CSS-drawn stand-in. .logo-img is the shipping element; .logo-mark/.logo-word
+   are kept only as a no-image fallback. */
 .logo{display:flex; align-items:center; gap:8px;}
+.logo-img{height:26px; width:auto; display:block;}
+@media (max-width:480px){ .logo-img{height:23px;} }
 .logo-mark{
   position:relative; width:20px; height:20px; border-radius:50%;
   background:var(--orange); overflow:hidden; flex:none;

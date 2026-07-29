@@ -122,8 +122,7 @@ def nav(m):
   <div class="nav-inner">
     <div class="nav-left">
       <a href="projet-split-hero/index.html" class="logo">
-        <span class="logo-mark" aria-hidden="true"></span>
-        <span class="logo-word">Projet</span>
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
       </a>
       {switch}
     </div>
@@ -179,7 +178,9 @@ def page(m):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{m["title"]}</title>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -316,7 +317,7 @@ def page(m):
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand">
-        <span class="logo-word"><span class="logo-mark" aria-hidden="true"></span>Projet</span>
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
         <p>Challenge-based talent discovery for businesses and students.</p>
       </div>
 {fcols}

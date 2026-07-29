@@ -320,11 +320,14 @@ for returning visitors.
    open `index.html` directly) to check cascade timing/amplitude feel and
    the mobile rotation. Tune `BAR_COUNT`, the amplitude curve, and the
    per-bar delay in `script.js` to taste.
-2. **Real logo not embedded anywhere yet.** Both prototypes use a CSS-drawn
-   stand-in circle instead of the actual exported logomark. Export the real
-   logo from the Figma file above (node `1:64` / `1:80` / `1:84` depending
-   on background) as a permanent local SVG/PNG and swap it into both
-   `projet-landing.html` and `projet-split-hero/index.html`.
+2. **Resolved.** The user pushed the real logo exports to `assets/`
+   (`Logo Full Black/White/Orange.png`, `Logo 3 V2*.png`, `Logo O Alone.png`,
+   `Logo Background*.png`, `Test.png`). Trimmed, resized web copies are what
+   pages reference: **`assets/logo-dark.png`** on light backgrounds and
+   **`assets/logo-white.png`** on dark ones (chooser, auth asides), via
+   `.logo-img`. Favicons come from the icon mark — `favicon.ico`,
+   `favicon-32.png`, `apple-touch-icon.png`. `.logo-mark` / `.logo-word` are
+   still in the CSS purely as a no-image fallback; nothing renders them.
 3. **Resolved.** Favicon, logo mark, and hero/final-CTA texture all point
    at local files instead of expiring Figma URLs, and (see #4) the
    hero/final-CTA texture is now the real fluid-swirl composite rather
