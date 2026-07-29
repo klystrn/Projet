@@ -42,6 +42,14 @@
   </header>
 
   <main class="stage">
+
+    <!-- shown only to someone who has picked a side before (see script.js) -->
+    <a class="return-chip mono" id="returnChip" href="../business.html" hidden>
+      <span class="return-dot" aria-hidden="true"></span>
+      <span id="returnLabel"></span>
+      <span class="return-go" aria-hidden="true">&#8594;</span>
+    </a>
+
     <div class="split" id="split">
 
       <a href="../business.html" class="panel panel--business" data-audience="business" aria-label="Continue as a business">
