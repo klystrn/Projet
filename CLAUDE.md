@@ -205,20 +205,22 @@ mechanic details).
    logo from the Figma file above (node `1:64` / `1:80` / `1:84` depending
    on background) as a permanent local SVG/PNG and swap it into both
    `projet-landing.html` and `projet-split-hero/index.html`.
-3. **`projet-landing.html`'s Figma image URLs — fixed for the spectrum/logo
-   spots, swirl still open.** Favicon, logo mark, and hero/final-CTA
-   texture now point at local files instead of expiring Figma URLs. The
-   texture currently reuses the same diagonal-spectrum placeholder as
-   `projet-split-hero` — it is not the real fluid-swirl asset (see #4).
-4. **Fluid-swirl "background + foreground" compositing was never finished.**
-   The user identified that Figma node `1:22` ("background") and `1:23`
-   ("foreground") need to be composited together for the full-bleed
-   polished look (foreground alone leaves flat/gray corners). This was
-   blocked by the Figma rate limit and handed off as a manual Figma export
-   (select both layers → Export panel → PNG @2x). Unknown whether the user
-   has actually done that export yet — ask, or check if a better swirl
-   asset already exists before re-deriving it. Once it exists, swap it in
-   for the placeholder mentioned in #3.
+3. **Resolved.** Favicon, logo mark, and hero/final-CTA texture all point
+   at local files instead of expiring Figma URLs, and (see #4) the
+   hero/final-CTA texture is now the real fluid-swirl composite rather
+   than a placeholder.
+4. **Resolved.** The user exported the real assets directly into
+   `assets/`: `official-spectrum.png` (the real diagonal light-spectrum
+   stripe) and `fluid-full.png` (the composited background+foreground
+   swirl — `fluid-foreground.png` is also there for reference, showing the
+   flat corners the user described before compositing). Optimized `.webp`
+   derivatives of both are what's actually referenced from HTML/CSS:
+   `assets/spectrum.webp` (used by `projet-split-hero`'s bar divisor) and
+   `assets/fluid.webp` (used by the hero-visual/final-CTA texture on
+   `projet-landing.html`, `business.html`, and `builders.html`). A fluid
+   animation export, `assets/This_is_an_image_of_a_fluid_M.mp4`, is also
+   committed but not wired into anything yet — available if an animated
+   hero background is ever wanted.
 5. **Resolved.** `projet-split-hero`'s panels now link to `business.html`
    and `builders.html` (relative paths, `../business.html` /
    `../builders.html` from inside the `projet-split-hero/` folder) — real
