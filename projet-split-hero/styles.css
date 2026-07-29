@@ -1,0 +1,192 @@
+:root{
+  --ink:#08080a;
+  --orange:#ff5b24;
+  --blue:#2f6bff;
+  --nav-h:64px;
+  --ease:cubic-bezier(.22,.9,.28,1);
+
+  /* stripe geometry */
+  --stripe-w:clamp(150px, 15vw, 250px);
+  --bar-w:calc(var(--stripe-w) * 1.9);
+  --band-len:100vh;        /* length the bars stack along (swapped on mobile) */
+  --n:26;                  /* bar count, overwritten by JS */
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0;
+  height:100%;
+  overflow:hidden;              /* single-viewport chooser: no page scroll, no scrollbar */
+  background:var(--ink);
+}
+body{
+  font-family:'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  color:#fff;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'JetBrains Mono', monospace;}
+a{color:inherit; text-decoration:none;}
+
+/* ---------- NAV ---------- */
+.nav{
+  position:fixed; top:0; left:0; right:0; height:var(--nav-h);
+  display:flex; align-items:center; padding:0 28px;
+  z-index:30;
+  background:linear-gradient(to bottom, rgba(0,0,0,.5), transparent);
+}
+.logo{display:flex; align-items:center; gap:9px;}
+.logo-mark{
+  position:relative; width:20px; height:20px; border-radius:50%;
+  background:var(--orange); overflow:hidden;
+}
+.logo-mark::after{
+  content:''; position:absolute; top:-4px; right:-4px; width:14px; height:14px;
+  background:var(--ink); transform:rotate(45deg);
+}
+.logo-word{font-weight:900; font-size:20px; letter-spacing:-0.02em;}
+.logo-word .accent{color:var(--orange);}
+
+/* ---------- STAGE / SPLIT ---------- */
+.stage{position:relative; width:100vw; height:100vh; overflow:hidden;}
+
+.split{
+  position:relative;
+  display:flex;
+  width:100%;
+  height:100%;
+  opacity:0;
+  animation:fadeIn .9s var(--ease) .1s forwards;
+}
+@keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+
+/* ---------- PANELS ---------- */
+.panel{
+  position:relative;
+  /* no z-index here: .panel must stay z-index:auto so it doesn't open its own
+     stacking context, otherwise .panel-content's z-index:4 would be trapped
+     inside it and could never actually out-rank .stripe (z-index:3) — which
+     is exactly what let the fanned bars clip over the panel headline text. */
+  flex:1 1 0;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  overflow:hidden;
+  transition:flex-grow .85s var(--ease);
+}
+/* each side carries the colour of the spectrum end nearest it */
+.panel--business{ background:radial-gradient(120% 100% at 0% 50%, rgba(255,91,36,.16), transparent 62%), var(--ink); }
+.panel--student { background:radial-gradient(120% 100% at 100% 50%, rgba(47,107,255,.16), transparent 62%), var(--ink); }
+
+/* 5/8 vs 3/8 split on hover (5:3 flex-grow ratio) */
+.split[data-hover="business"] .panel--business{ flex-grow:5; }
+.split[data-hover="business"] .panel--student { flex-grow:3; }
+.split[data-hover="student"]  .panel--student { flex-grow:5; }
+.split[data-hover="student"]  .panel--business{ flex-grow:3; }
+
+.panel-content{
+  position:relative;
+  z-index:4;
+  display:flex; flex-direction:column; align-items:flex-start; gap:11px;
+  padding:0 6vw;
+  max-width:460px;
+  opacity:.9;
+  transition:opacity .6s var(--ease);
+}
+.panel--student .panel-content{ align-items:flex-end; text-align:right; margin-left:auto; }
+.panel:hover .panel-content,
+.panel:focus-within .panel-content{ opacity:1; }
+
+.panel-eyebrow{
+  font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--orange);
+}
+.panel--student .panel-eyebrow{ color:#7fa2ff; }
+.panel-title{
+  font-weight:900; font-size:clamp(32px,4.6vw,60px); letter-spacing:-0.02em; line-height:1;
+}
+.panel-copy{ font-size:15px; line-height:1.5; color:rgba(255,255,255,.72); max-width:320px; }
+.panel-cta{
+  margin-top:12px; display:inline-flex; align-items:center; gap:9px;
+  font-size:12.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  padding:11px 18px; border-radius:999px; border:1px solid rgba(255,255,255,.35);
+  transition:background .3s var(--ease), border-color .3s var(--ease);
+}
+.panel--business:hover .panel-cta,
+.panel--business:focus-within .panel-cta{ background:var(--orange); border-color:var(--orange); }
+.panel--student:hover .panel-cta,
+.panel--student:focus-within .panel-cta{ background:var(--blue); border-color:var(--blue); }
+.panel-cta .cta-arrow{ transition:transform .3s var(--ease); }
+.panel:hover .cta-arrow, .panel:focus-within .cta-arrow{ transform:translateX(3px); }
+.panel:focus-visible{ outline:2px solid #fff; outline-offset:-4px; }
+
+/* ---------- THE STRIPE ---------- */
+.stripe{
+  position:relative;
+  z-index:3;
+  flex:0 0 var(--stripe-w);
+  align-self:stretch;
+  overflow:visible;            /* bars fan past the band edges */
+  pointer-events:none;
+}
+.stripe-inner{
+  position:absolute; inset:0;
+  transition:filter .8s var(--ease);
+}
+.split[data-hover] .stripe-inner{ filter:saturate(1.18) brightness(1.14); }
+
+.bar{
+  position:absolute;
+  left:50%;
+  width:var(--bar-w);
+  height:calc(var(--band-len) / var(--n) + 1px);   /* +1px kills sub-pixel seams */
+  top:calc(var(--i) * var(--band-len) / var(--n));
+
+  background-image:url('assets/spectrum.jpg');
+  background-size:var(--bar-w) var(--band-len);     /* whole image, sliced across all bars */
+  background-position:0 calc(-1 * var(--i) * var(--band-len) / var(--n));
+  background-repeat:no-repeat;
+
+  /* soften the ends so fanned bars bleed into the panels instead of hard-cutting */
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  mask-image:linear-gradient(90deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+
+  transform:translateX(-50%);
+  transition:transform .85s var(--ease);
+  transition-delay:var(--delay, 0ms);
+  will-change:transform;
+}
+
+/* the shear: every bar slides away from the hovered side, by its own amplitude */
+.split[data-hover="business"] .bar{ transform:translateX(calc(-50% + var(--amp))); }
+.split[data-hover="student"]  .bar{ transform:translateX(calc(-50% - var(--amp))); }
+
+/* ---------- MOBILE: band rotates, panels stack ---------- */
+@media (max-width:760px){
+  :root{ --stripe-w:clamp(110px, 26vh, 170px); --band-len:100vw; }
+
+  .split{ flex-direction:column; }
+  .panel{ align-items:flex-end; }
+  .panel-content{ padding:0 8vw; max-width:none; }
+  .panel--student .panel-content{ align-items:flex-start; text-align:left; margin-left:0; }
+  .panel-copy{ max-width:none; }
+  .panel-title{ font-size:clamp(30px,9vw,46px); }
+
+  .panel--business{ background:radial-gradient(120% 100% at 50% 0%, rgba(255,91,36,.16), transparent 62%), var(--ink); }
+  .panel--student { background:radial-gradient(120% 100% at 50% 100%, rgba(47,107,255,.16), transparent 62%), var(--ink); }
+
+  /* rotate the whole band 90°: bars now stack across the screen and shear vertically */
+  .stripe{ flex:0 0 var(--stripe-w); }
+  .stripe-inner{
+    inset:auto;
+    position:absolute; top:50%; left:50%;
+    width:var(--stripe-w);
+    height:var(--band-len);
+    transform:translate(-50%,-50%) rotate(90deg);
+  }
+}
+
+/* ---------- REDUCED MOTION ---------- */
+@media (prefers-reduced-motion: reduce){
+  .split{ animation:none; opacity:1; }
+  .bar{ transition-duration:.001ms; transition-delay:0ms !important; }
+  .panel{ transition-duration:.001ms; }
+}

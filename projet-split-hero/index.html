@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projet — Choose your path</title>
+<meta name="description" content="Projet — hiring on proof. Choose whether you're here to hire or to build.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="/" class="logo" aria-label="Projet home">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="logo-word">Pr<span class="accent">o</span>jet</span>
+    </a>
+  </header>
+
+  <main class="stage">
+    <div class="split" id="split">
+
+      <a href="/business" class="panel panel--business" data-audience="business" aria-label="Continue as a business">
+        <span class="panel-content">
+          <span class="panel-eyebrow mono">For</span>
+          <span class="panel-title">Businesses</span>
+          <span class="panel-copy">Post a real brief from your backlog. Watch it defended live before you hire.</span>
+          <span class="panel-cta mono">
+            <span class="cta-text">Enter as a business</span>
+            <span class="cta-arrow" aria-hidden="true">&#8594;</span>
+          </span>
+        </span>
+      </a>
+
+      <!-- The spectrum: a stripe of individual bars that shear away from whichever side is hovered -->
+      <div class="stripe" aria-hidden="true">
+        <div class="stripe-inner" id="bars"></div>
+      </div>
+
+      <a href="/students" class="panel panel--student" data-audience="student" aria-label="Continue as a builder">
+        <span class="panel-content">
+          <span class="panel-eyebrow mono">For</span>
+          <span class="panel-title">Builders</span>
+          <span class="panel-copy">Solve a real brief. Defend your work live. Let the ranking speak for you.</span>
+          <span class="panel-cta mono">
+            <span class="cta-text">Enter as a builder</span>
+            <span class="cta-arrow" aria-hidden="true">&#8594;</span>
+          </span>
+        </span>
+      </a>
+
+    </div>
+  </main>
+
+<script src="script.js"></script>
+</body>
+</html>
