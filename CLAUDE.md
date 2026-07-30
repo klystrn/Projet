@@ -429,6 +429,37 @@ mechanic details).
      (max-width:760px)`) rotates the band 90° for the stacked mobile
      layout — carried over from the previous design, double check it still
      reads well with the new curved asset.
+3. **Description text now hides on the seam side, revealed by the retreating
+   spectrum, not a plain fade-in-place.** Each panel's content is split into
+   two pieces: `.panel-content` (the "For" eyebrow + big title) stays on the
+   panel's *outer* edge exactly where it always was; `.panel-copy` +
+   `.panel-cta` are now wrapped in a new `.panel-reveal` block pinned to the
+   panel's *inner*, seam-side edge — right where the bars rest. `.panel`
+   became `display:flex; justify-content:space-between` with these two
+   blocks as its children (order flipped via CSS `order` for the student
+   panel, so its header still lands on its own outer/right edge). At rest
+   `.panel-reveal` is `clip-path:inset()`-collapsed to zero width *against
+   the seam* and `opacity:0`; on hover/focus it un-clips in the same
+   direction the bars shear away (business un-clips left-to-right, student
+   right-to-left) over the same `.85s` duration as the bar transform, so the
+   retreating spectrum reads as physically uncovering the text rather than
+   two unrelated animations happening to overlap. Verified mid-transition
+   (250ms into the 850ms hover transition) that the text is visibly clipped
+   exactly at the bars' current position, confirming the sync.
+   - `min-width:0` on both `.panel-content` and `.panel-reveal` was
+     necessary — without it the flex items don't shrink when a panel is
+     squeezed to its 3/8 hover-away width, and the far panel's title clips
+     against the *screen* edge instead of wrapping/shrinking.
+   - Touch (`@media (hover:none)`) and mobile (`@media (max-width:760px)`)
+     both still show `.panel-reveal` outright rather than clip-hidden — the
+     seam-side positioning is a desktop-hover-only refinement; stacked
+     mobile panels reset `.panel` to `flex-direction:column` and cancel the
+     `order` flip, back to a plain top-to-bottom read.
+   - Reduced motion snaps `.panel-reveal`'s transition to `.001ms` (same
+     treatment as the bars), rather than forcing it permanently visible —
+     it's still reachable via hover/focus regardless of motion preference,
+     unlike the scroll-gated content on the home pages, so the "never
+     permanently hide content" rule doesn't apply the same way here.
 
 ## Auth / accounts (front end only)
 

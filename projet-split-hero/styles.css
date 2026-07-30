@@ -132,6 +132,11 @@ a{color:inherit; text-decoration:none;}
   min-width:0;
   display:flex;
   align-items:center;
+  /* .panel-content (the header) and .panel-reveal (the hidden description)
+     are now two flex children pushed to opposite edges — header stays on
+     the outer edge, reveal sits on the seam-side edge next to the stripe. */
+  justify-content:space-between;
+  gap:16px;
   overflow:hidden;
   transition:flex-grow .85s var(--ease);
 }
@@ -150,11 +155,14 @@ a{color:inherit; text-decoration:none;}
   z-index:4;
   display:flex; flex-direction:column; align-items:flex-start; gap:11px;
   padding:0 6vw;
-  max-width:460px;
+  max-width:380px;
+  min-width:0;
   opacity:.9;
   transition:opacity .6s var(--ease);
 }
-.panel--student .panel-content{ align-items:flex-end; text-align:right; margin-left:auto; }
+/* header stays on the outer edge for both sides (order:1 is the default,
+   so business needs no override) */
+.panel--student .panel-content{ order:2; align-items:flex-end; text-align:right; }
 .split[data-hover="business"] .panel--business .panel-content,
 .split[data-hover="student"]  .panel--student  .panel-content,
 .panel:focus-within .panel-content{ opacity:1; }
@@ -169,27 +177,53 @@ a{color:inherit; text-decoration:none;}
 .panel-title{
   font-weight:900; font-size:clamp(32px,4.6vw,60px); letter-spacing:-0.02em; line-height:1;
 }
-.panel-copy{
-  font-size:15px; line-height:1.5; color:rgba(255,255,255,.72); max-width:320px;
+
+/* ---------- THE REVEAL ----------
+   Sits on the seam-side edge of each panel, right where the spectrum bars
+   rest. It's clipped to zero width at rest — literally hidden behind the
+   bars' resting position — and swept open in the same direction the bars
+   shear away, so the retreating spectrum reads as physically uncovering it
+   rather than a plain fade appearing in place. */
+.panel-reveal{
+  position:relative;
+  z-index:4;
+  display:flex; flex-direction:column; gap:11px;
+  padding:0 3vw;
+  max-width:300px;
+  min-width:0;
   opacity:0;
-  transform:translateY(10px);
-  transition:opacity .5s var(--ease), transform .5s var(--ease);
+  transition:opacity .5s var(--ease), clip-path .85s var(--ease);
+  transition-delay:.05s;
+}
+.panel--business .panel-reveal{
+  align-items:flex-end; text-align:right;
+  clip-path:inset(0 100% 0 0);   /* collapsed against the seam, growing left-to-right */
+}
+.panel--student .panel-reveal{
+  order:1;
+  align-items:flex-start; text-align:left;
+  clip-path:inset(0 0 0 100%);   /* collapsed against the seam, growing right-to-left */
 }
 /* Reveal is driven by the data-hover attribute (set by JS on mouseenter AND on
    the first touch tap) rather than by :hover alone — touch devices emulate a
    sticky :hover that would otherwise leave one panel's copy stuck open. */
-.split[data-hover="business"] .panel--business .panel-copy,
-.split[data-hover="student"]  .panel--student  .panel-copy,
-.panel:focus-within .panel-copy{ opacity:1; transform:translateY(0); }
+.split[data-hover="business"] .panel--business .panel-reveal,
+.panel--business:focus-within .panel-reveal{ opacity:1; clip-path:inset(0 0 0 0); }
+.split[data-hover="student"]  .panel--student  .panel-reveal,
+.panel--student:focus-within  .panel-reveal{ opacity:1; clip-path:inset(0 0 0 0); }
 /* mouse-capable devices keep a pure-CSS fallback if JS hasn't run yet */
 @media (hover:hover){
-  .panel:hover .panel-copy{ opacity:1; transform:translateY(0); }
+  .panel--business:hover .panel-reveal{ opacity:1; clip-path:inset(0 0 0 0); }
+  .panel--student:hover  .panel-reveal{ opacity:1; clip-path:inset(0 0 0 0); }
 }
 /* Touch has no hover, and this screen exists to help someone choose a side —
    so the description is shown outright rather than hidden behind an extra tap
    that would also leave an empty gap holding its place. */
 @media (hover:none){
-  .panel-copy{ opacity:1; transform:none; }
+  .panel-reveal{ opacity:1; clip-path:inset(0 0 0 0); }
+}
+.panel-copy{
+  font-size:15px; line-height:1.5; color:rgba(255,255,255,.72);
 }
 .panel-cta{
   margin-top:12px; display:inline-flex; align-items:center; gap:9px;
@@ -282,9 +316,15 @@ a{color:inherit; text-decoration:none;}
     transform:translate(-50%,-50%) rotate(90deg);
   }
 
-  .panel{ align-items:center; }
+  /* Stacked vertically, the "seam-side edge" the reveal hugs on desktop has
+     no equivalent — both panels just read top-to-bottom instead, and (like
+     touch generally) show the description outright rather than clipped. */
+  .panel{ flex-direction:column; align-items:flex-start; justify-content:center; gap:9px; }
   .panel-content{ padding:0 24px; max-width:none; gap:9px; }
-  .panel--student .panel-content{ align-items:flex-start; text-align:left; margin-left:0; }
+  .panel-reveal{ padding:0 24px; max-width:none; align-items:flex-start; text-align:left; }
+  .panel--business .panel-reveal,
+  .panel--student  .panel-reveal{ order:initial; opacity:1; clip-path:inset(0 0 0 0); }
+  .panel--student .panel-content{ order:initial; align-items:flex-start; text-align:left; }
   .panel-copy{ max-width:34ch; }
   .panel-title{ font-size:clamp(30px,9vw,46px); }
   .panel-cta{ margin-top:14px; padding:13px 20px; }
@@ -306,5 +346,5 @@ a{color:inherit; text-decoration:none;}
   .split{ animation:none; opacity:1; }
   .bar{ transition-duration:.001ms; transition-delay:0ms !important; }
   .panel{ transition-duration:.001ms; }
-  .panel-copy{ transition-duration:.001ms; }
+  .panel-reveal{ transition-duration:.001ms; transition-delay:0ms; }
 }
