@@ -272,26 +272,83 @@
   });
 
   /* ------------------------------------------------------------------
+     SHARED SCROLL TICKER — everything below that needs a continuous scroll
+     position (as opposed to a one-time enter/exit, which IntersectionObserver
+     already handles fine elsewhere) hangs off this single rAF-gated loop
+     rather than each registering its own scroll listener.
+     ------------------------------------------------------------------ */
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion) document.documentElement.classList.add('reduced-motion');
+
+  var scrollUpdaters = [];
+  (function () {
+    var ticking = false;
+    function run() {
+      scrollUpdaters.forEach(function (fn) { fn(); });
+      ticking = false;
+    }
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(run);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    // deferred one tick so layout has settled (webfonts, images) before the
+    // first read of scroll position / element rects
+    window.addEventListener('load', onScroll);
+    onScroll();
+  })();
+
+  /* ---- scroll progress bar ---- */
+  (function () {
+    var bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+    scrollUpdaters.push(function () {
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - doc.clientHeight;
+      var pct = max > 0 ? (doc.scrollTop / max) * 100 : 0;
+      bar.style.width = pct + '%';
+    });
+  })();
+
+  /* ---- compact nav on scroll ---- */
+  (function () {
+    var nav = document.querySelector('header.nav');
+    if (!nav) return;
+    scrollUpdaters.push(function () {
+      nav.classList.toggle('is-compact', window.scrollY > 48);
+    });
+  })();
+
+  /* ---- subtle hero-visual parallax ---- */
+  (function () {
+    if (reducedMotion) return; // CSS forces transform:none for this exact reason
+    var img = document.querySelector('.hero-visual img.texture');
+    if (!img) return;
+    scrollUpdaters.push(function () {
+      // effect only matters while the hero is on screen; capping the input
+      // keeps it from doing anything once scrolled well past it
+      var shift = Math.max(-1, Math.min(1, window.scrollY / 600));
+      img.style.transform = 'translateY(' + (shift * 22) + 'px)';
+    });
+  })();
+
+  /* ------------------------------------------------------------------
      PROBLEM SECTION SCROLL-EMPHASIS — the three pain points sit on a
      vertical track; a fixed reference line partway down the viewport
      drives both the connecting line's fill (continuous 0-100%) and which
      point is "active" (point N activates once its midpoint crosses the
-     line). Deliberately a scroll+rAF loop rather than IntersectionObserver:
+     line). Runs off the shared ticker above rather than IntersectionObserver:
      IO reports enter/exit, not a continuous progress value, and the line
      fill needs the latter.
      ------------------------------------------------------------------ */
   (function () {
     var tracks = document.querySelectorAll('[data-pain-track]');
     if (!tracks.length) return;
-
-    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) {
-      document.documentElement.classList.add('reduced-motion');
-      return; // CSS shows every point active and the line full; nothing to drive
-    }
+    if (reducedMotion) return; // CSS shows every point active and the line full
 
     var REFERENCE_RATIO = 0.55; // 55% down the viewport
-    var ticking = false;
 
     function updateTrack(track) {
       var items = track.querySelectorAll('[data-pain-step]');
@@ -313,21 +370,34 @@
       track.setAttribute('data-ready', '');
     }
 
-    function updateAll() {
-      tracks.forEach(updateTrack);
-      ticking = false;
-    }
-
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(updateAll);
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    updateAll(); // in case a track is already in view on load (e.g. anchor jump)
+    scrollUpdaters.push(function () { tracks.forEach(updateTrack); });
   })();
+
+  /* ------------------------------------------------------------------
+     STAGGERED GRID REVEAL — cards in a [data-stagger] grid fade/lift in
+     one after another (rather than the whole grid appearing at once) once
+     the grid scrolls into view. One-shot per grid, like the how-it-works
+     steps above; unlike the pain track this doesn't need continuous
+     progress, so IntersectionObserver is the right tool here.
+     ------------------------------------------------------------------ */
+  document.querySelectorAll('[data-stagger]').forEach(function (grid) {
+    var items = grid.children;
+    if (!items.length) return;
+    if (reducedMotion) {
+      Array.prototype.forEach.call(items, function (el) { el.classList.add('in'); });
+      return;
+    }
+    var staggerIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        Array.prototype.forEach.call(items, function (el, i) {
+          setTimeout(function () { el.classList.add('in'); }, 90 * i);
+        });
+        staggerIO.disconnect();
+      });
+    }, { threshold: 0.15 });
+    staggerIO.observe(grid);
+  });
 
   // FAQ accordion — one open at a time
   document.querySelectorAll('.faq-item').forEach(function (item) {

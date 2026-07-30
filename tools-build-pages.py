@@ -31,7 +31,7 @@ FINAL_HEADLINE = "Where businesses with problems meet builders with potential."
 
 FOOTER_COLS = [
     ("Product", [("How it works", "#how-it-works"), ("What we offer", "#offer"),
-                 ("Business model", "#business-model")]),
+                 ("Business model", "#business-model"), ("Challenges", "challenges.html")]),
     ("Company", [("About", "#"), ("Careers", "#"), ("Contact", "#")]),
     ("Legal", [("Privacy", "#"), ("Terms", "#")]),
 ]
@@ -117,8 +117,10 @@ def nav(m):
     links = ('      <a href="#problem">The problem</a>\n'
              '      <a href="#offer">What we offer</a>\n'
              '      <a href="#how-it-works">How it works</a>\n'
-             '      <a href="#business-model">Business model</a>\n')
-    return f'''<header class="nav">
+             '      <a href="#business-model">Business model</a>\n'
+             '      <a href="challenges.html">Challenges</a>\n')
+    return f'''<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+<header class="nav">
   <div class="nav-inner">
     <div class="nav-left">
       <a href="projet-split-hero/index.html" class="logo">
@@ -261,7 +263,7 @@ def page(m):
       <span class="eyebrow">What we offer</span>
       <h2>{m["offer_headline"]}</h2>
     </div>
-    <div class="offer-grid reveal">
+    <div class="offer-grid" data-stagger>
 {offers}
     </div>
   </section>
@@ -283,7 +285,7 @@ def page(m):
       <span class="eyebrow">Business model</span>
       <h2>Simple for both sides.</h2>
     </div>
-    <div class="model-grid reveal">
+    <div class="model-grid" data-stagger>
       <div class="model-card {"dark" if m["role"] == "business" else "light"}">
         <h3>For Businesses</h3>
         <ul class="model-list">

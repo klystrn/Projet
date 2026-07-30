@@ -278,6 +278,35 @@ fallback both show all three points active and the line full immediately —
 there's no scroll-gated content that becomes permanently unreachable if JS
 never runs.
 
+**Four more scroll effects run off one shared ticker in `assets/site.js`**
+(a single `scroll`/`resize` listener gated by `requestAnimationFrame`, with
+each effect registering an update function into `scrollUpdaters` rather than
+adding its own listener):
+- A thin accent-colored bar (`#scrollProgress`, fixed top) tracks overall
+  page-scroll position.
+- `header.nav` gets `.is-compact` past 48px of scroll (tighter padding +
+  shadow) so the sticky header doesn't read as static.
+- The hero image (`.hero-visual img.texture`) gets a small parallax
+  `translateY`, capped so it does nothing once you've scrolled well past
+  the hero. The image is oversized to 112% (`inset:-6%`) so the drift never
+  exposes an edge.
+- The `.offer-grid` / `.model-grid` cards (`[data-stagger]` in the markup)
+  fade/lift in one after another rather than all at once, via
+  `IntersectionObserver` (one-shot, unlike the continuous pain-track).
+
+All of the above skip themselves under `prefers-reduced-motion` (the shared
+`reducedMotion` flag at the top of `site.js`) by showing the end state
+immediately — same rule as the pain-track: nothing becomes permanently
+hidden if motion is disabled or JS doesn't run.
+
+### `challenges.html`
+A deliberately empty stub, linked from both home pages' nav (a real link,
+not an anchor) and footer "Product" column. Its own small nav (no mode
+switch, no section anchors — there's nothing on the page for them to point
+at yet) plus a centered "coming soon" message and a CTA into `signup.html`.
+Exists so the nav's browse-challenges path isn't a dead link; replace the
+body with the real listing UI when that's built.
+
 ### `projet-split-hero/`
 A second, separate prototype: a full-viewport "choose your path" landing
 screen (Business vs. Builder) meant to sit *before* the marketing page in
