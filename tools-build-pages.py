@@ -4,7 +4,7 @@ Generates business.html / builders.html from the copy in Andrei's landing repo
 (AndreiYo037/projet-landing -> src/lib/content.ts). Run once; the HTML output is
 what ships. Kept out of the site repo so there's still no build step.
 """
-import html, pathlib
+import html, pathlib, re
 
 OUT = pathlib.Path("/home/user/Projet")
 
@@ -160,11 +160,27 @@ def nav(m):
 </header>'''
 
 
+def countify(text):
+    """Wrap the first integer in a UI-mockup string so site.js can count it
+    up from 0 when the hero card scrolls into view — e.g. "42 submissions"
+    -> "<span class="count-up" data-count-to="42">42</span> submissions".
+    The pre-rendered value is the real number so no-js/reduced-motion just
+    shows the final count with no animation, same fallback rule as every
+    other scroll effect on the page."""
+    m = re.search(r'\d+', text)
+    if not m:
+        return text
+    n = m.group(0)
+    return (text[:m.start()] +
+            f'<span class="count-up" data-count-to="{n}">{n}</span>' +
+            text[m.end():])
+
+
 def page(m):
     body_class = " mode-builder" if m["role"] == "builder" else ""
     rows = "\n".join(
         f'          <div class="cand-row"><div class="cand-left">'
-        f'<span class="cand-rank">{i+1:02d}</span> {r}</div></div>'
+        f'<span class="cand-rank">{i+1:02d}</span> {countify(r)}</div></div>'
         for i, r in enumerate(m["card_rows"]))
     pains = "\n".join(
         f'      <div class="pain-item" data-pain-step="{i}">\n'
@@ -176,10 +192,15 @@ def page(m):
         f'      <div class="offer-card"><span class="offer-num">{i+1:02d}</span>'
         f'<h3>{t}</h3><p>{d}</p></div>'
         for i, (t, d) in enumerate(m["offers"]))
-    steps = "\n".join(
-        f'      <div class="step"><div class="step-badge">{i+1:02d}</div>'
-        f'<h4>{t}</h4><p>{d}</p></div>'
+    how_steps = "\n".join(
+        f'        <div class="how-stage-step" data-how-step="{i}">\n'
+        f'          <span class="how-num">{i+1:02d}</span>\n'
+        f'          <h3>{t}</h3><p>{d}</p>\n'
+        f'        </div>'
         for i, (t, d) in enumerate(HOW))
+    how_dots = "\n".join(
+        f'        <span class="how-dot" data-how-dot="{i}"></span>'
+        for i in range(len(HOW)))
     fcols = "\n".join(
         '      <div class="footer-col">\n        <h6>' + title + '</h6>\n' +
         "".join(f'        <a href="{h}">{l}</a>\n' for l, h in links) +
@@ -280,16 +301,25 @@ def page(m):
     </div>
   </section>
 
-  <!-- HOW IT WORKS -->
+  <!-- HOW IT WORKS — steps stick in view while scroll advances which one
+       is active; collapses to a plain static list under 900px / no-js /
+       reduced-motion (see .how-pin in site.css). -->
   <section class="section wrap" id="how-it-works">
     <div class="section-head reveal">
       <span class="eyebrow">How it works</span>
       <h2>One pipeline. Two sides. Real outcomes.</h2>
     </div>
-    <div class="steps-grid steps-4 reveal">
-{steps}
-    </div>
   </section>
+  <div class="how-pin" data-how-pin>
+    <div class="how-pin-inner">
+      <div class="how-stage">
+{how_steps}
+      </div>
+      <div class="how-dots">
+{how_dots}
+      </div>
+    </div>
+  </div>
 
   <!-- CHALLENGES TEASER -->
   <section class="wrap">

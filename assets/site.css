@@ -34,6 +34,22 @@ html{scroll-behavior:smooth;}
   html{scroll-behavior:auto;}
   *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
 }
+
+/* gentle section snapping — "proximity" (not "mandatory") only snaps once
+   the user has already stopped scrolling near a section, so it never fights
+   a fast wheel/trackpad scroll; skipped entirely under reduced motion since
+   even proximity snapping is still browser-driven motion */
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-snap-type:y proximity; scroll-padding-top:92px;}
+}
+section.wrap, .how-pin{scroll-snap-align:start;}
+/* the how-it-works header is a short lead-in right before .how-pin — as its
+   own snap point it sat close enough to the pin's start to be a second,
+   redundant snap target a few hundred px apart. Leaving only .how-pin as
+   the target here keeps entry into the pin clean (real-user wheel-scroll
+   testing confirmed proximity snapping otherwise coexists fine with the
+   scrub itself — it doesn't yank position during it). */
+#how-it-works{scroll-snap-align:none;}
 body{
   margin:0;
   font-family:'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -388,6 +404,7 @@ nav.links a:hover{color:var(--ink);}
 .cand-row{display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-top:1px solid rgba(255,255,255,.1);}
 .cand-row:first-of-type{border-top:none;}
 .cand-left{display:flex; align-items:center; gap:10px; font-size:13px;}
+.count-up{font-variant-numeric:tabular-nums;}
 .cand-rank{font-family:'JetBrains Mono'; color:var(--accent); font-weight:700; width:16px;}
 .cand-score{font-family:'JetBrains Mono'; font-size:11px; color:rgba(255,255,255,.6);}
 .unlock-pill{
@@ -555,10 +572,64 @@ nav.links a:hover{color:var(--ink);}
 }
 @media (max-width:640px){ .model-card{padding:26px 22px;} }
 
-/* how-it-works with four steps rather than five */
-.steps-grid.steps-4{grid-template-columns:repeat(4,1fr);}
-@media (max-width:900px){ .steps-grid.steps-4{grid-template-columns:repeat(2,1fr);} }
-@media (max-width:520px){ .steps-grid.steps-4{grid-template-columns:1fr;} }
+/* ---------- HOW IT WORKS — pinned scroll-through ----------
+   The section sticks in the viewport while the user scrolls past a tall
+   wrapper; a scroll-driven progress value (site.js, off the shared ticker
+   like the pain track) decides which of the four steps is active. Collapses
+   to a plain static list under 900px / no-js / reduced-motion — sticky-
+   scrubbing a narrow phone viewport reads as broken, not immersive. */
+.how-pin{position:relative; height:400vh;}
+.how-pin-inner{
+  position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:0 32px;
+}
+.how-stage{position:relative; width:100%; max-width:620px; min-height:220px; text-align:center;}
+.how-stage-step{
+  position:absolute; inset:0; opacity:0; transform:translateY(18px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease);
+  pointer-events:none;
+}
+.how-stage-step.is-active{opacity:1; transform:translateY(0); pointer-events:auto;}
+.how-num{
+  font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;
+  letter-spacing:.1em; color:var(--accent); display:block; margin-bottom:14px;
+}
+.how-stage-step h3{font-size:clamp(24px,3vw,32px); margin-bottom:12px;}
+.how-stage-step p{font-size:16px; line-height:1.6; color:var(--ink-soft); max-width:52ch; margin:0 auto;}
+.how-dots{display:flex; gap:10px; margin-top:44px;}
+.how-dot{
+  width:8px; height:8px; border-radius:50%; background:var(--line);
+  transition:background .3s var(--ease), transform .3s var(--ease);
+}
+.how-dot.is-active{background:var(--accent); transform:scale(1.3);}
+
+/* .how-pin sits outside .wrap (it needs full-bleed width for the sticky
+   pin), so the collapsed fallback below has to reapply .wrap's own side
+   padding by hand — otherwise the static list renders flush against the
+   raw viewport edge instead of lining up with every other section. */
+@media (max-width:900px){
+  .how-pin{height:auto;}
+  .how-pin-inner{position:static; height:auto; display:block; padding:0 32px; max-width:var(--maxw); margin:0 auto;}
+  .how-stage{position:static; min-height:0; max-width:none; text-align:left;}
+  .how-stage-step{position:static; opacity:1; transform:none; pointer-events:auto; padding:22px 0;}
+  .how-stage-step:not(:last-child){border-bottom:1px solid var(--line);}
+  .how-stage-step p{margin:0;}
+  .how-dots{display:none;}
+}
+@media (max-width:640px){
+  .how-pin-inner{padding:0 20px;}
+}
+.no-js .how-pin, .reduced-motion .how-pin{height:auto;}
+.no-js .how-pin-inner, .reduced-motion .how-pin-inner{position:static; height:auto; display:block; padding:0 32px; max-width:var(--maxw); margin:0 auto;}
+.no-js .how-stage, .reduced-motion .how-stage{position:static; min-height:0; max-width:none; text-align:left;}
+.no-js .how-stage-step, .reduced-motion .how-stage-step{position:static; opacity:1; transform:none; pointer-events:auto; padding:22px 0;}
+.no-js .how-stage-step:not(:last-child), .reduced-motion .how-stage-step:not(:last-child){border-bottom:1px solid var(--line);}
+.no-js .how-stage-step p, .reduced-motion .how-stage-step p{margin:0;}
+.no-js .how-dots, .reduced-motion .how-dots{display:none;}
+@media (max-width:640px){
+  .no-js .how-pin-inner, .reduced-motion .how-pin-inner{padding:0 20px;}
+}
 
 /* ---------- COMPARISON ---------- */
 .compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}

@@ -393,11 +393,38 @@
   })();
 
   /* ------------------------------------------------------------------
+     HOW IT WORKS — pinned scroll-through. Same shape as the pain track:
+     a continuous scroll-progress value (not IntersectionObserver, since
+     enter/exit alone can't say "we're 60% of the way down the pin") picks
+     which of the four steps is active while .how-pin holds the section on
+     screen via position:sticky. CSS collapses this to a plain static list
+     under 900px, so the width check below just leaves that layout alone.
+     ------------------------------------------------------------------ */
+  (function () {
+    var pin = document.querySelector('[data-how-pin]');
+    if (!pin || reducedMotion) return;
+
+    var howSteps = pin.querySelectorAll('[data-how-step]');
+    var howDots = pin.querySelectorAll('[data-how-dot]');
+    if (!howSteps.length) return;
+
+    scrollUpdaters.push(function () {
+      if (window.innerWidth <= 900) return; // CSS already shows it as a static list
+      var rect = pin.getBoundingClientRect();
+      var total = rect.height - window.innerHeight;
+      var progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      var idx = Math.min(howSteps.length - 1, Math.floor(progress * howSteps.length));
+      howSteps.forEach(function (step, i) { step.classList.toggle('is-active', i === idx); });
+      howDots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === idx); });
+    });
+  })();
+
+  /* ------------------------------------------------------------------
      STAGGERED GRID REVEAL — cards in a [data-stagger] grid fade/lift in
      one after another (rather than the whole grid appearing at once) once
-     the grid scrolls into view. One-shot per grid, like the how-it-works
-     steps above; unlike the pain track this doesn't need continuous
-     progress, so IntersectionObserver is the right tool here.
+     the grid scrolls into view. One-shot per grid; unlike the pain track
+     this doesn't need continuous progress, so IntersectionObserver is the
+     right tool here.
      ------------------------------------------------------------------ */
   document.querySelectorAll('[data-stagger]').forEach(function (grid) {
     var items = grid.children;
@@ -417,6 +444,69 @@
     }, { threshold: 0.15 });
     staggerIO.observe(grid);
   });
+
+  /* ------------------------------------------------------------------
+     COUNT-UP NUMBERS — the hero card's mockup rows ("42 submissions",
+     "Ranked top 8%") carry the real number as their pre-rendered text
+     (tools-build-pages.py's countify()), so no-js/reduced-motion visitors
+     just see the finished number. With JS + motion on, each one resets to
+     0 and animates up once it scrolls into view, one-shot.
+     ------------------------------------------------------------------ */
+  (function () {
+    var counters = document.querySelectorAll('.count-up');
+    if (!counters.length || reducedMotion) return;
+
+    counters.forEach(function (el) { el.textContent = '0'; });
+
+    var DURATION = 900;
+    var countIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target;
+        var target = parseInt(el.getAttribute('data-count-to'), 10) || 0;
+        var start = null;
+        function step(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / DURATION, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(eased * target);
+          if (p < 1) window.requestAnimationFrame(step);
+        }
+        window.requestAnimationFrame(step);
+        countIO.unobserve(el);
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(function (el) { countIO.observe(el); });
+  })();
+
+  /* ------------------------------------------------------------------
+     CARD TILT — offer/model cards tilt slightly toward the cursor on
+     precise-pointer devices only (touch has no hover, so this would just
+     be a stuck tilt on the last-tapped card there). Skipped under reduced
+     motion like everything else here.
+     ------------------------------------------------------------------ */
+  (function () {
+    if (reducedMotion) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    var MAX_TILT = 5;
+    document.querySelectorAll('.offer-card, .model-card').forEach(function (card) {
+      card.addEventListener('mouseenter', function () {
+        card.style.transition = 'transform .05s linear';
+      });
+      card.addEventListener('mousemove', function (e) {
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform =
+          'perspective(700px) rotateX(' + (-py * MAX_TILT) + 'deg) rotateY(' + (px * MAX_TILT) + 'deg)';
+      });
+      card.addEventListener('mouseleave', function () {
+        card.style.transition = 'transform .4s var(--ease, ease)';
+        card.style.transform = '';
+      });
+    });
+  })();
 
   // FAQ accordion — one open at a time
   document.querySelectorAll('.faq-item').forEach(function (item) {

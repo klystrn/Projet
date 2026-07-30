@@ -106,8 +106,8 @@
           </div>
           <div class="hero-card-title">Rebuild the pricing page conversion flow</div>
           <div class="cand-row"><div class="cand-left"><span class="cand-rank">01</span> Challenge live</div></div>
-          <div class="cand-row"><div class="cand-left"><span class="cand-rank">02</span> 42 submissions</div></div>
-          <div class="cand-row"><div class="cand-left"><span class="cand-rank">03</span> Top 5 shortlisted</div></div>
+          <div class="cand-row"><div class="cand-left"><span class="cand-rank">02</span> <span class="count-up" data-count-to="42">42</span> submissions</div></div>
+          <div class="cand-row"><div class="cand-left"><span class="cand-rank">03</span> Top <span class="count-up" data-count-to="5">5</span> shortlisted</div></div>
           <div class="cand-row"><div class="cand-left"><span class="cand-rank">04</span> Invite to interview</div></div>
         </div>
       </div>
@@ -154,19 +154,43 @@
     </div>
   </section>
 
-  <!-- HOW IT WORKS -->
+  <!-- HOW IT WORKS — steps stick in view while scroll advances which one
+       is active; collapses to a plain static list under 900px / no-js /
+       reduced-motion (see .how-pin in site.css). -->
   <section class="section wrap" id="how-it-works">
     <div class="section-head reveal">
       <span class="eyebrow">How it works</span>
       <h2>One pipeline. Two sides. Real outcomes.</h2>
     </div>
-    <div class="steps-grid steps-4 reveal">
-      <div class="step"><div class="step-badge">01</div><h4>Business posts a challenge</h4><p>Companies publish real business or technical problems for builders to solve.</p></div>
-      <div class="step"><div class="step-badge">02</div><h4>Builders compete</h4><p>Builders tackle the challenge and submit their best work.</p></div>
-      <div class="step"><div class="step-badge">03</div><h4>Top performers get evaluated</h4><p>Businesses review real output — not resumes — and shortlist standouts.</p></div>
-      <div class="step"><div class="step-badge">04</div><h4>Interviews, internships &amp; recognition</h4><p>Top talent advances to opportunities; builders earn rankings and visibility.</p></div>
-    </div>
   </section>
+  <div class="how-pin" data-how-pin>
+    <div class="how-pin-inner">
+      <div class="how-stage">
+        <div class="how-stage-step" data-how-step="0">
+          <span class="how-num">01</span>
+          <h3>Business posts a challenge</h3><p>Companies publish real business or technical problems for builders to solve.</p>
+        </div>
+        <div class="how-stage-step" data-how-step="1">
+          <span class="how-num">02</span>
+          <h3>Builders compete</h3><p>Builders tackle the challenge and submit their best work.</p>
+        </div>
+        <div class="how-stage-step" data-how-step="2">
+          <span class="how-num">03</span>
+          <h3>Top performers get evaluated</h3><p>Businesses review real output — not resumes — and shortlist standouts.</p>
+        </div>
+        <div class="how-stage-step" data-how-step="3">
+          <span class="how-num">04</span>
+          <h3>Interviews, internships &amp; recognition</h3><p>Top talent advances to opportunities; builders earn rankings and visibility.</p>
+        </div>
+      </div>
+      <div class="how-dots">
+        <span class="how-dot" data-how-dot="0"></span>
+        <span class="how-dot" data-how-dot="1"></span>
+        <span class="how-dot" data-how-dot="2"></span>
+        <span class="how-dot" data-how-dot="3"></span>
+      </div>
+    </div>
+  </div>
 
   <!-- CHALLENGES TEASER -->
   <section class="wrap">

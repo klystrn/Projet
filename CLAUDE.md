@@ -322,6 +322,59 @@ page's content, not just its nav/footer. Copy is per-audience
 dict); the button reuses `m["accent"]` so it's orange on `business.html`
 and blue on `builders.html` like every other mode-aware CTA.
 
+**How it works is now a pinned scroll-scrub, not a static grid.**
+`.how-pin` (`data-how-pin` in the markup, generated from the same `HOW`
+list as before) is a 400vh-tall wrapper; `.how-pin-inner` sticks to the
+viewport while the user scrolls through it, and a continuous scroll-progress
+value — same shape as the pain-track math, off the shared ticker — decides
+which of the four `.how-stage-step`s is active (large centered heading +
+dot indicator). Collapses to a plain static stacked list under 900px / no-js
+/ reduced-motion (`.how-pin` loses its height and `.how-pin-inner` its
+sticky/flex positioning via CSS overrides) — sticky-scrubbing a narrow
+phone viewport reads as broken, not immersive, and the fallback has to
+reapply `.wrap`'s own side padding by hand since `.how-pin` sits outside
+`.wrap` (it needs full-bleed width for the sticky mechanics). The
+`#how-it-works` header section (the short "How it works" eyebrow+heading
+lead-in right before the pin) is deliberately excluded from section
+snapping (see below) — as its own snap point it sat only ~600px from the
+pin's own start, a second target close enough to be redundant.
+
+**Gentle section-to-section scroll snapping.** `html{scroll-snap-type:y
+proximity}` plus `scroll-snap-align:start` on every `section.wrap` (and
+`.how-pin`) — "proximity", not "mandatory", so it only nudges the scroll
+position once a gesture has essentially stopped near a section boundary,
+never fighting a fast wheel/trackpad scroll. Wrapped in
+`@media (prefers-reduced-motion: no-preference)` since even proximity
+snapping is still browser-driven motion. **This was tested against the
+how-it-works pin specifically** (real multi-chunk wheel-scroll simulation,
+not a single instant `scrollTo` jump — an earlier test using the latter
+produced a false-positive "snap fights the pin" result caused by
+`scroll-behavior:smooth` animating through an intermediate snap point, not
+an actual conflict) and confirmed to coexist fine: scrolling all the way
+through the pin in realistic discrete increments advances every step in
+order with no skips or snap-backs, and dwelling near the pin's end (close
+to `#business-model`'s own snap point) only produces a ~9px drift, not a
+jump.
+
+**Count-up numbers.** The hero card's mockup rows already contained real
+numbers as plain text ("42 submissions", "Ranked top 8%") — `countify()` in
+`tools-build-pages.py` wraps the first integer in each `card_rows` string
+in `<span class="count-up" data-count-to="N">N</span>`, pre-rendered with
+the real value so no-js/reduced-motion visitors just see the finished
+number. With JS + motion on, `site.js` resets each one to 0 and animates it
+up over ~900ms (eased) the first time it scrolls into view. Deliberately
+didn't invent new stats for this — these are the pre-existing hero-card
+mockup numbers, not marketing traction figures, so animating them doesn't
+run afoul of the "don't invent stats" rule below.
+
+**Card tilt.** `.offer-card` / `.model-card` tilt a few degrees toward the
+cursor on `mousemove`, restricted to `(hover: hover) and (pointer: fine)`
+devices via `matchMedia` (touch has no hover, so this would just leave a
+stuck tilt on whichever card was last tapped) and skipped under reduced
+motion. Plain inline `transform`/`transition` set directly in `site.js`,
+reset to `''` on `mouseleave` so it falls back to the CSS-driven
+`translateY(0)` resting state from the stagger reveal.
+
 ### `challenges.html`
 A deliberately empty stub, linked from both home pages' nav (a real link,
 not an anchor), footer "Product" column, and now a body-level
