@@ -40,31 +40,16 @@
         <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
       </a>
       <div class="mode-switch" role="group" aria-label="Switch mode">
-        <a href="business.html" class="mode-opt">For company</a>
-        <a href="builders.html" class="mode-opt is-builder" aria-current="page">For builders</a>
+        <a href="business.html" class="mode-opt">Business</a>
+        <a href="builders.html" class="mode-opt is-builder" aria-current="page">Builder</a>
       </div>
     </div>
     <nav class="links">
-      <div class="nav-dropdown" data-dropdown>
-        <button class="nav-drop-trigger" aria-expanded="false">Challenges <span class="chev" aria-hidden="true">&#9662;</span></button>
-        <div class="nav-drop-panel">
-          <span class="drop-label">Browse</span>
-          <a href="challenges.html">All challenges</a>
-          <a href="challenges.html">Active</a>
-          <a href="challenges.html">Newest</a>
-          <a href="challenges.html">Most popular</a>
-          <a href="signup.html?role=business" class="drop-cta">Post a challenge &#8594;</a>
-        </div>
-      </div>
-      <div class="nav-dropdown" data-dropdown>
-        <button class="nav-drop-trigger" aria-expanded="false">Resources <span class="chev" aria-hidden="true">&#9662;</span></button>
-        <div class="nav-drop-panel">
-          <a href="#how-it-works">How it works</a>
-          <a href="#testimonials">Testimonials</a>
-          <a href="challenges.html">Projects showcase</a>
-          <a href="#footer">Contact</a>
-        </div>
-      </div>
+      <a href="#problem">The problem</a>
+      <a href="#offer">What we offer</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#business-model">Business model</a>
+      <a href="challenges.html">Challenges</a>
     </nav>
     <div class="nav-cta">
       <a href="login.html" class="nav-auth">Log in</a>
@@ -76,14 +61,14 @@
   </div>
   <div class="mobile-menu" id="mobileMenu">
     <div class="mode-switch" role="group" aria-label="Switch mode">
-        <a href="business.html" class="mode-opt">For company</a>
-        <a href="builders.html" class="mode-opt is-builder" aria-current="page">For builders</a>
+        <a href="business.html" class="mode-opt">Business</a>
+        <a href="builders.html" class="mode-opt is-builder" aria-current="page">Builder</a>
       </div>
-      <a href="challenges.html">Browse challenges</a>
-      <a href="signup.html?role=business">Post a challenge</a>
+      <a href="#problem">The problem</a>
+      <a href="#offer">What we offer</a>
       <a href="#how-it-works">How it works</a>
-      <a href="#testimonials">Testimonials</a>
-      <a href="#footer">Contact</a>
+      <a href="#business-model">Business model</a>
+      <a href="challenges.html">Challenges</a>
     <div class="mobile-menu-ctas">
       <a href="login.html" class="btn btn-ghost">Log in</a>
       <a href="signup.html?role=builder" class="btn btn-blue">Sign up</a>
@@ -93,7 +78,7 @@
 
 <main id="top">
 
-  <!-- HERO -->
+  <!-- 1. BRIEF DESCRIPTION — what Projet is, and the promise for this mode -->
   <section class="hero wrap">
     <div class="hero-grid">
       <div>
@@ -106,11 +91,7 @@
           <a href="signup.html?role=builder" class="btn btn-blue">Join a Challenge</a>
           <a href="#offer" class="btn btn-ghost">See what we offer</a>
         </div>
-        <div class="hero-stats reveal">
-          <span>&#10003; Free to join</span>
-          <span>&#10003; Real company problems</span>
-          <span>&#10003; Get noticed for what you ship</span>
-        </div>
+        <p class="hero-mission reveal">To bridge the gap between businesses and builder talent by making real work the strongest hiring signal.</p>
       </div>
 
       <div class="hero-visual reveal">
@@ -124,50 +105,16 @@
             <span class="tag">LIVE</span>
           </div>
           <div class="hero-card-title">Rebuild the pricing page conversion flow</div>
-          <div class="cand-row"><div class="cand-left"><span class="cand-rank">01</span><span class="cand-desc">Challenge joined</span></div></div>
-          <div class="cand-row"><div class="cand-left"><span class="cand-rank">02</span><span class="cand-desc">Solution submitted</span></div></div>
-          <div class="cand-row"><div class="cand-left"><span class="cand-rank">03</span><span class="cand-desc">Ranked top <span class="count-up" data-count-to="8">8</span>%</span></div></div>
-          <div class="cand-row"><div class="cand-left"><span class="cand-rank">04</span><span class="cand-desc">Company noticed</span></div></div>
+          <div class="cand-row"><div class="cand-left"><span class="cand-rank">01</span> Challenge joined</div></div>
+          <div class="cand-row"><div class="cand-left"><span class="cand-rank">02</span> Solution submitted</div></div>
+          <div class="cand-row"><div class="cand-left"><span class="cand-rank">03</span> Ranked top <span class="count-up" data-count-to="8">8</span>%</div></div>
+          <div class="cand-row"><div class="cand-left"><span class="cand-rank">04</span> Company noticed</div></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- LOGO STRIP — placeholder chips (no real customer logos yet); pure-CSS
-       marquee, paused under reduced-motion/no-js. -->
-  <section class="wrap logo-strip-wrap">
-    <div class="logo-marquee" aria-hidden="true">
-      <div class="logo-track">
-        <span class="logo-chip">Company</span>
-        <span class="logo-chip">Studio</span>
-        <span class="logo-chip">Startup</span>
-        <span class="logo-chip">Venture</span>
-        <span class="logo-chip">Collective</span>
-        <span class="logo-chip">Workshop</span>
-        <span class="logo-chip">Company</span>
-        <span class="logo-chip">Studio</span>
-        <span class="logo-chip">Startup</span>
-        <span class="logo-chip">Venture</span>
-        <span class="logo-chip">Collective</span>
-        <span class="logo-chip">Workshop</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURED CHALLENGES — challenges.html is still a stub, so this is a
-       teaser into it rather than a real listing. -->
-  <section class="wrap">
-    <div class="challenges-teaser reveal">
-      <div>
-        <span class="eyebrow">Featured challenges</span>
-        <h3>Ready to prove what you can do?</h3>
-        <p>Browse open challenges and jump into one that matches your skills.</p>
-      </div>
-      <a href="challenges.html" class="btn btn-blue">Browse challenges</a>
-    </div>
-  </section>
-
-  <!-- PROBLEM STATEMENT + PAIN POINTS -->
+  <!-- 2. PROBLEM STATEMENT + 3. PAIN POINTS -->
   <section class="section wrap" id="problem">
     <div class="section-head reveal">
       <span class="eyebrow">The problem</span>
@@ -191,7 +138,7 @@
     </div>
   </section>
 
-  <!-- WHAT PROJET OFFERS -->
+  <!-- 4. WHAT PROJET OFFERS — the solutions -->
   <section class="section wrap" id="offer" style="padding-top:0;">
     <div class="section-head reveal">
       <span class="eyebrow">What we offer</span>
@@ -245,44 +192,15 @@
     </div>
   </div>
 
-  <!-- TESTIMONIALS — placeholder quotes (no named individuals/companies)
-       until real ones exist; the carousel mechanic itself is real. -->
-  <section class="section wrap" id="testimonials">
-    <div class="section-head reveal">
-      <span class="eyebrow">Testimonials</span>
-      <h2>What people are saying.</h2>
-    </div>
-    <div class="testimonial-carousel reveal">
-      <button class="carousel-btn carousel-prev" aria-label="Previous testimonial">&#8592;</button>
-      <div class="testimonial-track" data-testimonial-track>
-        <div class="testimonial-card">
-          <p class="testimonial-quote">“I finally had something real to point to instead of another bullet point on a resume.”</p>
-          <p class="testimonial-attr">Builder, early pilot</p>
-        </div>
-        <div class="testimonial-card">
-          <p class="testimonial-quote">“Got noticed off the back of one challenge — no cover letter needed.”</p>
-          <p class="testimonial-attr">Builder, early pilot</p>
-        </div>
-        <div class="testimonial-card">
-          <p class="testimonial-quote">“It's the first time a company actually asked how I think, instead of just reading a resume.”</p>
-          <p class="testimonial-attr">Builder, early pilot</p>
-        </div>
+  <!-- CHALLENGES TEASER -->
+  <section class="wrap">
+    <div class="challenges-teaser reveal">
+      <div>
+        <span class="eyebrow">Live right now</span>
+        <h3>Ready to prove what you can do?</h3>
+        <p>Browse open challenges and jump into one that matches your skills.</p>
       </div>
-      <button class="carousel-btn carousel-next" aria-label="Next testimonial">&#8594;</button>
-    </div>
-  </section>
-
-  <!-- PRODUCT DEMO — no real demo video yet, so this is a clearly-labelled
-       placeholder rather than repurposing the hero's abstract texture loop
-       as if it were a demo. -->
-  <section class="section wrap" id="demo" style="padding-top:0;">
-    <div class="section-head reveal">
-      <span class="eyebrow">See it in action</span>
-      <h2>Product demo — coming soon.</h2>
-    </div>
-    <div class="video-placeholder reveal">
-      <span class="video-play-btn" aria-hidden="true">&#9658;</span>
-      <p>Product demo coming soon</p>
+      <a href="challenges.html" class="btn btn-blue">Browse challenges</a>
     </div>
   </section>
 
@@ -333,7 +251,7 @@
 
 </main>
 
-<footer id="footer">
+<footer>
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand">
@@ -344,7 +262,7 @@
         <h6>Product</h6>
         <a href="#how-it-works">How it works</a>
         <a href="#offer">What we offer</a>
-        <a href="#testimonials">Testimonials</a>
+        <a href="#business-model">Business model</a>
         <a href="challenges.html">Challenges</a>
       </div>
       <div class="footer-col">

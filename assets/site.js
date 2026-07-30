@@ -86,6 +86,40 @@
   }
 
   /* ------------------------------------------------------------------
+     NAV DROPDOWNS (Challenges / Resources) — CSS already opens these on
+     hover/focus-within so they work before this runs; this layers explicit
+     click-to-toggle on top for touch (which has no hover) and keyboard
+     users who want to dismiss one without tabbing away, plus outside-click
+     and Escape to close.
+     ------------------------------------------------------------------ */
+  var navDropdowns = document.querySelectorAll('.nav-dropdown');
+  function closeDropdown(dd) {
+    dd.classList.remove('open');
+    var trigger = dd.querySelector('.nav-drop-trigger');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+  navDropdowns.forEach(function (dd) {
+    var trigger = dd.querySelector('.nav-drop-trigger');
+    if (!trigger) return;
+    trigger.addEventListener('click', function () {
+      var willOpen = !dd.classList.contains('open');
+      navDropdowns.forEach(closeDropdown);
+      if (willOpen) {
+        dd.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+  document.addEventListener('click', function (e) {
+    navDropdowns.forEach(function (dd) {
+      if (!dd.contains(e.target)) closeDropdown(dd);
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') navDropdowns.forEach(closeDropdown);
+  });
+
+  /* ------------------------------------------------------------------
      AUTH FORMS — front end only.
 
      Validation, error and pending states are all real. Submission is the
@@ -507,6 +541,26 @@
       });
     });
   })();
+
+  /* ------------------------------------------------------------------
+     TESTIMONIAL CAROUSEL — arrow buttons nudge the native horizontal
+     scroller by one card at a time; scroll-snap in CSS handles settling on
+     a card boundary either way, so the buttons are a convenience on top of
+     a scroller that already works by touch/trackpad alone.
+     ------------------------------------------------------------------ */
+  document.querySelectorAll('[data-testimonial-track]').forEach(function (track) {
+    var wrap = track.closest('.testimonial-carousel');
+    if (!wrap) return;
+    var prev = wrap.querySelector('.carousel-prev');
+    var next = wrap.querySelector('.carousel-next');
+    function scrollByCard(dir) {
+      var card = track.querySelector('.testimonial-card');
+      var amount = card ? card.getBoundingClientRect().width + 20 : 300;
+      track.scrollBy({ left: dir * amount, behavior: reducedMotion ? 'auto' : 'smooth' });
+    }
+    if (prev) prev.addEventListener('click', function () { scrollByCard(-1); });
+    if (next) next.addEventListener('click', function () { scrollByCard(1); });
+  });
 
   // FAQ accordion — one open at a time
   document.querySelectorAll('.faq-item').forEach(function (item) {

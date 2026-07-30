@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """
-Generates business.html / builders.html from the copy in Andrei's landing repo
-(AndreiYo037/projet-landing -> src/lib/content.ts). Run once; the HTML output is
-what ships. Kept out of the site repo so there's still no build step.
+Generates business.html / builders.html — the single dual-mode homepage
+(Thi's hand-drawn wireframe, July 2026). Run once; the HTML output is what
+ships. Kept out of the site repo so there's still no build step.
+
+Superseded a two-page "problem-first" design (archive/business-v1.html,
+archive/builders-v1.html) which itself came from Andrei's landing repo
+content — that copy (pains/offers/how-it-works/business-model) carries
+forward into this page largely unchanged; only the page's overall
+structure and nav changed to match the wireframe.
 """
 import html, pathlib, re
 
@@ -29,6 +35,9 @@ MODEL_STU = ["Join free", "Solve real business problems", "Earn rankings and rec
 
 FINAL_HEADLINE = "Where businesses with problems meet builders with potential."
 
+# Placeholder company names only (never a real company/customer without permission).
+LOGOS = ["Company", "Studio", "Startup", "Venture", "Collective", "Workshop"]
+
 FLUID_VIDEO = (
     '<video class="texture" muted loop playsinline preload="none" '
     'poster="assets/fluid.webp" data-autoplay-video>\n'
@@ -39,7 +48,7 @@ FLUID_VIDEO = (
 
 FOOTER_COLS = [
     ("Product", [("How it works", "#how-it-works"), ("What we offer", "#offer"),
-                 ("Business model", "#business-model"), ("Challenges", "challenges.html")]),
+                 ("Testimonials", "#testimonials"), ("Challenges", "challenges.html")]),
     ("Company", [("About", "#"), ("Careers", "#"), ("Contact", "#")]),
     ("Legal", [("Privacy", "#"), ("Terms", "#")]),
 ]
@@ -58,6 +67,7 @@ MODES = {
                 "without the noise of CV inflation or costly screening.",
         cta="Post a Challenge",
         cta2=("See what we offer", "#offer"),
+        checkpoints=["No resumes to screen", "Real work, not claims", "Pay only to publish"],
         problem_statement="Traditional hiring is expensive, noisy, and risky.",
         problem_lead="Resumes keep getting stronger while the signal behind them gets weaker. "
                      "Here is what that costs a hiring team.",
@@ -79,6 +89,14 @@ MODES = {
         card_rows=["Challenge live", "42 submissions", "Top 5 shortlisted", "Invite to interview"],
         teaser_h="See the kind of talent that's already building.",
         teaser_p="Browse open challenges to see real submissions in action before you post your own.",
+        testimonials=[
+            ("“We saw exactly how candidates think, not just what they claimed on paper.”",
+             "Hiring lead, early pilot"),
+            ("“Cut our screening time down to almost nothing — we only spoke with people who'd already proven themselves.”",
+             "Hiring manager, early pilot"),
+            ("“Seeing the actual submissions side by side made the final call so much easier.”",
+             "Founder, early pilot"),
+        ],
     ),
     "builder": dict(
         file="builders.html", other="business.html", other_label="Business",
@@ -93,6 +111,7 @@ MODES = {
                 "prizes, and recognition — beyond another AI-polished CV.",
         cta="Join a Challenge",
         cta2=("See what we offer", "#offer"),
+        checkpoints=["Free to join", "Real company problems", "Get noticed for what you ship"],
         problem_statement="Standing out in a crowded builder market is harder than ever.",
         problem_lead="Everyone has the same coursework, the same clubs, and now the same "
                      "AI-written applications. Here is what that costs you.",
@@ -114,6 +133,14 @@ MODES = {
         card_rows=["Challenge joined", "Solution submitted", "Ranked top 8%", "Company noticed"],
         teaser_h="Ready to prove what you can do?",
         teaser_p="Browse open challenges and jump into one that matches your skills.",
+        testimonials=[
+            ("“I finally had something real to point to instead of another bullet point on a resume.”",
+             "Builder, early pilot"),
+            ("“Got noticed off the back of one challenge — no cover letter needed.”",
+             "Builder, early pilot"),
+            ("“It's the first time a company actually asked how I think, instead of just reading a resume.”",
+             "Builder, early pilot"),
+        ],
     ),
 }
 
@@ -123,14 +150,43 @@ def nav(m):
     bld_cls = "mode-opt is-builder" if m["role"] == "builder" else "mode-opt"
     bld_cur = ' aria-current="page"' if m["role"] == "builder" else ''
     switch = (f'<div class="mode-switch" role="group" aria-label="Switch mode">\n'
-              f'        <a href="business.html" class="mode-opt"{biz_cur}>Business</a>\n'
-              f'        <a href="builders.html" class="{bld_cls}"{bld_cur}>Builder</a>\n'
+              f'        <a href="business.html" class="mode-opt"{biz_cur}>For company</a>\n'
+              f'        <a href="builders.html" class="{bld_cls}"{bld_cur}>For builders</a>\n'
               f'      </div>')
-    links = ('      <a href="#problem">The problem</a>\n'
-             '      <a href="#offer">What we offer</a>\n'
-             '      <a href="#how-it-works">How it works</a>\n'
-             '      <a href="#business-model">Business model</a>\n'
-             '      <a href="challenges.html">Challenges</a>\n')
+
+    # Desktop: two dropdowns (Challenges, Resources) instead of plain anchor links —
+    # matches the wireframe's nav flyouts. Challenges' sort pills are all decorative
+    # previews (no real listing/filtering exists yet — challenges.html is still a
+    # stub) rather than promising functionality that isn't there.
+    desktop_links = f'''      <div class="nav-dropdown" data-dropdown>
+        <button class="nav-drop-trigger" aria-expanded="false">Challenges <span class="chev" aria-hidden="true">&#9662;</span></button>
+        <div class="nav-drop-panel">
+          <span class="drop-label">Browse</span>
+          <a href="challenges.html">All challenges</a>
+          <a href="challenges.html">Active</a>
+          <a href="challenges.html">Newest</a>
+          <a href="challenges.html">Most popular</a>
+          <a href="signup.html?role=business" class="drop-cta">Post a challenge &#8594;</a>
+        </div>
+      </div>
+      <div class="nav-dropdown" data-dropdown>
+        <button class="nav-drop-trigger" aria-expanded="false">Resources <span class="chev" aria-hidden="true">&#9662;</span></button>
+        <div class="nav-drop-panel">
+          <a href="#how-it-works">How it works</a>
+          <a href="#testimonials">Testimonials</a>
+          <a href="challenges.html">Projects showcase</a>
+          <a href="#footer">Contact</a>
+        </div>
+      </div>
+'''
+    # Mobile: the same destinations, flattened to plain links (no floating panels
+    # in the stacked sheet).
+    mobile_links = ('      <a href="challenges.html">Browse challenges</a>\n'
+                    '      <a href="signup.html?role=business">Post a challenge</a>\n'
+                    '      <a href="#how-it-works">How it works</a>\n'
+                    '      <a href="#testimonials">Testimonials</a>\n'
+                    '      <a href="#footer">Contact</a>\n')
+
     return f'''<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 <header class="nav">
   <div class="nav-inner">
@@ -141,7 +197,7 @@ def nav(m):
       {switch}
     </div>
     <nav class="links">
-{links}    </nav>
+{desktop_links}    </nav>
     <div class="nav-cta">
       <a href="login.html" class="nav-auth">Log in</a>
       <a href="signup.html?role={m["role"]}" class="btn {m["accent"]} btn-sm">Sign up</a>
@@ -152,7 +208,7 @@ def nav(m):
   </div>
   <div class="mobile-menu" id="mobileMenu">
     {switch}
-{links}    <div class="mobile-menu-ctas">
+{mobile_links}    <div class="mobile-menu-ctas">
       <a href="login.html" class="btn btn-ghost">Log in</a>
       <a href="signup.html?role={m["role"]}" class="btn {m["accent"]}">Sign up</a>
     </div>
@@ -180,8 +236,12 @@ def page(m):
     body_class = " mode-builder" if m["role"] == "builder" else ""
     rows = "\n".join(
         f'          <div class="cand-row"><div class="cand-left">'
-        f'<span class="cand-rank">{i+1:02d}</span> {countify(r)}</div></div>'
+        # cand-desc keeps the countify()'d text as one flex item — .cand-left's
+        # own gap would otherwise land between every anonymous flex item the
+        # count-up span's text splits the row into, spacing out "8" and "%"
+        f'<span class="cand-rank">{i+1:02d}</span><span class="cand-desc">{countify(r)}</span></div></div>'
         for i, r in enumerate(m["card_rows"]))
+    checkpoints = "\n".join(f'          <span>&#10003; {c}</span>' for c in m["checkpoints"])
     pains = "\n".join(
         f'      <div class="pain-item" data-pain-step="{i}">\n'
         f'        <div class="pain-num">{i+1:02d}</div>\n'
@@ -201,6 +261,15 @@ def page(m):
     how_dots = "\n".join(
         f'        <span class="how-dot" data-how-dot="{i}"></span>'
         for i in range(len(HOW)))
+    logo_chips = "\n".join(f'        <span class="logo-chip">{l}</span>' for l in LOGOS)
+    # duplicated once so the marquee's -50% CSS translate loops seamlessly
+    logo_track = logo_chips + "\n" + logo_chips
+    testimonial_cards = "\n".join(
+        f'        <div class="testimonial-card">\n'
+        f'          <p class="testimonial-quote">{q}</p>\n'
+        f'          <p class="testimonial-attr">{a}</p>\n'
+        f'        </div>'
+        for q, a in m["testimonials"])
     fcols = "\n".join(
         '      <div class="footer-col">\n        <h6>' + title + '</h6>\n' +
         "".join(f'        <a href="{h}">{l}</a>\n' for l, h in links) +
@@ -247,7 +316,7 @@ def page(m):
 
 <main id="top">
 
-  <!-- 1. BRIEF DESCRIPTION — what Projet is, and the promise for this mode -->
+  <!-- HERO -->
   <section class="hero wrap">
     <div class="hero-grid">
       <div>
@@ -260,7 +329,9 @@ def page(m):
           <a href="signup.html?role={m["role"]}" class="btn {m["accent"]}">{m["cta"]}</a>
           <a href="{m["cta2"][1]}" class="btn btn-ghost">{m["cta2"][0]}</a>
         </div>
-        <p class="hero-mission reveal">{MISSION}</p>
+        <div class="hero-stats reveal">
+{checkpoints}
+        </div>
       </div>
 
       <div class="hero-visual reveal">
@@ -277,7 +348,30 @@ def page(m):
     </div>
   </section>
 
-  <!-- 2. PROBLEM STATEMENT + 3. PAIN POINTS -->
+  <!-- LOGO STRIP — placeholder chips (no real customer logos yet); pure-CSS
+       marquee, paused under reduced-motion/no-js. -->
+  <section class="wrap logo-strip-wrap">
+    <div class="logo-marquee" aria-hidden="true">
+      <div class="logo-track">
+{logo_track}
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED CHALLENGES — challenges.html is still a stub, so this is a
+       teaser into it rather than a real listing. -->
+  <section class="wrap">
+    <div class="challenges-teaser reveal">
+      <div>
+        <span class="eyebrow">Featured challenges</span>
+        <h3>{m["teaser_h"]}</h3>
+        <p>{m["teaser_p"]}</p>
+      </div>
+      <a href="challenges.html" class="btn {m["accent"]}">Browse challenges</a>
+    </div>
+  </section>
+
+  <!-- PROBLEM STATEMENT + PAIN POINTS -->
   <section class="section wrap" id="problem">
     <div class="section-head reveal">
       <span class="eyebrow">The problem</span>
@@ -290,7 +384,7 @@ def page(m):
     </div>
   </section>
 
-  <!-- 4. WHAT PROJET OFFERS — the solutions -->
+  <!-- WHAT PROJET OFFERS -->
   <section class="section wrap" id="offer" style="padding-top:0;">
     <div class="section-head reveal">
       <span class="eyebrow">What we offer</span>
@@ -321,15 +415,33 @@ def page(m):
     </div>
   </div>
 
-  <!-- CHALLENGES TEASER -->
-  <section class="wrap">
-    <div class="challenges-teaser reveal">
-      <div>
-        <span class="eyebrow">Live right now</span>
-        <h3>{m["teaser_h"]}</h3>
-        <p>{m["teaser_p"]}</p>
+  <!-- TESTIMONIALS — placeholder quotes (no named individuals/companies)
+       until real ones exist; the carousel mechanic itself is real. -->
+  <section class="section wrap" id="testimonials">
+    <div class="section-head reveal">
+      <span class="eyebrow">Testimonials</span>
+      <h2>What people are saying.</h2>
+    </div>
+    <div class="testimonial-carousel reveal">
+      <button class="carousel-btn carousel-prev" aria-label="Previous testimonial">&#8592;</button>
+      <div class="testimonial-track" data-testimonial-track>
+{testimonial_cards}
       </div>
-      <a href="challenges.html" class="btn {m["accent"]}">Browse challenges</a>
+      <button class="carousel-btn carousel-next" aria-label="Next testimonial">&#8594;</button>
+    </div>
+  </section>
+
+  <!-- PRODUCT DEMO — no real demo video yet, so this is a clearly-labelled
+       placeholder rather than repurposing the hero's abstract texture loop
+       as if it were a demo. -->
+  <section class="section wrap" id="demo" style="padding-top:0;">
+    <div class="section-head reveal">
+      <span class="eyebrow">See it in action</span>
+      <h2>Product demo — coming soon.</h2>
+    </div>
+    <div class="video-placeholder reveal">
+      <span class="video-play-btn" aria-hidden="true">&#9658;</span>
+      <p>Product demo coming soon</p>
     </div>
   </section>
 
@@ -372,7 +484,7 @@ def page(m):
 
 </main>
 
-<footer>
+<footer id="footer">
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand">

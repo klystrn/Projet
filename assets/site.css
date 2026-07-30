@@ -150,6 +150,54 @@ nav.links{display:flex; align-items:center; gap:28px; font-size:14px; font-weigh
 nav.links a:hover{color:var(--ink);}
 .nav-cta{display:flex; align-items:center; gap:14px;}
 
+/* ---------- NAV DROPDOWNS (Challenges / Resources) ----------
+   Hover/focus-within open it with pure CSS (so it works before JS runs);
+   site.js layers click-to-toggle + outside-click/Escape-to-close on top for
+   touch and explicit keyboard control. Challenges' "sort" links are all
+   decorative previews — challenges.html has no real listing yet, so nothing
+   here promises filtering that doesn't exist. */
+.nav-dropdown{position:relative;}
+.nav-drop-trigger{
+  display:inline-flex; align-items:center; gap:5px;
+  background:none; border:none; padding:0; margin:0;
+  font:inherit; color:inherit; cursor:pointer;
+}
+.nav-drop-trigger .chev{font-size:10px; transition:transform .2s var(--ease);}
+.nav-dropdown.open .nav-drop-trigger .chev,
+.nav-dropdown:focus-within .nav-drop-trigger .chev{transform:rotate(180deg);}
+@media (hover:hover){ .nav-dropdown:hover .nav-drop-trigger .chev{transform:rotate(180deg);} }
+
+.nav-drop-panel{
+  position:absolute; top:calc(100% + 16px); left:50%;
+  transform:translateX(-50%) translateY(-6px);
+  min-width:230px; background:#fff; border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 24px 48px -20px rgba(20,19,15,.28);
+  padding:16px; opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .2s var(--ease), transform .2s var(--ease), visibility .2s;
+  z-index:120;
+}
+.nav-dropdown.open .nav-drop-panel,
+.nav-dropdown:focus-within .nav-drop-panel{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+}
+@media (hover:hover){
+  .nav-dropdown:hover .nav-drop-panel{
+    opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+  }
+}
+.drop-label{
+  display:block; font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:#9c988c; margin:0 0 8px;
+}
+.nav-drop-panel a{display:block; padding:7px 2px; font-size:14px; font-weight:500; color:var(--ink-soft); border:none;}
+.nav-drop-panel a:hover{color:var(--ink);}
+.drop-cta{
+  margin-top:10px !important; text-align:center; padding:10px 14px !important;
+  background:var(--accent); color:#fff !important; border-radius:999px; font-weight:700 !important;
+}
+.drop-cta:hover{color:#fff !important; opacity:.9;}
+@media (max-width:900px){ .nav-dropdown{display:none;} } /* flattened into .mobile-menu instead */
+
 /* ---------- DUAL-MODE SWITCH ----------
    The home page is one interface in two modes; this is the switch between
    them. Sits beside the logo so it reads as a product-level control rather
@@ -507,6 +555,29 @@ nav.links a:hover{color:var(--ink);}
 .no-js .pain-item h3,
 .reduced-motion .pain-item h3{color:var(--accent);}
 
+/* ---------- LOGO STRIP ----------
+   Placeholder chips (no real customer logos exist yet) in a pure-CSS
+   marquee — the track's markup is the chip list duplicated once, so
+   translating it by exactly -50% loops seamlessly with no JS involved. */
+.logo-strip-wrap{padding:8px 0 40px;}
+.logo-marquee{
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.logo-track{
+  display:flex; align-items:center; gap:56px; width:max-content;
+  animation:logoScroll 26s linear infinite;
+}
+@keyframes logoScroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+.logo-chip{
+  font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:#c8c4b8; white-space:nowrap;
+}
+.no-js .logo-track,
+.reduced-motion .logo-track{animation:none;}
+@media (prefers-reduced-motion: reduce){ .logo-track{animation:none;} }
+
 /* ---------- CHALLENGES TEASER — body-level link into challenges.html,
    distinct from the nav/footer links so the page itself points there too */
 .challenges-teaser{
@@ -630,6 +701,49 @@ nav.links a:hover{color:var(--ink);}
 @media (max-width:640px){
   .no-js .how-pin-inner, .reduced-motion .how-pin-inner{padding:0 20px;}
 }
+
+/* ---------- TESTIMONIALS ----------
+   Placeholder quotes (no named individuals/companies attached) until real
+   ones exist — the carousel mechanic itself is real: a native horizontal
+   scroller with scroll-snap, nudged a card at a time by the arrow buttons.
+   Touch users can just swipe, so the buttons hide below 640px. */
+.testimonial-carousel{display:flex; align-items:center; gap:14px;}
+.testimonial-track{
+  display:flex; gap:20px; flex:1; padding:4px 2px;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.testimonial-track::-webkit-scrollbar{display:none;}
+.testimonial-card{
+  flex:0 0 clamp(240px, 30vw, 320px); scroll-snap-align:start;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 24px;
+}
+.testimonial-quote{font-size:15px; line-height:1.6; margin-bottom:18px;}
+.testimonial-attr{font-size:13px; font-weight:700; color:var(--ink-soft);}
+.carousel-btn{
+  flex:none; width:42px; height:42px; border-radius:50%; border:1px solid var(--line);
+  background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:15px; transition:border-color .2s var(--ease), background .2s var(--ease);
+}
+.carousel-btn:hover{border-color:var(--ink); background:var(--paper-warm);}
+@media (max-width:640px){ .carousel-btn{display:none;} }
+
+/* ---------- PRODUCT DEMO PLACEHOLDER ----------
+   No real demo video exists yet; this is a clearly-labelled placeholder
+   rather than repurposing the hero's abstract fluid loop as if it were a
+   product demo. */
+.video-placeholder{
+  aspect-ratio:16/9; border-radius:var(--radius); background:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  color:rgba(255,255,255,.65);
+}
+.video-play-btn{
+  width:64px; height:64px; border-radius:50%; border:1px solid rgba(255,255,255,.3);
+  display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff;
+  padding-left:4px; /* optically centers the play glyph */
+}
+.video-placeholder p{font-size:14px; font-family:'JetBrains Mono', monospace; letter-spacing:.04em;}
 
 /* ---------- COMPARISON ---------- */
 .compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}

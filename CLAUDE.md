@@ -161,25 +161,24 @@ The user flow is now wired end to end:
 ```
 projet-split-hero/index.html   (the actual landing page / entry point)
         │  choose Business or Builder
-        ├──► business.html     (audience-specific home, Willo-style structure)
-        └──► builders.html     (audience-specific home, Willo-style structure)
+        ├──► business.html     (dual-mode homepage, wireframe-based)
+        └──► builders.html     (same page, generated in builder mode)
 
 projet-landing.html is now a secondary "Overview" page (audience-agnostic,
 reachable from either home page's footer / logo-adjacent link) — it's no
 longer the primary entry point.
 ```
 
-`business.html` and `builders.html` both follow a problem-first narrative
-(modeled on how tool-first SaaS pages like Willo's are commonly structured —
-explain the pain before pitching the product): hero opens on the *problem*
-for that audience specifically (not a product statement), then a proof
-strip, problem/stat section, take-homes-broke comparison, how-it-works,
-the defense (signature feature), evidence (validity chart), traction
-(quotes + stats), an FAQ section (new — addresses that audience's likely
-objections), pricing (business page only — the builder page explains it's
-free to the candidate instead), and a final CTA. Copy is voiced per
-audience but every stat/rubric number/price is the same underlying fact
-from the pitch deck — nothing was invented per-audience.
+**`business.html` / `builders.html` are now built from Thi's hand-drawn
+wireframe (July 2026), not the earlier problem-first Willo-style layout.**
+The previous version (hero-opens-on-the-problem, proof strip, take-homes-
+broke comparison) is archived at `archive/business-v1.html` /
+`archive/builders-v1.html` for reference — do not resurrect it as the live
+page. Section order top to bottom now: hero, logo strip, featured-
+challenges teaser, problem statement + pain points, what we offer, how it
+works (pinned scrub), testimonials, product-demo placeholder, business
+model, final CTA. See "`business.html` / `builders.html`" below for the
+detail on each new piece.
 
 All three pages plus `projet-split-hero/` now share one stylesheet and one
 script file: `assets/site.css` and `assets/site.js` (previously each page
@@ -259,10 +258,53 @@ placeholder standing in for the real fluid-swirl composite (see "Known
 issues" #4) — swap it for the real export whenever that's available.
 
 ### `business.html` / `builders.html`
-The two audience-specific home pages a visitor actually lands on after
-picking a path in `projet-split-hero/`. See "Site architecture" above for
-the shared structure. Both are single, self-contained HTML files that pull
-in `assets/site.css` and `assets/site.js` — no page-specific build step.
+The single dual-mode homepage a visitor lands on after picking a path in
+`projet-split-hero/` — one generator (`tools-build-pages.py`), two output
+files (business/builder mode), built from Thi's hand-drawn wireframe. See
+"Site architecture" above for the section order. Both are single, self-
+contained HTML files that pull in `assets/site.css` and `assets/site.js` —
+no page-specific build step.
+
+**Nav dropdowns (Challenges / Resources).** Replace the old flat anchor
+links above 900px. `.nav-dropdown` opens its `.nav-drop-panel` via plain
+CSS `:hover`/`:focus-within` (works with JS off), with `site.js` layering
+click-to-toggle + outside-click/Escape-to-close on top for touch and
+explicit keyboard control — `nav()` in `tools-build-pages.py` builds both
+the desktop dropdown markup and a separate flattened `mobile_links` list
+for `#mobileMenu` (a floating panel doesn't make sense in the stacked
+sheet). Challenges' "sort" links (All / Active / Newest / Most popular)
+are decorative previews, not real filtering — `challenges.html` is still a
+stub with no listing to filter, so nothing here promises functionality
+that doesn't exist. Below 900px `.nav-dropdown{display:none;}` — the
+mobile menu's flat links cover the same destinations.
+
+**Logo strip.** No real customer logos exist yet, so `LOGOS` in
+`tools-build-pages.py` is a list of placeholder chip labels ("Company",
+"Studio", …), never invented company names. `.logo-track` contains that
+list rendered twice back to back — translating it by exactly `-50%` via a
+`26s linear infinite` CSS animation loops seamlessly with no JS. Paused
+under `.no-js` / `.reduced-motion` and `prefers-reduced-motion`.
+
+**Testimonials carousel.** Same placeholder-content rule as the logo strip
+— quotes in `MODES[...]["testimonials"]` are attributed to a role only
+("Hiring lead, early pilot"), never a named person or company, until real
+ones exist. The carousel itself is a real, working native horizontal
+scroller (`scroll-snap-type:x mandatory`) — the prev/next buttons in
+`site.js` just call `scrollBy()` one card-width at a time; touch users can
+already swipe it directly, so the buttons hide below 640px. Don't mistake
+the placeholder copy for a reason the mechanic itself is fake — it isn't.
+
+**Product demo placeholder.** No real demo video exists, so `#demo` is a
+dark placeholder card (play-button glyph + "Product demo coming soon") —
+deliberately *not* the hero's abstract fluid-swirl loop presented as if it
+were a product demo, which would be misleading about what that asset
+actually shows.
+
+**Featured-challenges teaser moved earlier.** The `.challenges-teaser`
+banner (see below) now sits right after the logo strip, matching the
+wireframe's "Featured challenges (in the future)" placement — it used to
+sit between "How it works" and "Business model." There's only one teaser
+banner on the page; it was not duplicated in both places.
 
 **The three problem-section pain points animate on scroll**
 (`.pain-track` / `[data-pain-step]` in the markup, driven by the IIFE in
@@ -314,13 +356,14 @@ is on-screen (via `IntersectionObserver`) and never does under
 `prefers-reduced-motion`, so no-JS/reduced-motion visitors see the
 `fluid.webp` poster frame exactly like the old static image.
 
-**Challenges teaser.** A body-level CTA banner (`.challenges-teaser`,
-between "How it works" and "Business model") links into `challenges.html` —
-per the user's ask that the challenges page be reachable from the home
-page's content, not just its nav/footer. Copy is per-audience
-(`m["teaser_h"]` / `m["teaser_p"]` in `tools-build-pages.py`'s `MODES`
-dict); the button reuses `m["accent"]` so it's orange on `business.html`
-and blue on `builders.html` like every other mode-aware CTA.
+**Challenges teaser.** A body-level CTA banner (`.challenges-teaser`, now
+right after the logo strip — see "Featured-challenges teaser moved
+earlier" above) links into `challenges.html`, so the challenges page is
+reachable from the home page's content, not just its nav/footer. Copy is
+per-audience (`m["teaser_h"]` / `m["teaser_p"]` in `tools-build-pages.py`'s
+`MODES` dict); the button reuses `m["accent"]` so it's orange on
+`business.html` and blue on `builders.html` like every other mode-aware
+CTA.
 
 **How it works is now a pinned scroll-scrub, not a static grid.**
 `.how-pin` (`data-how-pin` in the markup, generated from the same `HOW`
@@ -366,6 +409,14 @@ up over ~900ms (eased) the first time it scrolls into view. Deliberately
 didn't invent new stats for this — these are the pre-existing hero-card
 mockup numbers, not marketing traction figures, so animating them doesn't
 run afoul of the "don't invent stats" rule below.
+- `.cand-left{display:flex; gap:10px;}`'s children must be exactly two
+  elements (`.cand-rank` + a `.cand-desc` wrapper around the rest of the
+  row). Letting `countify()`'s output sit as bare text + a `<span>` +
+  more bare text directly inside `.cand-left` split the row into several
+  anonymous flex items, and the flex `gap` landed *between* them too —
+  "Ranked top 8%" rendered as "Ranked top  8  %" with visible gaps around
+  the count-up span. Wrapping everything after `.cand-rank` in one
+  `.cand-desc` span fixes it: only two flex items, gap applies once.
 
 **Card tilt.** `.offer-card` / `.model-card` tilt a few degrees toward the
 cursor on `mousemove`, restricted to `(hover: hover) and (pointer: fine)`
@@ -538,6 +589,22 @@ for returning visitors.
 6. **No real backend/routing exists.** Everything so far is static
    HTML/CSS/JS prototypes with no framework, no build step, and no actual
    page-to-page navigation implemented.
+7. **Flagging, not silently reconciling: the wireframe's Resources dropdown
+   listed "FAQs," which was deliberately dropped.** An earlier, explicit
+   decision in this file (see "Copy source of truth" above) says the
+   per-audience FAQ from the deck-era design should **not** be reintroduced.
+   The new nav's Resources dropdown ships with How it works / Testimonials /
+   Projects showcase / Contact only — no FAQ link, no FAQ section — pending
+   an explicit call from the user on whether to reintroduce one now that
+   the ask comes from a different source (a wireframe, not the deck).
+8. **Content still needing the real thing, clearly marked as placeholder in
+   the interim (never fabricated as if real):** the logo strip (generic
+   chip labels, no invented company names), the testimonials (quotes
+   attributed to a role only — "Hiring lead, early pilot" — never a named
+   person/company), and the product-demo section (an explicit "coming
+   soon" card, not the hero's abstract fluid loop repurposed as if it were
+   a demo). Swap each in once real content exists; the surrounding
+   mechanics (marquee loop, carousel, section layout) don't need to change.
 
 ## Working conventions established so far
 
