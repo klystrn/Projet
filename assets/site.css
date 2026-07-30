@@ -402,19 +402,67 @@ nav.links a:hover{color:var(--ink);}
 .stat-label{font-size:14px; color:var(--ink-soft); line-height:1.45;}
 .source-note{margin-top:16px; font-family:'JetBrains Mono'; font-size:10.5px; color:#9c988c; text-transform:uppercase; letter-spacing:.06em;}
 
-/* ---------- PAIN POINTS ---------- */
-.pain-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
-@media (max-width:900px){ .pain-grid{grid-template-columns:1fr;} }
-.pain-card{
-  position:relative; padding:28px 26px 26px;
-  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+/* ---------- PAIN POINTS: vertical scroll-emphasis track ----------
+   A connecting line runs down the left edge; its fill and each point's
+   emphasis are driven by scroll position in site.js (a fixed reference
+   line partway down the viewport — not IntersectionObserver — because the
+   fill needs continuous 0-100% progress, not just an enter/exit trigger).
+   Falls back to a plain static list with everything already visible when
+   JS is unavailable or prefers-reduced-motion is set. */
+.pain-track{position:relative; padding-left:54px;}
+.pain-line{
+  position:absolute; left:15px; top:6px; bottom:6px; width:2px;
+  background:var(--line); border-radius:2px; overflow:hidden;
 }
-.pain-card::before{
-  content:''; position:absolute; top:0; left:26px; right:26px; height:2px;
-  background:var(--accent); border-radius:0 0 2px 2px;
+.pain-line-fill{
+  position:absolute; top:0; left:0; width:100%; height:0;
+  background:var(--accent); border-radius:2px;
 }
-.pain-card h3{font-size:19px; margin-bottom:10px;}
-.pain-card p{font-size:14.5px; line-height:1.6; color:var(--ink-soft);}
+/* JS toggles this once measurements are ready, to avoid a 0->100 flash of
+   the fill animating on load for a track that's already scrolled past */
+.pain-track[data-ready] .pain-line-fill{transition:height .12s linear;}
+
+.pain-item{
+  position:relative; padding:26px 0;
+  opacity:.45; transition:opacity .4s var(--ease);
+}
+.pain-item:not(:last-child){border-bottom:1px solid var(--line);}
+.pain-item.is-active{opacity:1;}
+
+.pain-num{
+  position:absolute; left:-54px; top:26px;
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--paper-warm); border:1px solid var(--line);
+  font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
+  color:var(--ink-soft);
+  transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), transform .3s var(--ease);
+}
+.pain-item.is-active .pain-num{
+  background:var(--accent); border-color:var(--accent); color:#fff; transform:scale(1.08);
+}
+
+.pain-item h3{font-size:19px; margin-bottom:8px; transition:color .3s var(--ease);}
+.pain-item.is-active h3{color:var(--accent);}
+.pain-item p{font-size:14.5px; line-height:1.6; color:var(--ink-soft); max-width:62ch;}
+
+@media (max-width:640px){
+  .pain-track{padding-left:44px;}
+  .pain-line{left:12px;}
+  .pain-num{left:-44px; width:28px; height:28px; font-size:11px;}
+  .pain-item{padding:20px 0;}
+}
+
+/* no-JS / reduced-motion: skip the emphasis mechanic entirely rather than
+   leaving two of three points stuck dim with no way to trigger them */
+.no-js .pain-item,
+.reduced-motion .pain-item{opacity:1;}
+.no-js .pain-line-fill,
+.reduced-motion .pain-line-fill{height:100%;}
+.no-js .pain-num,
+.reduced-motion .pain-num{background:var(--accent); border-color:var(--accent); color:#fff;}
+.no-js .pain-item h3,
+.reduced-motion .pain-item h3{color:var(--accent);}
 
 /* ---------- OFFER / SOLUTIONS ---------- */
 .offer-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line);

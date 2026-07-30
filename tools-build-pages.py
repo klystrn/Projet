@@ -153,8 +153,11 @@ def page(m):
         f'<span class="cand-rank">{i+1:02d}</span> {r}</div></div>'
         for i, r in enumerate(m["card_rows"]))
     pains = "\n".join(
-        f'      <div class="pain-card"><h3>{t}</h3><p>{d}</p></div>'
-        for t, d in m["pains"])
+        f'      <div class="pain-item" data-pain-step="{i}">\n'
+        f'        <div class="pain-num">{i+1:02d}</div>\n'
+        f'        <h3>{t}</h3><p>{d}</p>\n'
+        f'      </div>'
+        for i, (t, d) in enumerate(m["pains"]))
     offers = "\n".join(
         f'      <div class="offer-card"><span class="offer-num">{i+1:02d}</span>'
         f'<h3>{t}</h3><p>{d}</p></div>'
@@ -246,7 +249,8 @@ def page(m):
       <h2>{m["problem_statement"]}</h2>
       <p>{m["problem_lead"]}</p>
     </div>
-    <div class="pain-grid reveal">
+    <div class="pain-track reveal" data-pain-track>
+      <div class="pain-line"><div class="pain-line-fill" data-pain-fill></div></div>
 {pains}
     </div>
   </section>

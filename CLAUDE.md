@@ -130,11 +130,29 @@ Two things still carry the deck framing and were deliberately left alone —
 legacy "overview" page) and the "Who/what Projet is" section at the top of
 this file.
 
-**Terminology conflict, unresolved:** Andrei's content says "Students"; the
-user has consistently asked for the mode to be called **"Builder"**
-(`builders.html`, the chooser, "Builder or business"). Current compromise —
-the mode switch says Business/Builder, while body copy keeps Andrei's
-"students" wording. Worth settling with the user.
+**Terminology — resolved: "Builder", never "Students".** Andrei's content
+said "Students" throughout; the user asked explicitly to use "Builder"
+everywhere instead. Applied across the generator (mission line, how-it-works
+copy, the business-model card heading, final-CTA headline, footer tagline),
+the chooser, `login.html`, and the legacy overview page's traction stats.
+The one place still saying "student" is intentional: `projet-split-hero`'s
+internal `data-audience="student"` attribute / `.panel--student` class are
+JS/CSS plumbing, not visible copy — `script.js` already maps that value to
+`"builder"` before it ever reaches `localStorage` or the UI. If Andrei's
+`content.ts` is re-pulled later, re-apply the student→builder swap; it isn't
+upstream.
+
+**Accent color — orange for business, blue for builder, one mechanism.**
+Don't hand-patch a new component with `style="color:var(--blue)"` on the
+builder page; that's exactly how `pain-card`/`offer-num`/`model-list` ended
+up staying orange there while `eyebrow` and the hero accent-span (patched
+per-instance) didn't. Instead: components read `var(--accent)`, which
+`assets/site.css` defines as `var(--orange)` by default and overrides to
+`var(--blue)` under `html.mode-builder`. `tools-build-pages.py` adds that
+class to `<html>` for the builder page — that's the only place the mode is
+set. Legacy-only sections still on `projet-landing.html` (defense, evidence,
+pricing, comparison) intentionally keep `var(--orange)` directly, since that
+page has no mode.
 
 ## Site architecture / user flow (decided)
 
@@ -245,6 +263,20 @@ The two audience-specific home pages a visitor actually lands on after
 picking a path in `projet-split-hero/`. See "Site architecture" above for
 the shared structure. Both are single, self-contained HTML files that pull
 in `assets/site.css` and `assets/site.js` — no page-specific build step.
+
+**The three problem-section pain points animate on scroll**
+(`.pain-track` / `[data-pain-step]` in the markup, driven by the IIFE in
+`assets/site.js`). A connecting vertical line runs down the left edge; a
+fixed reference line at 55% of viewport height drives both the line's fill
+height (continuous 0–100%, updated every scroll/resize via `requestAnimationFrame`)
+and which point is "active" (a point activates once its vertical midpoint
+crosses that line) — so scrolling down visibly emphasises point 1, then 2,
+then 3 in sequence. Deliberately scroll+rAF rather than
+`IntersectionObserver`: IO only reports enter/exit, not the continuous
+progress value the line fill needs. `prefers-reduced-motion` and a `no-js`
+fallback both show all three points active and the line full immediately —
+there's no scroll-gated content that becomes permanently unreachable if JS
+never runs.
 
 ### `projet-split-hero/`
 A second, separate prototype: a full-viewport "choose your path" landing

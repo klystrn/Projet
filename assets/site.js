@@ -271,6 +271,64 @@
     ddIO.observe(demo);
   });
 
+  /* ------------------------------------------------------------------
+     PROBLEM SECTION SCROLL-EMPHASIS — the three pain points sit on a
+     vertical track; a fixed reference line partway down the viewport
+     drives both the connecting line's fill (continuous 0-100%) and which
+     point is "active" (point N activates once its midpoint crosses the
+     line). Deliberately a scroll+rAF loop rather than IntersectionObserver:
+     IO reports enter/exit, not a continuous progress value, and the line
+     fill needs the latter.
+     ------------------------------------------------------------------ */
+  (function () {
+    var tracks = document.querySelectorAll('[data-pain-track]');
+    if (!tracks.length) return;
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      document.documentElement.classList.add('reduced-motion');
+      return; // CSS shows every point active and the line full; nothing to drive
+    }
+
+    var REFERENCE_RATIO = 0.55; // 55% down the viewport
+    var ticking = false;
+
+    function updateTrack(track) {
+      var items = track.querySelectorAll('[data-pain-step]');
+      var fill = track.querySelector('[data-pain-fill]');
+      if (!fill || !items.length) return;
+
+      var fillTrack = fill.parentElement.getBoundingClientRect();
+      var referenceY = window.innerHeight * REFERENCE_RATIO;
+
+      var fillPx = Math.max(0, Math.min(fillTrack.height, referenceY - fillTrack.top));
+      fill.style.height = fillPx + 'px';
+
+      items.forEach(function (item) {
+        var r = item.getBoundingClientRect();
+        var mid = r.top + r.height / 2;
+        item.classList.toggle('is-active', mid <= referenceY);
+      });
+
+      track.setAttribute('data-ready', '');
+    }
+
+    function updateAll() {
+      tracks.forEach(updateTrack);
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateAll);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    updateAll(); // in case a track is already in view on load (e.g. anchor jump)
+  })();
+
   // FAQ accordion — one open at a time
   document.querySelectorAll('.faq-item').forEach(function (item) {
     var btn = item.querySelector('.faq-q');
