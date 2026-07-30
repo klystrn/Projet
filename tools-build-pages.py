@@ -9,25 +9,25 @@ import html, pathlib
 OUT = pathlib.Path("/home/user/Projet")
 
 TAGLINE = "Where real work is the strongest hiring signal."
-MISSION = ("To bridge the gap between businesses and student talent by making "
+MISSION = ("To bridge the gap between businesses and builder talent by making "
            "real work the strongest hiring signal.")
 
 HOW = [
     ("Business posts a challenge",
-     "Companies publish real business or technical problems for students to solve."),
-    ("Students compete",
-     "University students tackle the challenge and submit their best work."),
+     "Companies publish real business or technical problems for builders to solve."),
+    ("Builders compete",
+     "Builders tackle the challenge and submit their best work."),
     ("Top performers get evaluated",
      "Businesses review real output — not resumes — and shortlist standouts."),
     ("Interviews, internships &amp; recognition",
-     "Top talent advances to opportunities; students earn rankings and visibility."),
+     "Top talent advances to opportunities; builders earn rankings and visibility."),
 ]
 
 MODEL_BIZ = ["Pay to publish a challenge", "Choose online or in-person formats",
-             "Access all student submissions", "Invite top performers to interview"]
+             "Access all builder submissions", "Invite top performers to interview"]
 MODEL_STU = ["Join free", "Solve real business problems", "Earn rankings and recognition"]
 
-FINAL_HEADLINE = "Where businesses with problems meet students with potential."
+FINAL_HEADLINE = "Where businesses with problems meet builders with potential."
 
 FOOTER_COLS = [
     ("Product", [("How it works", "#how-it-works"), ("What we offer", "#offer"),
@@ -62,7 +62,7 @@ MODES = {
         offers=[
             ("Publish challenges", "Post real business or technical problems your team needs solved."),
             ("Evaluate real work", "Review submissions based on actual output — not resumes or cover letters."),
-            ("Crowdsource solutions", "Tap a pool of motivated student talent competing to deliver their best."),
+            ("Crowdsource solutions", "Tap a pool of motivated builder talent competing to deliver their best."),
             ("Reduce hiring risk", "See how candidates think and build before you commit to interviews."),
             ("Build a talent pipeline", "Invite top performers into internships, roles, and ongoing relationships."),
             ("Focus on growth", "Streamline discovery so your team spends less time screening and more time shipping."),
@@ -76,18 +76,18 @@ MODES = {
         title="Projet for builders — Stand out through what you build.",
         desc="Work on real company problems, get direct exposure, and compete for "
              "internships, prizes, and recognition — beyond another AI-polished CV.",
-        eyebrow="For students &amp; builders",
+        eyebrow="For builders",
         headline=("Stand out through what you build, "
-                  "<span class=\"accent\" style=\"color:var(--blue);\">not just what's on your resume.</span>"),
+                  "<span class=\"accent\">not just what's on your resume.</span>"),
         subtext="Work on real company problems, get direct exposure, and compete for internships, "
                 "prizes, and recognition — beyond another AI-polished CV.",
         cta="Join a Challenge",
         cta2=("See what we offer", "#offer"),
-        problem_statement="Standing out in a crowded student market is harder than ever.",
+        problem_statement="Standing out in a crowded builder market is harder than ever.",
         problem_lead="Everyone has the same coursework, the same clubs, and now the same "
                      "AI-written applications. Here is what that costs you.",
         pains=[
-            ("Saturated market", "Thousands of students apply with similar coursework, clubs, and internship titles."),
+            ("Saturated market", "Thousands of builders apply with similar coursework, clubs, and internship titles."),
             ("AI-flattened resumes", "Generic, AI-written applications make it harder for genuine talent to get noticed."),
             ("Differentiation difficulty", "Without proof of real work, it's tough to show companies what you can actually do."),
         ],
@@ -147,8 +147,7 @@ def nav(m):
 
 
 def page(m):
-    dot = ' style="background:var(--blue);"' if m["role"] == "builder" else ''
-    eyeb = ' style="color:var(--blue);"' if m["role"] == "builder" else ''
+    body_class = " mode-builder" if m["role"] == "builder" else ""
     rows = "\n".join(
         f'          <div class="cand-row"><div class="cand-left">'
         f'<span class="cand-rank">{i+1:02d}</span> {r}</div></div>'
@@ -173,7 +172,7 @@ def page(m):
     mstu = "\n".join(f'          <li>{p}</li>' for p in MODEL_STU)
 
     return f'''<!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en" class="no-js{body_class}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -215,7 +214,7 @@ def page(m):
     <div class="hero-grid">
       <div>
         <div class="hero-eyebrow-row">
-          <span class="eyebrow"{eyeb}>{m["eyebrow"]} · {TAGLINE}</span>
+          <span class="eyebrow">{m["eyebrow"]} · {TAGLINE}</span>
         </div>
         <h1 class="reveal">{m["headline"]}</h1>
         <p class="hero-sub reveal">{m["subtext"]}</p>
@@ -243,7 +242,7 @@ def page(m):
   <!-- 2. PROBLEM STATEMENT + 3. PAIN POINTS -->
   <section class="section wrap" id="problem">
     <div class="section-head reveal">
-      <span class="eyebrow"{eyeb}>The problem</span>
+      <span class="eyebrow">The problem</span>
       <h2>{m["problem_statement"]}</h2>
       <p>{m["problem_lead"]}</p>
     </div>
@@ -255,7 +254,7 @@ def page(m):
   <!-- 4. WHAT PROJET OFFERS — the solutions -->
   <section class="section wrap" id="offer" style="padding-top:0;">
     <div class="section-head reveal">
-      <span class="eyebrow"{eyeb}>What we offer</span>
+      <span class="eyebrow">What we offer</span>
       <h2>{m["offer_headline"]}</h2>
     </div>
     <div class="offer-grid reveal">
@@ -266,7 +265,7 @@ def page(m):
   <!-- HOW IT WORKS -->
   <section class="section wrap" id="how-it-works">
     <div class="section-head reveal">
-      <span class="eyebrow"{eyeb}>How it works</span>
+      <span class="eyebrow">How it works</span>
       <h2>One pipeline. Two sides. Real outcomes.</h2>
     </div>
     <div class="steps-grid steps-4 reveal">
@@ -277,7 +276,7 @@ def page(m):
   <!-- BUSINESS MODEL -->
   <section class="section wrap traction-section" id="business-model">
     <div class="section-head reveal">
-      <span class="eyebrow"{eyeb}>Business model</span>
+      <span class="eyebrow">Business model</span>
       <h2>Simple for both sides.</h2>
     </div>
     <div class="model-grid reveal">
@@ -288,7 +287,7 @@ def page(m):
         </ul>
       </div>
       <div class="model-card {"dark" if m["role"] == "builder" else "light"}">
-        <h3>For Students</h3>
+        <h3>For Builders</h3>
         <ul class="model-list">
 {mstu}
         </ul>
@@ -318,7 +317,7 @@ def page(m):
     <div class="footer-grid">
       <div class="footer-brand">
         <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
-        <p>Challenge-based talent discovery for businesses and students.</p>
+        <p>Challenge-based talent discovery for businesses and builders.</p>
       </div>
 {fcols}
     </div>

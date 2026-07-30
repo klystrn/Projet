@@ -14,7 +14,20 @@
   --radius:14px;
   --maxw:1240px;
   --ease:cubic-bezier(.16,.84,.44,1);
+
+  /* mode accent — orange for business, blue for builder. Components that
+     should tint per-mode read this instead of --orange directly; body picks
+     up the override below. Kept separate from --orange itself since some
+     UI (brand selection color, focus rings, the legacy overview page) is
+     always orange regardless of which mode is showing. */
+  --accent:var(--orange);
+  --accent-deep:var(--orange-deep);
 }
+/* single override point — add/remove this one class rather than patching
+   individual elements with inline color styles, which is how pain-card,
+   offer-num and the model-list checkmarks ended up staying orange on the
+   builder page after everything else had already been switched to blue */
+html.mode-builder{ --accent:var(--blue); --accent-deep:#1d4fd6; }
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 @media (prefers-reduced-motion: reduce){
@@ -51,7 +64,7 @@ img{display:block; max-width:100%;}
   font-weight:600;
   letter-spacing:0.14em;
   text-transform:uppercase;
-  color:var(--orange);
+  color:var(--accent);
   display:inline-flex;
   align-items:center;
   gap:8px;
@@ -59,7 +72,7 @@ img{display:block; max-width:100%;}
 .eyebrow::before{
   content:'';
   width:6px; height:6px; border-radius:50%;
-  background:var(--orange);
+  background:var(--accent);
   display:inline-block;
 }
 
@@ -317,7 +330,7 @@ nav.links a:hover{color:var(--ink);}
 /* 58px ceiling, not 78px: the headlines are full sentences now, and at 78px the
    business one ran to five lines and pushed the CTAs below the fold */
 .hero h1{font-size:clamp(36px,4.4vw,58px); margin:0 0 20px; line-height:1.06;}
-.hero h1 .accent{color:var(--orange);}
+.hero h1 .accent{color:var(--accent);}
 .hero-sub{font-size:18px; line-height:1.55; color:var(--ink-soft); max-width:520px; margin-bottom:32px;}
 .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;}
 .hero-stats{display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono'; font-size:12.5px; color:var(--ink-soft);}
@@ -350,7 +363,7 @@ nav.links a:hover{color:var(--ink);}
 .cand-row{display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-top:1px solid rgba(255,255,255,.1);}
 .cand-row:first-of-type{border-top:none;}
 .cand-left{display:flex; align-items:center; gap:10px; font-size:13px;}
-.cand-rank{font-family:'JetBrains Mono'; color:var(--orange); font-weight:700; width:16px;}
+.cand-rank{font-family:'JetBrains Mono'; color:var(--accent); font-weight:700; width:16px;}
 .cand-score{font-family:'JetBrains Mono'; font-size:11px; color:rgba(255,255,255,.6);}
 .unlock-pill{
   font-family:'JetBrains Mono'; font-size:10.5px; font-weight:700; padding:6px 11px; border-radius:999px;
@@ -398,7 +411,7 @@ nav.links a:hover{color:var(--ink);}
 }
 .pain-card::before{
   content:''; position:absolute; top:0; left:26px; right:26px; height:2px;
-  background:var(--orange); border-radius:0 0 2px 2px;
+  background:var(--accent); border-radius:0 0 2px 2px;
 }
 .pain-card h3{font-size:19px; margin-bottom:10px;}
 .pain-card p{font-size:14.5px; line-height:1.6; color:var(--ink-soft);}
@@ -411,7 +424,7 @@ nav.links a:hover{color:var(--ink);}
 .offer-card{background:#fff; padding:28px 26px;}
 .offer-num{
   font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
-  letter-spacing:.1em; color:var(--orange); display:block; margin-bottom:12px;
+  letter-spacing:.1em; color:var(--accent); display:block; margin-bottom:12px;
 }
 .offer-card h3{font-size:17.5px; margin-bottom:9px;}
 .offer-card p{font-size:14px; line-height:1.6; color:var(--ink-soft);}
@@ -430,7 +443,7 @@ nav.links a:hover{color:var(--ink);}
 .model-card.dark .model-list li{color:rgba(255,255,255,.78);}
 .model-list li::before{
   content:''; position:absolute; left:0; top:6px;
-  width:15px; height:8px; border-left:2px solid var(--orange); border-bottom:2px solid var(--orange);
+  width:15px; height:8px; border-left:2px solid var(--accent); border-bottom:2px solid var(--accent);
   transform:rotate(-45deg);
 }
 .model-free{
