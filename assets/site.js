@@ -324,7 +324,7 @@
   /* ---- subtle hero-visual parallax ---- */
   (function () {
     if (reducedMotion) return; // CSS forces transform:none for this exact reason
-    var img = document.querySelector('.hero-visual img.texture');
+    var img = document.querySelector('.hero-visual .texture');
     if (!img) return;
     scrollUpdaters.push(function () {
       // effect only matters while the hero is on screen; capping the input
@@ -332,6 +332,25 @@
       var shift = Math.max(-1, Math.min(1, window.scrollY / 600));
       img.style.transform = 'translateY(' + (shift * 22) + 'px)';
     });
+  })();
+
+  /* ------------------------------------------------------------------
+     FLUID TEXTURE VIDEO — the hero/final-cta background loop. No autoplay
+     attribute in the markup on purpose: with JS off (or reduced-motion) the
+     poster frame just sits there like the old static image did. With JS on,
+     play it only while its section is actually on screen, so a page with
+     both hero and final-cta videos isn't decoding two loops at once.
+     ------------------------------------------------------------------ */
+  (function () {
+    var videos = document.querySelectorAll('[data-autoplay-video]');
+    if (!videos.length || reducedMotion) return;
+    var videoIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) e.target.play().catch(function () {});
+        else e.target.pause();
+      });
+    }, { threshold: 0.25 });
+    videos.forEach(function (v) { videoIO.observe(v); });
   })();
 
   /* ------------------------------------------------------------------

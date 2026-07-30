@@ -276,9 +276,12 @@ then 3 in sequence. Deliberately scroll+rAF rather than
 progress value the line fill needs. `prefers-reduced-motion` and a `no-js`
 fallback both show all three points active and the line full immediately —
 there's no scroll-gated content that becomes permanently unreachable if JS
-never runs.
+never runs. The active point doesn't just recolor — `.pain-item.is-active`
+also grows (`h3` 19px→22px, plus `transform:scale(1.045)` on the whole item,
+`transform-origin:left center` so it doesn't push sideways) so the emphasis
+reads as physically larger, not just a color/opacity swap.
 
-**Four more scroll effects run off one shared ticker in `assets/site.js`**
+**Five more scroll effects run off one shared ticker in `assets/site.js`**
 (a single `scroll`/`resize` listener gated by `requestAnimationFrame`, with
 each effect registering an update function into `scrollUpdaters` rather than
 adding its own listener):
@@ -286,22 +289,43 @@ adding its own listener):
   page-scroll position.
 - `header.nav` gets `.is-compact` past 48px of scroll (tighter padding +
   shadow) so the sticky header doesn't read as static.
-- The hero image (`.hero-visual img.texture`) gets a small parallax
+- The hero visual (`.hero-visual .texture`) gets a small parallax
   `translateY`, capped so it does nothing once you've scrolled well past
-  the hero. The image is oversized to 112% (`inset:-6%`) so the drift never
+  the hero. It's oversized to 112% (`inset:-6%`) so the drift never
   exposes an edge.
 - The `.offer-grid` / `.model-grid` cards (`[data-stagger]` in the markup)
   fade/lift in one after another rather than all at once, via
   `IntersectionObserver` (one-shot, unlike the continuous pain-track).
+- The hero-visual and final-CTA fluid-swirl `<video>` (see "Fluid animation
+  video" below) plays/pauses itself based on scroll visibility via a
+  dedicated `IntersectionObserver` (separate from `scrollUpdaters` since it
+  only needs enter/exit, not continuous progress).
 
 All of the above skip themselves under `prefers-reduced-motion` (the shared
 `reducedMotion` flag at the top of `site.js`) by showing the end state
 immediately — same rule as the pain-track: nothing becomes permanently
 hidden if motion is disabled or JS doesn't run.
 
+**Fluid animation video.** The hero-visual and final-CTA texture — previously
+a static `<img src="assets/fluid.webp">` — is now a `<video>` (see
+"Known issues" #4 for the transcode story). No `autoplay` attribute in the
+markup; `site.js` plays each `[data-autoplay-video]` only while its section
+is on-screen (via `IntersectionObserver`) and never does under
+`prefers-reduced-motion`, so no-JS/reduced-motion visitors see the
+`fluid.webp` poster frame exactly like the old static image.
+
+**Challenges teaser.** A body-level CTA banner (`.challenges-teaser`,
+between "How it works" and "Business model") links into `challenges.html` —
+per the user's ask that the challenges page be reachable from the home
+page's content, not just its nav/footer. Copy is per-audience
+(`m["teaser_h"]` / `m["teaser_p"]` in `tools-build-pages.py`'s `MODES`
+dict); the button reuses `m["accent"]` so it's orange on `business.html`
+and blue on `builders.html` like every other mode-aware CTA.
+
 ### `challenges.html`
 A deliberately empty stub, linked from both home pages' nav (a real link,
-not an anchor) and footer "Product" column. Its own small nav (no mode
+not an anchor), footer "Product" column, and now a body-level
+`.challenges-teaser` banner too (see above). Its own small nav (no mode
 switch, no section anchors — there's nothing on the page for them to point
 at yet) plus a centered "coming soon" message and a CTA into `signup.html`.
 Exists so the nav's browse-challenges path isn't a dead link; replace the
@@ -400,11 +424,28 @@ for returning visitors.
    flat corners the user described before compositing). Optimized `.webp`
    derivatives of both are what's actually referenced from HTML/CSS:
    `assets/spectrum.webp` (used by `projet-split-hero`'s bar divisor) and
-   `assets/fluid.webp` (used by the hero-visual/final-CTA texture on
-   `projet-landing.html`, `business.html`, and `builders.html`). A fluid
-   animation export, `assets/This_is_an_image_of_a_fluid_M.mp4`, is also
-   committed but not wired into anything yet — available if an animated
-   hero background is ever wanted.
+   `assets/fluid.webp` (used as the `<video poster>` / no-video fallback for
+   the hero-visual/final-CTA texture — see below). The user later replaced
+   the original animation export with a shorter one, `assets/
+   fluid_animation_3500ms.mp4` (3.5s, but 4K/42Mbps/18.7MB straight out of
+   the export — far too heavy to ship as-is for a looping background). That
+   source file is kept in `assets/` as the master; **`assets/fluid-loop.mp4`**
+   (transcoded via ffmpeg — `scale=1280:-2`, audio stripped, h264 crf 23 —
+   down to ~1.1MB) is what pages actually reference. Re-run the same ffmpeg
+   command against a new source export if the animation is ever swapped
+   again; don't hand the raw export straight to a page.
+   `business.html`/`builders.html` hero-visual and final-CTA now render
+   `<video class="texture" muted loop playsinline preload="none"
+   poster="assets/fluid.webp" data-autoplay-video><source
+   src="assets/fluid-loop.mp4" type="video/mp4"></video>` (generated from
+   the `FLUID_VIDEO` constant in `tools-build-pages.py`, not hand-edited).
+   Deliberately **no `autoplay` attribute in the markup** — `assets/site.js`
+   plays/pauses each `[data-autoplay-video]` via `IntersectionObserver`
+   (only decoding the loop while its section is on screen) and skips this
+   entirely under `prefers-reduced-motion`, so no-JS and reduced-motion
+   visitors just see the static `fluid.webp` poster frame, exactly like the
+   old `<img>` did. `login.html`/`signup.html`'s `auth-aside` still uses the
+   plain `fluid.webp` image (not this video) — not part of this pass.
 5. **Resolved.** `projet-split-hero`'s panels now link to `business.html`
    and `builders.html` (relative paths, `../business.html` /
    `../builders.html` from inside the `projet-split-hero/` folder) — real

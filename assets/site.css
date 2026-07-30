@@ -371,11 +371,11 @@ nav.links a:hover{color:var(--ink);}
 }
 /* scaled up beyond the frame so the subtle scroll-parallax (site.js) never
    exposes an edge as the image drifts within its clipped container */
-.hero-visual img.texture{
+.hero-visual .texture{
   position:absolute; inset:-6%; width:112%; height:112%; object-fit:cover;
   mix-blend-mode:normal; opacity:.92; will-change:transform;
 }
-@media (prefers-reduced-motion: reduce){ .hero-visual img.texture{transform:none !important;} }
+@media (prefers-reduced-motion: reduce){ .hero-visual .texture{transform:none !important;} }
 .hero-card{
   position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
   width:88%; background:rgba(20,19,15,.82); backdrop-filter:blur(14px);
@@ -449,10 +449,11 @@ nav.links a:hover{color:var(--ink);}
 
 .pain-item{
   position:relative; padding:26px 0;
-  opacity:.45; transition:opacity .4s var(--ease);
+  opacity:.45; transform:scale(1); transform-origin:left center;
+  transition:opacity .4s var(--ease), transform .4s var(--ease);
 }
 .pain-item:not(:last-child){border-bottom:1px solid var(--line);}
-.pain-item.is-active{opacity:1;}
+.pain-item.is-active{opacity:1; transform:scale(1.045);}
 
 .pain-num{
   position:absolute; left:-54px; top:26px;
@@ -467,8 +468,8 @@ nav.links a:hover{color:var(--ink);}
   background:var(--accent); border-color:var(--accent); color:#fff; transform:scale(1.08);
 }
 
-.pain-item h3{font-size:19px; margin-bottom:8px; transition:color .3s var(--ease);}
-.pain-item.is-active h3{color:var(--accent);}
+.pain-item h3{font-size:19px; margin-bottom:8px; transition:color .3s var(--ease), font-size .35s var(--ease);}
+.pain-item.is-active h3{color:var(--accent); font-size:22px;}
 .pain-item p{font-size:14.5px; line-height:1.6; color:var(--ink-soft); max-width:62ch;}
 
 @media (max-width:640px){
@@ -488,6 +489,21 @@ nav.links a:hover{color:var(--ink);}
 .reduced-motion .pain-num{background:var(--accent); border-color:var(--accent); color:#fff;}
 .no-js .pain-item h3,
 .reduced-motion .pain-item h3{color:var(--accent);}
+
+/* ---------- CHALLENGES TEASER — body-level link into challenges.html,
+   distinct from the nav/footer links so the page itself points there too */
+.challenges-teaser{
+  display:flex; align-items:center; justify-content:space-between; gap:28px;
+  padding:36px 40px; margin:0 0 8px;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+}
+.challenges-teaser h3{font-size:22px; margin:10px 0 6px;}
+.challenges-teaser p{font-size:14.5px; color:var(--ink-soft); max-width:52ch;}
+.challenges-teaser .btn{flex:none; white-space:nowrap;}
+@media (max-width:640px){
+  .challenges-teaser{flex-direction:column; align-items:flex-start; padding:28px 22px;}
+  .challenges-teaser .btn{width:100%; text-align:center;}
+}
 
 /* ---------- OFFER / SOLUTIONS ---------- */
 .offer-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line);
@@ -789,7 +805,7 @@ nav.links a:hover{color:var(--ink);}
   background:linear-gradient(155deg,#ff9a5a 0%, #ff5b24 20%, #7a3f8f 48%, #1c3d8f 74%, #0c1638 100%);
   color:#fff;
 }
-.final-cta img.texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85;}
+.final-cta .texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85;}
 /* scrim: the swirl has bright cream/orange passages that white copy disappears
    into — worst on mobile, where the block is short enough that the light part
    of the image lands directly behind the headline */

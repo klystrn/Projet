@@ -29,6 +29,14 @@ MODEL_STU = ["Join free", "Solve real business problems", "Earn rankings and rec
 
 FINAL_HEADLINE = "Where businesses with problems meet builders with potential."
 
+FLUID_VIDEO = (
+    '<video class="texture" muted loop playsinline preload="none" '
+    'poster="assets/fluid.webp" data-autoplay-video>\n'
+    '          <source src="assets/fluid-loop.webm" type="video/webm">\n'
+    '          <source src="assets/fluid-loop.mp4" type="video/mp4">\n'
+    '        </video>'
+)
+
 FOOTER_COLS = [
     ("Product", [("How it works", "#how-it-works"), ("What we offer", "#offer"),
                  ("Business model", "#business-model"), ("Challenges", "challenges.html")]),
@@ -69,6 +77,8 @@ MODES = {
         ],
         card_tag="YOUR CHALLENGE", card_title="Rebuild the pricing page conversion flow",
         card_rows=["Challenge live", "42 submissions", "Top 5 shortlisted", "Invite to interview"],
+        teaser_h="See the kind of talent that's already building.",
+        teaser_p="Browse open challenges to see real submissions in action before you post your own.",
     ),
     "builder": dict(
         file="builders.html", other="business.html", other_label="Business",
@@ -102,6 +112,8 @@ MODES = {
         ],
         card_tag="YOUR SUBMISSION", card_title="Rebuild the pricing page conversion flow",
         card_rows=["Challenge joined", "Solution submitted", "Ranked top 8%", "Company noticed"],
+        teaser_h="Ready to prove what you can do?",
+        teaser_p="Browse open challenges and jump into one that matches your skills.",
     ),
 }
 
@@ -231,7 +243,7 @@ def page(m):
       </div>
 
       <div class="hero-visual reveal">
-        <img class="texture" src="assets/fluid.webp" alt="">
+        {FLUID_VIDEO}
         <div class="hero-card">
           <div class="hero-card-top">
             <span class="tag">{m["card_tag"]}</span>
@@ -279,6 +291,18 @@ def page(m):
     </div>
   </section>
 
+  <!-- CHALLENGES TEASER -->
+  <section class="wrap">
+    <div class="challenges-teaser reveal">
+      <div>
+        <span class="eyebrow">Live right now</span>
+        <h3>{m["teaser_h"]}</h3>
+        <p>{m["teaser_p"]}</p>
+      </div>
+      <a href="challenges.html" class="btn {m["accent"]}">Browse challenges</a>
+    </div>
+  </section>
+
   <!-- BUSINESS MODEL -->
   <section class="section wrap traction-section" id="business-model">
     <div class="section-head reveal">
@@ -304,7 +328,7 @@ def page(m):
   <!-- FINAL CTA -->
   <section class="wrap final-cta-wrap">
     <div class="final-cta reveal" id="final-cta">
-      <img class="texture" src="assets/fluid.webp" alt="">
+      {FLUID_VIDEO}
       <div class="final-cta-inner">
         <h2>{FINAL_HEADLINE}</h2>
         <p>{TAGLINE}</p>
