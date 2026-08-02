@@ -950,6 +950,10 @@ nav.links a:hover{color:var(--ink);}
 /* generous ceiling: answers wrap to many more lines on narrow screens, and a
    tight max-height silently clips them mid-sentence */
 .faq-item.open .faq-a{max-height:600px;}
+/* without JS nothing ever adds .open, so the accordion would otherwise
+   clip every answer permanently — same "never hide content" rule as the
+   pain-track/how-pin/count-up fallbacks elsewhere in this file */
+.no-js .faq-a{max-height:none;}
 
 /* ---------- PRICING ---------- */
 .price-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;}

@@ -123,7 +123,14 @@ that exists in Andrei's content, so it was all cut from the home pages:
 - S$250 listing / S$500 unlock pricing
 - Hack & Hire pilot traction (120+ builders, 7 companies, 10+ defenses, 2 hires)
   and the Block71 @ NUS proof strip
-- the per-audience FAQ
+
+**Update: the per-audience FAQ was reintroduced (see `business.html` /
+`builders.html` below), on explicit user confirmation, when Thi's wireframe
+called for one in the nav's Resources dropdown.** Its content is new,
+though — written from this page's own established copy (`MODEL_BIZ`/
+`MODEL_STU`, the offers, `HOW`), not the deck-era rubric/pricing FAQ this
+section originally described. Don't confuse the two if a future edit finds
+old deck-FAQ copy lying around; that version stays removed.
 
 Two things still carry the deck framing and were deliberately left alone —
 **flag them rather than silently reconciling**: `projet-landing.html` (the

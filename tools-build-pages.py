@@ -97,6 +97,19 @@ MODES = {
             ("“Seeing the actual submissions side by side made the final call so much easier.”",
              "Founder, early pilot"),
         ],
+        faqs=[
+            ("How does posting a challenge work?",
+             "Publish a real business or technical problem from your backlog. Builders compete to solve it, "
+             "and you review actual submissions instead of resumes."),
+            ("What does it cost?",
+             "You pay to publish a challenge — there's no subscription, and no cost to browse or evaluate "
+             "submissions."),
+            ("Can challenges run in person?",
+             "Yes — choose an online or in-person format when you publish, depending on what fits your team."),
+            ("Do I see every submission, or just a shortlist?",
+             "You get access to all builder submissions, so you can evaluate the full pool yourself before "
+             "deciding who to shortlist and invite to interview."),
+        ],
     ),
     "builder": dict(
         file="builders.html", other="business.html", other_label="Business",
@@ -141,6 +154,19 @@ MODES = {
             ("“It's the first time a company actually asked how I think, instead of just reading a resume.”",
              "Builder, early pilot"),
         ],
+        faqs=[
+            ("Is it free to join?",
+             "Yes — joining and competing on challenges is completely free for builders."),
+            ("What kind of challenges will I work on?",
+             "Real business or technical problems companies need solved — not toy assignments or generic "
+             "coursework."),
+            ("How do I get noticed?",
+             "Submit your best work and get ranked against other builders. Top performers get direct "
+             "visibility with the company, plus a track record you can point to going forward."),
+            ("What happens after I submit?",
+             "Businesses review real submissions from every builder who competed, and shortlist standouts "
+             "for interviews, internships, or other opportunities."),
+        ],
     ),
 }
 
@@ -175,6 +201,7 @@ def nav(m):
           <a href="#how-it-works">How it works</a>
           <a href="#testimonials">Testimonials</a>
           <a href="challenges.html">Projects showcase</a>
+          <a href="#faq">FAQs</a>
           <a href="#footer">Contact</a>
         </div>
       </div>
@@ -185,6 +212,7 @@ def nav(m):
                     '      <a href="signup.html?role=business">Post a challenge</a>\n'
                     '      <a href="#how-it-works">How it works</a>\n'
                     '      <a href="#testimonials">Testimonials</a>\n'
+                    '      <a href="#faq">FAQs</a>\n'
                     '      <a href="#footer">Contact</a>\n')
 
     return f'''<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
@@ -270,6 +298,12 @@ def page(m):
         f'          <p class="testimonial-attr">{a}</p>\n'
         f'        </div>'
         for q, a in m["testimonials"])
+    faq_items = "\n".join(
+        f'      <div class="faq-item">\n'
+        f'        <button class="faq-q">{q} <span class="plus" aria-hidden="true"></span></button>\n'
+        f'        <div class="faq-a"><div class="faq-a-inner"><p>{a}</p></div></div>\n'
+        f'      </div>'
+        for q, a in m["faqs"])
     fcols = "\n".join(
         '      <div class="footer-col">\n        <h6>' + title + '</h6>\n' +
         "".join(f'        <a href="{h}">{l}</a>\n' for l, h in links) +
@@ -464,6 +498,17 @@ def page(m):
 {mstu}
         </ul>
       </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section wrap" id="faq">
+    <div class="section-head reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2>Questions, answered.</h2>
+    </div>
+    <div class="faq-list reveal">
+{faq_items}
     </div>
   </section>
 
