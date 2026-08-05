@@ -507,20 +507,29 @@ testimonials along different points on the main line in the asset."*
 Current implementation is the same mechanic family as How It Works' Fluid
 Flow Steps: `.t-scrub` is a **420vh** wrapper, `.t-scrub-inner` sticks for
 the duration. `.t-scrub-bg` is `hero-visual.webp` (the same "Logo
-Background 2" derivative used in the hero) zoomed in
-(`background-size:260% auto`) with **`background-position-x` panning
+Background 2" derivative used in the hero), modestly zoomed in
+(`background-size:170% auto` — was `260%`, dialled back after the user
+flagged it as too zoomed in) with **`background-position-x` panning
 100% → 0% (right to left)** as the reader scrolls — the opposite axis from
 How It Works' diagonal pan, per the explicit ask. `.t-scrub-scrim` is a
 center-heavy radial + linear gradient, same reasoning as `.flow-scrim`
 (the stops sit near the stage's middle, which is where the artwork's
 brightest passages run).
 
-**Testimonials sit at different points along the wave, not all
-dead-centre.** Each of the 5 `.t-stop` cards carries its own `--ty` inline
-custom property (a hand-picked vertical pixel offset, not sampled from the
-image the way `spectrum.webp`'s `BAND_ZOOM` table was) so they read as
-riding different points of the glowing curve as the background pans
-underneath them. `landing.js`'s scrub `tick()` buckets scroll progress into
+**All five testimonials sit at the same centred vertical position — not
+riding different points of the wave.** The first version gave each
+`.t-stop` its own `--ty` inline vertical offset (hand-picked, not sampled
+from the image the way `spectrum.webp`'s `BAND_ZOOM` table was) so they'd
+read as sitting at different points along the glowing curve as the
+background panned underneath. The user tried it live and asked for the
+opposite — cards fixed at "the same altitude position in the centre,"
+only the background moving. `--ty` and the inline styles setting it are
+gone; `.t-card.t-stop`'s transform is a plain `translate(-50%,-50%)`. If
+this direction ever gets asked for again, the removed CSS comment (git
+history) explains the anchor-from-centre math that made per-stop offsets
+safe against pushing a card into the heading above `.t-stops`.
+
+`landing.js`'s scrub `tick()` buckets scroll progress into
 5 segments (same `Math.floor(p * stops.length * 0.999)` pattern as flow)
 and toggles `.is-active` accordingly; `.t-dots` are decorative progress
 dots only, not click targets, same as `.flow-dots`.
@@ -582,6 +591,12 @@ mid-cycle.
 
 **`.final-quote` was removed** — asked explicitly. It briefly reused the
 same testimonial quote above the headline; gone now, along with its CSS.
+
+**`.final-wrap` now has `padding-top:96px` (was `0`, bottom-only).** The
+Testimonials scroll-scrub sits flush against this section with no margin
+of its own, so with no top padding here the two used to butt directly
+together — the dark scrub background ran straight into the CTA card with
+no breathing room. Symmetric with the existing `padding-bottom`.
 
 ## Animation reference library
 

@@ -701,7 +701,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .t-scrub-bg{
   position:absolute; inset:-12%;
   background-image:url('hero-visual.webp'); background-repeat:no-repeat;
-  background-size:260% auto; background-position:100% 40%;
+  background-size:170% auto; background-position:100% 40%;
   will-change:background-position;
 }
 /* center-heavy scrim, same reasoning as .flow-scrim: the stops sit near the
@@ -722,9 +722,10 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .t-scrub .t-head h2{color:#fff; font-size:clamp(28px,3.6vw,42px); margin-top:10px;}
 
 .t-stops{position:relative; width:100%; max-width:460px; height:280px; margin-top:44px;}
-/* centred on .t-stops' own middle, THEN offset by --ty — anchoring from the
-   top edge instead pushed the more negative --ty stops up out of .t-stops
-   entirely and into the heading above it.
+/* All five stops sit at the same centred "altitude" — asked explicitly
+   after an earlier pass gave each its own --ty vertical offset to ride
+   different points of the wave; that read as distracting once live, so the
+   position is now fixed and only the background pans underneath.
    .t-card.t-stop (not .t-stop alone): every stop also carries .t-card for its
    visual chrome, and .t-card's own `position:relative` (below) is defined
    later in the file — with equal specificity, source order would let that
@@ -734,12 +735,12 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
    where either class is declared. */
 .t-card.t-stop{
   position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%) translateY(var(--ty,0px)) scale(.95);
+  transform:translate(-50%,-50%) scale(.95);
   width:100%; opacity:0; pointer-events:none;
   transition:opacity .5s var(--ease), transform .6s var(--ease);
 }
 .t-card.t-stop.is-active{
-  opacity:1; transform:translate(-50%,-50%) translateY(var(--ty,0px)) scale(1);
+  opacity:1; transform:translate(-50%,-50%) scale(1);
   pointer-events:auto;
 }
 .t-dots{display:flex; justify-content:center; gap:9px; margin-top:26px;}
@@ -804,7 +805,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 /* ==========================================================================
    FINAL CTA
    ========================================================================== */
-.final-wrap{padding-bottom:96px;}
+.final-wrap{padding-top:96px; padding-bottom:96px;}
 .final{
   position:relative; overflow:hidden; border-radius:28px;
   padding:clamp(48px,7vw,96px) clamp(24px,5vw,72px); text-align:center; color:#fff;
