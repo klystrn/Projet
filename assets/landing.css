@@ -720,7 +720,21 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .flow-fluid{
   position:absolute; inset:0;
   background-image:var(--img-fluid-full);
-  background-size:220% 220%;
+  /* ZOOM: was `220% 220%`, which had two problems.
+     1. It sized each axis to 220% of the CONTAINER independently, so the
+        artwork's own 1080x611 aspect ratio was ignored — at 1440x900 that
+        stretched it 10.5% vertically.
+     2. 220% of the viewport meant a 2.9x (1440px) to 5.2x (2560px) upscale
+        of a 1080px-wide source, which is what read as "low resolution":
+        past ~2x, no amount of encoding quality can help.
+     Now: scale to COVER (preserving aspect via the artwork's own ratio),
+     then multiply by --fluid-zoom for the pannable overhang the scroll
+     scrub needs. max() picks whichever axis has to drive the cover. This
+     cuts magnification to 1.8x/2.2x/3.0x at those same widths and removes
+     the distortion entirely. Height is `auto` so aspect is never forced. */
+  --fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
+  --fluid-zoom:1.25;
+  background-size:calc(max(100vw, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
   background-position:0% 100%;
   opacity:.58; will-change:background-position;
 }

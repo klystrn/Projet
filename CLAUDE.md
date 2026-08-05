@@ -531,10 +531,35 @@ no rubric content re-added.
 
 Current implementation: `.flow` is a **368vh** wrapper (scaled down
 proportionally from the old 460vh for 5 steps); `.flow-stage` pins for the
-duration. `.flow-fluid` tracks `background-position` on `fluid-full.webp`
-(converted from `fluid-full.png` in a later perf pass — see "Known issues" #3)
-as the reader scrolls (opacity `.58`, own `landing.js` scrub tied into the
-shared `scrollUpdaters` ticker, not its own listener); `.flow-scrim` is a
+duration. `.flow-fluid` tracks `background-position` on the fluid artwork
+(delivered via `--img-fluid-full`, AVIF with a WebP fallback — see "Known
+issues" #3) as the reader scrolls (opacity `.58`, own `landing.js` scrub
+tied into the shared `scrollUpdaters` ticker, not its own listener).
+
+**The zoom level was reduced and de-distorted (Aug 2026) — don't put
+`220% 220%` back.** The user reported the background still looked
+low-resolution after the AVIF re-encode, and correctly suspected the zoom.
+`background-size:220% 220%` sized *each axis to 220% of the container
+independently*, which had two separate faults: it ignored the artwork's own
+1080x611 aspect ratio (at 1440x900 that stretched it 10.5% vertically; on a
+390px phone it squashed it to a 0.46 aspect vs the source's 1.77 — severe),
+and 220% of the viewport meant a 2.9x (1440px) to 5.2x (2560px) upscale of a
+1080px-wide source. Past roughly 2x, no encoding quality can compensate.
+It now scales to **cover** (aspect preserved via the artwork's own ratio)
+and multiplies by a zoom factor for the overhang the scrub pans through:
+
+```css
+--fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
+--fluid-zoom:1.25;
+background-size:calc(max(100vw, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
+```
+
+Measured upscale went 2.93x -> **1.84x** at 1440px, 3.91x -> **2.22x** at
+1920px, 5.21x -> **2.96x** at 2560px, with the distortion gone entirely.
+`--fluid-zoom` is the single knob if the motion needs more or less travel;
+raising it trades sharpness back for pan distance.
+
+`.flow-scrim` is a
 center-heavy radial gradient (not just edge vignette) since the step copy
 sits dead centre, which is exactly where the artwork's brightest passages
 run — an edge-only vignette left the text unreadable. The 4 steps
@@ -754,10 +779,24 @@ vestigial now that the chooser is gone — harmless, just never populated.
    -q:v 82` WebP convention is RETIRED; do not reapply it to these.**
    The hero background (`.hero-visual`), the How-it-works scrub
    (`.flow-fluid`) and the light-spectrum wave (`.ss-bar`) are all smooth
-   gradient artworks, and all three are ZOOMED on screen — the flow scrub
-   runs at `background-size:220%` (a 2.9x upscale at 1440px, 5.2x at
-   2560px) and each spectrum bar zooms into its own row. That magnifies
-   every encoding artifact.
+   gradient artworks, and all three are ZOOMED on screen, which magnifies
+   every encoding artifact. (The flow scrub's own zoom was subsequently
+   reduced from 2.9x to 1.84x at 1440px — see "5. How it works" above.
+   Encoding and magnification were two independent causes of the same
+   complaint; both had to be fixed.)
+
+   **Still outstanding — the one thing that needs the user.** The true
+   original of the fluid artwork lives in Figma (`fileKey
+   KWwUgic3XjFfV5Xyz5VqDI`, nodes `1:22` background + `1:23` foreground,
+   composited — `fluid-full.png` is that composite at scale 1). The local
+   master is only **1080x611**, so even at the reduced zoom it is still
+   upscaled ~1.8x-3.0x. `download_assets` at `defaultScale:4` returns the
+   URLs fine, but **this environment's egress policy blocks
+   `www.figma.com` outright** (gateway 403 on CONNECT, confirmed via the
+   agent proxy's status endpoint — not something to route around), and
+   base64-through-context is not viable at that file size. A ~2560px-wide
+   PNG export of nodes 1:22+1:23 composited, dropped into `assets/`, is
+   the only remaining step; re-run the AVIF command below on it.
 
    **The bug this caused, and the root cause:** the user reported the
    How-it-works background had "lost its quality." Measured against the
