@@ -382,5 +382,34 @@
     start();
   })();
 
+  /* ---------------- Featured-challenge countdown ----------------
+     A real ticking clock against a PLACEHOLDER deadline: hours-from-page-load
+     rather than a fixed calendar date, since there's no live challenge data
+     yet — see the HTML comment on .ss-countdown for what to change once there
+     is. Not gated by reducedMotion: this is a live data readout that updates
+     its own text, not a CSS/decorative animation, and the HTML already
+     pre-renders a sane starting value so no-js visitors see that and nothing
+     ever depends on this running. */
+  (function () {
+    var el = document.querySelector("[data-countdown-hours]");
+    if (!el) return;
+    var hours = parseFloat(el.getAttribute("data-countdown-hours")) || 0;
+    var deadline = Date.now() + hours * 3600000;
+    var dEl = el.querySelector('[data-cd="d"]');
+    var hEl = el.querySelector('[data-cd="h"]');
+    var mEl = el.querySelector('[data-cd="m"]');
+    var sEl = el.querySelector('[data-cd="s"]');
+    function pad(n) { return n < 10 ? "0" + n : String(n); }
+    function tick() {
+      var diff = Math.max(0, deadline - Date.now());
+      dEl.textContent = pad(Math.floor(diff / 86400000));
+      hEl.textContent = pad(Math.floor((diff % 86400000) / 3600000));
+      mEl.textContent = pad(Math.floor((diff % 3600000) / 60000));
+      sEl.textContent = pad(Math.floor((diff % 60000) / 1000));
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+
   onScroll(); // paint every scroll-linked effect at its correct initial value
 })();

@@ -215,6 +215,9 @@ a transition rather than a cut.
 - Below 900px the whole mechanic is dropped: panels stack, both show their
   copy outright, and the band becomes a horizontal divider. A hover-to-expand
   split has no meaning on a screen that can only show one column.
+- **Live countdown** (`.ss-countdown`) sits above the featured-challenge
+  cards — see "Known issues" #2 for why it's a relative placeholder
+  deadline rather than a real one.
 
 ### 5. How it works — Fluid Flow Steps
 The five steps the user specified. `.flow` is a 460vh wrapper with a sticky
@@ -245,8 +248,12 @@ half-empty gap). Auto-advance pauses on hover/focus and stops permanently
 once the user touches a control; arrow-key support on the rail.
 
 - Quotes, names and avatars are **placeholders** — see "Known issues" #1.
-  Avatars are generated inline-SVG gradient marks with initials, deliberately
-  not photographs of real people.
+  Avatars are illustrated silhouettes: an inline SVG, a gradient-filled
+  circle with a clipped head-and-shoulders shape drawn on top (`clipPath`
+  keeps the silhouette inside the circle), deliberately not photographs of
+  real people. An earlier pass used gradient circles with text initials
+  instead — swapped to silhouettes on the user's explicit choice between
+  the two.
 - Inactive dots use `rgba(20,19,15,.22)`, **not** `var(--line)` — that beige
   is invisible against the near-white parallax backdrop and left the row
   looking like one stray pill.
@@ -292,25 +299,36 @@ vestigial now that the chooser is gone — harmless, just never populated.
 
 1. **PLACEHOLDER CONTENT — the launch blocker.** Three things on the landing
    page are stand-ins and are marked as such in the HTML:
-   - **The logo carousel uses real, well-known brand names (Google, Apple,
-     Shopify, Stripe, Grab, Notion, Figma, Sea). These companies are NOT
-     Projet customers.** The user asked for recognisable logos so the
-     carousel could be reviewed at realistic visual weight. The strip is
-     labelled "Placeholder logos — pending real partners" rather than
-     "trusted by" precisely so the page never asserts a client list it
-     doesn't have. **This must be swapped for real, permissioned partner
-     logos before any public deploy** — shipping it as-is would be a false
-     claim of clientele, and using those marks commercially is a trademark
-     problem on top of that.
+   - **The logo carousel** — asked and confirmed: generic, obviously-
+     fictional company names (Northwind, Acme Labs, Vertex Studio, Meridian
+     Co., Lumen Works, Cobalt & Co, Fieldstone, Anchorpoint), not real
+     brands. An earlier pass used real names (Google, Apple, etc.) per the
+     user's original phrasing ("e.g. Google, apple"); when asked directly
+     whether to keep that or go generic, the user chose generic — zero
+     trademark/false-clientele risk if this is ever shared or deployed
+     before real partners exist. The strip is still labelled "Placeholder
+     logos — pending real partners" rather than "trusted by". **Swap for
+     real, permissioned partner logos before any public deploy.**
    - **Testimonials** — quotes are invented, attributed to roles only
-     ("Hiring lead, early pilot"), with generated gradient avatars rather
-     than photos of real people. Replace with real, permissioned quotes and
-     portraits.
+     ("Hiring lead, early pilot"), never a named real person. Avatars are
+     illustrated silhouettes (a clipped head-and-shoulders shape over a
+     gradient, `assets/landing.css` `.t-avatar`) — asked and confirmed over
+     gradient-initials or empty photo frames. Replace with real,
+     permissioned quotes and portraits before launch.
    - **Featured challenge cards** — three sample briefs, not live listings.
-2. **The countdown-clock idea is not built.** The user floated "a clock that
-   shows a live countdown till the next event" as an idea, not a
-   requirement, and there's no real event date to count to. Ask what the
-   event is before building it.
+2. **The countdown clock — built, into Featured Challenges, on a placeholder
+   deadline.** Asked and confirmed: a "next challenge closes in" timer
+   (`.ss-countdown` in `index.html`, ticking logic in `landing.js`) sits
+   above the challenge cards. It counts down from a **relative** placeholder
+   — `data-countdown-hours="144"` (144h = 6 days, matching the top card's
+   "6 days left") computed from page-load time, not a fixed calendar date,
+   since there's no live challenge data yet. The HTML pre-renders
+   "06d 00h 00m 00s" so a no-js visitor sees a sane static value instead of
+   nothing. Swap `data-countdown-hours` (or point it at a real deadline
+   timestamp) once real challenge data exists. Distinct from the original
+   "clock counting down to the next event" idea floated for the hero — that
+   one is still not built, since there's still no real *event* date, only a
+   per-challenge deadline concept.
 3. **The hero visual's waveform layer uses `Logo Background 2.png`
    (1.1MB, unoptimised).** Every other shipped raster on the page has a
    `.webp` derivative; this one doesn't yet. Generate one the same way

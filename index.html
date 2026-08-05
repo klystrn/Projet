@@ -118,26 +118,27 @@
   </section>
 
   <!-- ========================= 2. LOGO CAROUSEL =========================
-       PLACEHOLDER CONTENT — these are well-known brand names standing in so
-       the carousel can be reviewed at realistic visual weight. They are NOT
-       Projet customers. The label below says "placeholder logos" rather than
-       "trusted by" precisely so the page never asserts a client list it
-       doesn't have. Swap for real partner logos before any public launch.
-       Marquee recycles items in JS (landing.js) so it never rewinds. -->
+       PLACEHOLDER CONTENT — generic, obviously-fictional company names
+       standing in so the carousel can be reviewed at realistic visual
+       weight, with zero risk of implying a real client list or any
+       trademark issue. The label below says "placeholder logos" rather
+       than "trusted by" for the same reason. Swap for real partner logos
+       before any public launch. Marquee recycles items in JS (landing.js)
+       so it never rewinds. -->
   <section class="logos" data-reveal>
     <div class="wrap">
       <p class="logos-label">Placeholder logos &mdash; pending real partners</p>
     </div>
     <div class="logo-marquee">
       <div class="logo-track" id="logoTrack">
-        <span class="logo-chip">Google</span>
-        <span class="logo-chip">Apple</span>
-        <span class="logo-chip">Shopify</span>
-        <span class="logo-chip">Stripe</span>
-        <span class="logo-chip">Grab</span>
-        <span class="logo-chip">Notion</span>
-        <span class="logo-chip">Figma</span>
-        <span class="logo-chip">Sea</span>
+        <span class="logo-chip">Northwind</span>
+        <span class="logo-chip">Acme Labs</span>
+        <span class="logo-chip">Vertex Studio</span>
+        <span class="logo-chip">Meridian Co.</span>
+        <span class="logo-chip">Lumen Works</span>
+        <span class="logo-chip">Cobalt &amp; Co</span>
+        <span class="logo-chip">Fieldstone</span>
+        <span class="logo-chip">Anchorpoint</span>
       </div>
     </div>
   </section>
@@ -160,6 +161,17 @@
             Not take-home busywork — actual problems teams need solved. Pick one,
             build it on your own time, then defend it.
           </p>
+          <!-- Live countdown to the top featured challenge's close — a real
+               ticking clock, but tied to a PLACEHOLDER deadline (6h from page
+               load, matching the "6 days left" on the card below it) since
+               there's no live challenge data yet. data-countdown-hours is the
+               only thing to change once a real deadline exists; the initial
+               "06d 00h 00m 00s" pre-rendered in the spans is what a no-js
+               visitor sees, so nothing here depends on JS to show a value. -->
+          <div class="ss-countdown" data-countdown-hours="144">
+            <span class="ss-countdown-label">Next challenge closes in</span>
+            <span class="ss-countdown-val"><span data-cd="d">06</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</span>
+          </div>
           <!-- PLACEHOLDER: sample briefs, not live listings -->
           <div class="ss-cards">
             <div class="ss-card">
@@ -291,9 +303,10 @@
 
   <!-- ========================= 6. TESTIMONIALS =========================
        PLACEHOLDER CONTENT — quotes, names and avatars are all stand-ins so
-       the carousel can be reviewed. Avatars are generated gradient marks, not
-       photographs of real people. Replace with real, permissioned quotes and
-       portraits before launch. -->
+       the carousel can be reviewed. Avatars are illustrated silhouettes
+       (a clipped head-and-shoulders shape over a gradient), not photographs
+       of real people. Replace with real, permissioned quotes and portraits
+       before launch. -->
   <section class="testimonials" id="testimonials" tabindex="-1">
     <div class="t-bg" aria-hidden="true"></div>
     <div class="wrap">
@@ -308,7 +321,7 @@
           <article class="t-card">
             <p class="t-quote">&ldquo;The defense is where it clicked. Fifteen minutes told us more than three rounds of interviews ever did.&rdquo;</p>
             <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">HL</text></svg>
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient><clipPath id="avc1"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><g clip-path="url(#avc1)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
               <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
             </div>
           </article>
@@ -316,7 +329,7 @@
           <article class="t-card">
             <p class="t-quote">&ldquo;I finally had something real to point at. Not a bullet point — actual work, and I got to explain why I built it that way.&rdquo;</p>
             <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av2)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">BD</text></svg>
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient><clipPath id="avc2"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av2)"/><g clip-path="url(#avc2)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
               <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
             </div>
           </article>
@@ -324,7 +337,7 @@
           <article class="t-card">
             <p class="t-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</p>
             <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av3)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">FD</text></svg>
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient><clipPath id="avc3"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av3)"/><g clip-path="url(#avc3)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
               <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
             </div>
           </article>
@@ -332,7 +345,7 @@
           <article class="t-card">
             <p class="t-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</p>
             <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av4)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">BD</text></svg>
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient><clipPath id="avc4"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av4)"/><g clip-path="url(#avc4)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
               <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
             </div>
           </article>
@@ -340,7 +353,7 @@
           <article class="t-card">
             <p class="t-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</p>
             <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av5)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">EM</text></svg>
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient><clipPath id="avc5"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av5)"/><g clip-path="url(#avc5)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
               <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
             </div>
           </article>
