@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-05T00:00:00Z",
+  "generatedAt": "2026-08-05T18:00:00Z",
   "title": "Design System: Projet",
   "extensions": {
     "colorMeta": {
@@ -146,6 +146,22 @@
       "description": "Small mono pill tagging status or category, tinted by accent side.",
       "html": "<span class=\"ds-badge\">Company</span>",
       "css": ".ds-badge { display:inline-flex; align-items:center; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:rgba(47,107,255,.12); color:#1d4fd6; }"
+    },
+    {
+      "name": "Skip Link",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Off-screen until keyboard focus, then drops in as a pill button above the sticky nav.",
+      "html": "<a class=\"ds-skip-link\" href=\"#top\">Skip to main content</a>",
+      "css": ".ds-skip-link { position:absolute; top:8px; left:8px; z-index:400; transform:translateY(-150%); padding:14px 22px; border-radius:999px; background:#14130f; color:#fff; font-family:'Satoshi',sans-serif; font-size:14px; font-weight:700; text-decoration:none; box-shadow:0 10px 30px -12px rgba(20,19,15,.5); transition:transform .2s cubic-bezier(.16,.84,.44,1); } .ds-skip-link:focus-visible { transform:translateY(0); outline:2px solid #ff5b24; outline-offset:2px; }"
+    },
+    {
+      "name": "Pending Link",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "A destination that doesn't exist yet: named and marked \"soon\" rather than linked to nowhere. The site's honesty convention, shared with the front-end-only forms.",
+      "html": "<span class=\"ds-footer-pending\">Privacy<em>soon</em></span>",
+      "css": ".ds-footer-pending { display:flex; align-items:center; gap:8px; font-family:'Satoshi',sans-serif; font-size:14px; color:#726d5f; padding:6px 0; cursor:default; } .ds-footer-pending em { font-family:'JetBrains Mono',monospace; font-style:normal; font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:999px; background:#e6e3da; color:#726d5f; }"
     },
     {
       "name": "Audience Mode Toggle",
