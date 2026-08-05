@@ -123,17 +123,46 @@ the API URL directly.
 ## Site architecture — REBUILT (Aug 2026). Read this first.
 
 **The whole previous multi-page site was scrapped on the user's explicit
-instruction.** There is now one page: a landing page at `index.html`, which
-is also the entry point (launching the site lands you here — there is no
-longer a chooser gate in front of it).
+instruction.** `index.html` is the landing page and the entry point (launching
+the site lands you here — there is no longer a chooser gate in front of it).
+A second public page, `challenges.html`, was added later (see below); the
+scrapped multi-page *audience* structure is still gone and stays gone.
 
 ```
-index.html          the landing page — the entire public site
+index.html          the landing page — the main public surface
+challenges.html     the full challenge listing (added Aug 2026 — see below)
 login.html          front-end-only auth (kept, still functional)
 signup.html         front-end-only auth (kept; ?role= still prefills)
-assets/             shared images/video + landing.css + landing.js + site.css
+assets/             shared images/video + landing.css/js + challenges.css/js + site.css
 archive/            everything the landing page replaced
 ```
+
+**`challenges.html` — the listing page.** Built to resolve the standing dead
+link: `index.html` referenced it from "View all challenges" and every "Browse
+challenges" CTA, and it 404'd. It reuses `assets/landing.css` for the tokens
+and the shared nav/footer/buttons, then adds `assets/challenges.css` for the
+listing grid only — so the two pages can't drift apart on brand. It loads
+`assets/landing.js` (which owns the mobile menu, the audience toggle and nav
+compaction; every index-only effect in it self-skips when its element is
+absent — verified, no console errors) plus `assets/challenges.js`, which adds
+*only* the discipline filter.
+
+- The six briefs are **labelled placeholders**, same convention as the
+  landing page's logos/testimonials: a `.ch-notice` banner says "Sample
+  briefs, not live listings" above the grid, and `<meta name="robots"
+  content="noindex">` is set until they're real. Remove both when the API
+  serves live challenges.
+- Cards are deliberately **not links** — there's no brief-detail page, and a
+  card that looked clickable but went nowhere is exactly the dead end this
+  page was built to remove.
+- The filter is progressive enhancement: all six cards render in the HTML,
+  and `.no-js .ch-filters{display:none}` hides the control rather than
+  leaving a bar of buttons that do nothing.
+
+**Link convention across the two pages** (settled here, keep it): *section*
+links ("Challenges" in the nav/footer) point at the in-page `#challenges`
+section; *action* CTAs ("Browse challenges", "View all challenges →") point
+at `challenges.html`. Same label, same destination, everywhere.
 
 Everything below is in `archive/` and is **reference only — do not
 resurrect any of it as a live page**:
@@ -741,14 +770,19 @@ vestigial now that the chooser is gone — harmless, just never populated.
    master for future re-exports, same pattern as `fluid_animation_3500ms.mp4`
    → `fluid-loop.mp4`; regenerate the webp from it if the master is ever
    re-exported.
-4. **No real backend/routing.** Static HTML/CSS/JS, no framework, no build
-   step. `challenges.html` doesn't exist yet, so "Browse challenges" CTAs
-   point at `#challenges` (the in-page section) or `signup.html`. The one
-   exception is deliberate: `.ss-view-all` ("View all challenges →" under
-   Featured challenges — see "3 + 4." above) links straight to
-   `challenges.html`, since that's meant to become the real full-listing
-   page the user described ("a separate page for all challenges") — it
-   will 404 until that page is built.
+4. **No real backend.** Static HTML/CSS/JS, no framework, no build step.
+   **Routing is now resolved**: `challenges.html` was built (see "Site
+   architecture" above), so every "Browse challenges" CTA and
+   `.ss-view-all` points at a page that exists — nothing on either page
+   404s or links to `#`. What's still front-end-only is the *data*: the
+   listing is six labelled sample briefs, the auth forms and the footer
+   capture all need `data-endpoint` pointing at a real route, and there is
+   no brief-detail page (so challenge cards are intentionally not links).
+   `About`, `Careers`, `Contact`, `Privacy` and `Terms` don't exist as
+   pages; rather than `href="#"` (which silently jumped the reader to the
+   top) they render as `.footer-pending` spans — the destination is named
+   and marked "soon", the same honesty convention the auth forms use. Swap
+   each `<span>` back to an `<a href="…">` as its page ships.
 5. **`assets/fluid_animation_3500ms.mp4` (18.7MB) is the raw master export**
    and is not referenced by any page. `assets/fluid-loop.mp4` (~1.1MB,
    `ffmpeg -vf scale=1280:-2 -an -crf 23`) is what ships (final CTA and
@@ -811,6 +845,54 @@ vestigial now that the chooser is gone — harmless, just never populated.
      CSS host), `api.fontshare.com`, and `cdn.fontshare.com` (Fontshare's
      font-file CDN) did not.
    - **`fluid-full.png` → `fluid-full.webp`**: see item 3 above.
+8. **Second accessibility pass (resolved, Aug 2026)** — a deeper structural
+   audit than #7 (which was mostly colour/contrast/targets). All fixed:
+   - **Broken ARIA tab pattern.** `.ss-tabs` used `role="tablist"`/`role="tab"`
+     with `aria-selected`, but there were zero `role="tabpanel"`s and no
+     `aria-controls` — and, more fundamentally, *both* spectrum-split panels
+     stay fully visible; the control only shifts which side is emphasised.
+     A tab promises "this panel replaces that one," which isn't what happens.
+     Now plain toggle buttons in a `role="group"` with `aria-pressed`
+     (`landing.js` sets it, `.ss-tab[aria-pressed="true"]` styles it).
+   - **10 duplicate DOM ids.** Each testimonial avatar carried its own
+     `<defs>` with `av1..av5`/`avc1..avc5`; the marquee clones every card, so
+     each id existed twice — invalid HTML, and every clone's `url(#…)`
+     silently resolved to the first match anyway. The gradients and the one
+     shared circular clip now live once in a `.t-avatar-defs` sprite outside
+     `.t-wall-track`, so cloned cards carry no ids at all.
+   - **Logo marquee clones were focusable and read aloud.** They doubled the
+     strip's tab stops (8 → 16) and made a screen reader announce the whole
+     placeholder list twice. Clones now get `aria-hidden="true"` **and**
+     `tabindex="-1"` (aria-hidden alone is a violation if the node stays
+     focusable). The testimonial marquee already did this.
+   - **Heading order skipped 2 → 6.** Footer column headings were `<h6>`
+     under `<h2>` sections; now `<h3>` (`.footer-col h3`, with an explicit
+     `line-height` since the base `h1,h2,h3` rule's 1.03 is display-tuned).
+   - **No skip link.** Added — it's why `.sr-only` sat unused in
+     `landing.css`. `.skip-link` is off-screen until focused; `<main>` got
+     `tabindex="-1"` so focus actually lands there rather than only scrolling.
+   - **The final-CTA video ignored `prefers-reduced-motion`.** The page's
+     reduced-motion guard is CSS-only and CSS cannot stop a `<video autoplay
+     loop>`, so it kept looping for exactly the visitors who asked it not to.
+     `landing.js` now pauses it to frame 0 under that preference (the poster
+     still shows, so the section keeps its artwork). Re-verified with
+     Playwright's `reducedMotion:'reduce'`: `paused=true, currentTime=0`.
+   - **`autocomplete="email"`/`name`** added to the footer capture (the auth
+     forms already had theirs).
+   - **Nav "Success stories" landed on the wrong panel.** Both split panels
+     share one pinned stage, so `#stories` and `#challenges` resolve to the
+     same scroll position — clicking "Success stories" arrived at a stage
+     still emphasising Featured challenges. Those links now also set the
+     side.
+   - **`.ss-stats--three` at 900–1200px.** On the *inactive* (narrower) panel
+     the 3-up grid squeezed captions to roughly one word per line ("hires /
+     made / off the / back / of it"). Stacked below 1200px. The panel width
+     animates, so a container query is the precise tool here if this is ever
+     revisited; the media query is the robust equivalent.
+   - **`.ss-hint` legibility.** Near-white text sat centred over the
+     spectrum band's brightest passage. A text-shadow wasn't enough for
+     white-on-white; it now uses the same translucent dark pill as the
+     countdown and the toggle beneath it.
 
 ## Working conventions established so far
 

@@ -270,7 +270,16 @@
     if (!original.length) return;
     var guard = 0;
     while (track.scrollWidth < window.innerWidth * 2 && guard < 40) {
-      original.forEach(function (n) { track.appendChild(n.cloneNode(true)); });
+      original.forEach(function (n) {
+        var clone = n.cloneNode(true);
+        // The clones are visual filler for a seamless loop, but each chip is a
+        // real <a>: unmarked, they doubled the strip's tab stops (8 -> 16) and
+        // made a screen reader read the whole list twice. aria-hidden alone is
+        // not enough — an aria-hidden element must not stay focusable.
+        clone.setAttribute("aria-hidden", "true");
+        clone.setAttribute("tabindex", "-1");
+        track.appendChild(clone);
+      });
       guard++;
     }
 
@@ -383,10 +392,24 @@
       stage.setAttribute("data-active", side);
       if (remember) pinned = side;
       tabs.forEach(function (t) {
-        t.setAttribute("aria-selected", t.getAttribute("data-side") === side ? "true" : "false");
+        // aria-pressed, not aria-selected: these are toggle buttons, not tabs.
+        // Both panels stay visible, so there is no tabpanel to "select" and
+        // announcing them as tabs would promise a pattern that isn't here.
+        t.setAttribute("aria-pressed", t.getAttribute("data-side") === side ? "true" : "false");
       });
     }
     setSide(DEFAULT_SIDE, true);
+
+    /* The nav/footer "Success stories" links resolve to the same scroll
+       position as "Challenges" (both panels live in one pinned stage), so
+       without this a reader who clicked "Success stories" arrived at a stage
+       still emphasising Featured challenges. Follow the link's intent. */
+    document.querySelectorAll('a[href="#stories"], a[href="#challenges"]').forEach(function (a) {
+      a.addEventListener("click", function () {
+        dismissHint();
+        setSide(a.getAttribute("href") === "#stories" ? "stories" : "challenges", true);
+      });
+    });
 
     tabs.forEach(function (t) {
       t.addEventListener("click", function () { dismissHint(); setSide(t.getAttribute("data-side"), true); });
@@ -622,6 +645,26 @@
       }
       msg.textContent = "Thanks — you’re on the list.";
     });
+  })();
+
+  /* ---------------- Final CTA background video ----------------
+     The page's reduced-motion guard is CSS-only, and CSS cannot stop a
+     <video autoplay loop> — so this looping background kept playing for
+     visitors who asked the OS for reduced motion, which is exactly the
+     "continuous unavoidable movement" that preference exists to prevent.
+     Pausing it back to frame 0 leaves the poster still showing, so the
+     section keeps its artwork and only loses the motion. */
+  (function () {
+    var vid = document.querySelector(".final-tex");
+    if (!vid || !reducedMotion) return;
+    vid.removeAttribute("autoplay");
+    vid.autoplay = false;
+    var stop = function () { vid.pause(); vid.currentTime = 0; };
+    stop();
+    // Chrome can kick off playback again once enough data arrives, so hold
+    // it down until the element has actually settled.
+    vid.addEventListener("play", stop);
+    vid.addEventListener("loadeddata", stop);
   })();
 
   onScroll(); // paint every scroll-linked effect at its correct initial value

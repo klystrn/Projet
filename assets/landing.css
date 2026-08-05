@@ -71,6 +71,22 @@ button{font:inherit;}
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
 }
 
+/* Skip link — off-screen until it takes keyboard focus, then it drops into
+   the top-left corner as a normal-looking button. Above the sticky nav's
+   z-index (200) so it can never be painted behind it. */
+.skip-link{
+  position:fixed; top:8px; left:8px; z-index:400;
+  transform:translateY(-150%);
+  padding:14px 22px; border-radius:999px;
+  background:var(--ink); color:#fff;
+  font-size:14px; font-weight:700;
+  box-shadow:0 10px 30px -12px rgba(20,19,15,.5);
+  transition:transform .2s var(--ease);
+}
+.skip-link:focus-visible{transform:translateY(0); outline:2px solid var(--accent); outline-offset:2px;}
+/* main gets tabindex="-1" so focus can land on it; never show a ring for that */
+main:focus{outline:none;}
+
 /* Global reduced-motion guard (per the animation library's Global Setup).
    Every JS-driven effect ALSO checks the flag in landing.js and renders its
    end state directly, so nothing is left mid-transition or hidden. */
@@ -500,6 +516,12 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 /* problem-validation stats on the stories side */
 .ss-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:28px;}
 .ss-stats--three{grid-template-columns:repeat(3,1fr);}
+/* Below ~1200px the inactive panel is only ~285px wide, so three columns left
+   each caption at roughly one word per line ("hires / made / off the / back /
+   of it"). The panel's width animates, so a container query would be the
+   precise tool here; stacking below this width is the robust equivalent and
+   stays legible in BOTH the active and inactive states. */
+@media (max-width:1200px){ .ss-stats--three{grid-template-columns:1fr;} }
 @media (max-width:520px){ .ss-stats--three{grid-template-columns:1fr;} }
 .ss-stat{background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-radius:13px; padding:15px 16px;}
 .ss-stat b{display:block; font-family:'JetBrains Mono', monospace; font-size:25px; font-weight:700; color:#fff; margin-bottom:4px;}
@@ -557,10 +579,18 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .ss-stage[data-active="stories"]    .ss-bar{transform:translateX(calc(-50% - var(--amp, 24px)));}
 
 /* explicit tabs — hover alone is unreachable on touch and by keyboard */
+/* Centred, which is exactly where the spectrum band's brightest passage runs —
+   near-white text on it was washing out mid-string. Given the same translucent
+   dark pill the countdown and the toggle below it already use, so it stays
+   legible over any part of the band and reads as part of the same control set
+   rather than loose text floating on the artwork. */
 .ss-hint{
-  position:absolute; z-index:9; left:50%; bottom:78px; transform:translateX(-50%);
+  position:absolute; z-index:9; left:50%; bottom:82px; transform:translateX(-50%);
   font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.04em;
-  color:rgba(255,255,255,.55); white-space:nowrap;
+  color:rgba(255,255,255,.82); white-space:nowrap;
+  padding:7px 14px; border-radius:999px;
+  background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(10px);
   opacity:1; transition:opacity .6s var(--ease); pointer-events:none;
 }
 .ss-hint.is-hidden{opacity:0;}
@@ -577,7 +607,9 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 }
 .ss-tab:hover{color:#fff;}
 .ss-tab:focus-visible{color:#fff; outline:2px solid #fff; outline-offset:2px;}
-.ss-tab[aria-selected="true"]{background:#fff; color:var(--ink);}
+/* aria-pressed, not aria-selected — these are toggle buttons, not tabs; both
+   panels stay visible, so there are no tabpanels to select (see index.html) */
+.ss-tab[aria-pressed="true"]{background:#fff; color:var(--ink);}
 
 @media (max-width:900px){
   /* stacked: the band turns into a horizontal divider between two full cards,
@@ -894,9 +926,24 @@ footer::before{
 .footer-notify-row input:focus-visible{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,91,36,.16);}
 .footer-notify-msg{font-size:12.5px; margin:9px 0 0; min-height:1.4em; color:var(--ink-soft);}
 .footer-notify-msg.is-pending{color:var(--accent-deep);}
-.footer-col h6{
+/* h3, not h6 (heading-order fix in index.html) — line-height is set explicitly
+   because the base `h1,h2,h3` rule's 1.03 is tuned for display type and would
+   otherwise crowd this 11px label. */
+.footer-col h3{
   font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; letter-spacing:.12em;
-  text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+  line-height:1.4; text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+}
+/* Destinations that don't exist yet. Same honesty convention as the auth
+   forms: name the destination, mark it as not live, don't fake a link. */
+.footer-pending{
+  display:flex; align-items:center; gap:8px;
+  font-size:14px; color:var(--muted); padding:6px 0; cursor:default;
+}
+.footer-pending em{
+  font-family:'JetBrains Mono', monospace; font-style:normal;
+  font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 7px; border-radius:999px;
+  background:var(--line); color:var(--muted);
 }
 .footer-col a{
   display:flex; align-items:center; gap:0; font-size:14px; color:var(--ink-soft); padding:6px 0;

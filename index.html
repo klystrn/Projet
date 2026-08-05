@@ -33,6 +33,11 @@
 </head>
 <body>
 
+<!-- Keyboard users land here first: the nav + mode toggle is ~10 tab stops
+     before the page content, and the logo marquee adds more. Visually hidden
+     until focused (see .skip-link in landing.css). -->
+<a class="skip-link" href="#top">Skip to main content</a>
+
 <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
 <!-- ============================ NAV (universal) ============================ -->
@@ -82,7 +87,9 @@
   </div>
 </header>
 
-<main id="top">
+<!-- tabindex="-1" so the skip link above can actually move focus here, not
+     just scroll the viewport (a plain #anchor doesn't reposition focus). -->
+<main id="top" tabindex="-1">
 
   <!-- ======================= 1. HERO & CALL TO ACTION ======================= -->
   <section class="hero wrap">
@@ -116,11 +123,11 @@
              "Participate"); "Browse challenges" stays constant since
              browsing is relevant regardless of which side you're on. -->
         <div class="hero-ctas" data-reveal data-mode-copy
-             data-business='<a href="signup.html?role=business" class="btn btn-orange">Post a challenge</a><a href="#challenges" class="btn btn-ghost">Browse challenges</a>'
-             data-builder='<a href="signup.html?role=builder" class="btn btn-orange">Participate</a><a href="#challenges" class="btn btn-ghost">Browse challenges</a>'
+             data-business='<a href="signup.html?role=business" class="btn btn-orange">Post a challenge</a><a href="challenges.html" class="btn btn-ghost">Browse challenges</a>'
+             data-builder='<a href="signup.html?role=builder" class="btn btn-orange">Participate</a><a href="challenges.html" class="btn btn-ghost">Browse challenges</a>'
              style="transition-delay:.23s">
           <a href="signup.html?role=builder" class="btn btn-orange">Participate</a>
-          <a href="#challenges" class="btn btn-ghost">Browse challenges</a>
+          <a href="challenges.html" class="btn btn-ghost">Browse challenges</a>
         </div>
 
         <!-- statistic below the CTAs — real Hack &amp; Hire pilot figures -->
@@ -284,10 +291,15 @@
            only (mobile already shows both sides outright). -->
       <p class="ss-hint" id="ssHint" aria-hidden="true">Hover to explore &#8226; tap to switch</p>
 
-      <!-- explicit control: hover is unreachable on touch and by keyboard -->
-      <div class="ss-tabs" role="tablist" aria-label="Switch panel">
-        <button class="ss-tab" data-side="challenges" role="tab" aria-selected="true">Featured challenges</button>
-        <button class="ss-tab" data-side="stories" role="tab" aria-selected="false">Success stories</button>
+      <!-- Explicit control: hover is unreachable on touch and by keyboard.
+           NOT role="tablist"/"tab" — a tab implies its panel is the only one
+           shown, but both panels here stay fully visible and readable; the
+           control only shifts which side is emphasised/widened. Toggle
+           buttons with aria-pressed describe that honestly, and avoid
+           promising screen-reader users tabpanels that don't exist. -->
+      <div class="ss-tabs" role="group" aria-label="Emphasise a panel">
+        <button class="ss-tab" data-side="challenges" aria-pressed="true">Featured challenges</button>
+        <button class="ss-tab" data-side="stories" aria-pressed="false">Success stories</button>
       </div>
     </div>
   </div>
@@ -339,7 +351,7 @@
             <span class="flow-num">01</span>
             <h3>Find a challenge</h3>
             <p>Browse real business or technical problems posted by companies looking to hire.</p>
-            <a href="#challenges" class="flow-step-link">Browse challenges &#8594;</a>
+            <a href="challenges.html" class="flow-step-link">Browse challenges &#8594;</a>
           </div>
           <div class="flow-step">
             <span class="flow-num">02</span>
@@ -360,7 +372,7 @@
             <span class="flow-num">01</span>
             <h3>Find a challenge</h3>
             <p>Browse real business or technical problems posted by companies looking to hire.</p>
-            <a href="#challenges" class="flow-step-link">Browse challenges &#8594;</a>
+            <a href="challenges.html" class="flow-step-link">Browse challenges &#8594;</a>
           </div>
           <div class="flow-step">
             <span class="flow-num">02</span>
@@ -413,6 +425,23 @@
       </div>
     </div>
 
+    <!-- Avatar gradients + the shared circular clip live ONCE here, outside
+         .t-wall-track, rather than in a <defs> inside each card. The marquee
+         clones every card to fill the track, so per-card <defs> meant every
+         gradient/clipPath id existed twice in the document — invalid HTML,
+         and each clone's url(#...) silently resolved to the first match
+         anyway. Hoisting them out keeps the cloned cards id-free. -->
+    <svg class="t-avatar-defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="avA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient>
+        <linearGradient id="avB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient>
+        <linearGradient id="avC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient>
+        <linearGradient id="avD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient>
+        <linearGradient id="avE" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient>
+        <clipPath id="avClip"><circle cx="23" cy="23" r="23"/></clipPath>
+      </defs>
+    </svg>
+
     <div class="t-wall-row">
       <div class="t-wall-track" id="tWallTrack">
         <article class="t-card" data-side="business">
@@ -420,7 +449,7 @@
           <span class="t-badge">Company</span>
           <p class="t-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</p>
           <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient><clipPath id="avc5"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av5)"/><g clip-path="url(#avc5)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avA)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
             <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
           </div>
         </article>
@@ -430,7 +459,7 @@
           <span class="t-badge">Builder</span>
           <p class="t-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</p>
           <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient><clipPath id="avc4"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av4)"/><g clip-path="url(#avc4)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avB)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
             <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
           </div>
         </article>
@@ -440,7 +469,7 @@
           <span class="t-badge">Company</span>
           <p class="t-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</p>
           <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient><clipPath id="avc3"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av3)"/><g clip-path="url(#avc3)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avC)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
             <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
           </div>
         </article>
@@ -450,7 +479,7 @@
           <span class="t-badge">Builder</span>
           <p class="t-quote">&ldquo;I finally had something real to point at. Not a bullet point — actual work, and I got to explain why I built it that way.&rdquo;</p>
           <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient><clipPath id="avc2"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av2)"/><g clip-path="url(#avc2)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avD)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
             <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
           </div>
         </article>
@@ -460,7 +489,7 @@
           <span class="t-badge">Company</span>
           <p class="t-quote">&ldquo;Seeing the actual submissions told us more than three rounds of interviews ever did.&rdquo;</p>
           <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient><clipPath id="avc1"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><g clip-path="url(#avc1)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avE)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
             <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
           </div>
         </article>
@@ -480,7 +509,7 @@
         <p>Hire on proof, not paper.</p>
         <div class="final-btns">
           <a href="signup.html?role=business" class="btn btn-white btn-arrow">Post a challenge</a>
-          <a href="signup.html?role=builder" class="btn btn-white btn-arrow">Browse challenges</a>
+          <a href="challenges.html" class="btn btn-white btn-arrow">Browse challenges</a>
         </div>
         <!-- grounded in the existing "Join free" builder-model fact, not a
              new claim -->
@@ -504,31 +533,39 @@
         <form class="footer-notify" id="footerNotify" data-endpoint="" novalidate>
           <label for="footerNotifyEmail" class="footer-notify-label">Get notified about new challenges</label>
           <div class="footer-notify-row">
-            <input type="email" id="footerNotifyEmail" placeholder="you@email.com" required>
+            <input type="email" id="footerNotifyEmail" name="email" autocomplete="email" placeholder="you@email.com" required>
             <button type="submit" class="btn btn-orange btn-sm">Notify me</button>
           </div>
           <p class="footer-notify-msg" aria-live="polite"></p>
         </form>
       </div>
+      <!-- h3, not h6: the page runs h1 -> h2 -> h3, and jumping straight to
+           h6 here skipped three levels, which reads as a broken outline to
+           screen readers. Styling is unchanged (see .footer-col h3). -->
       <div class="footer-col">
-        <h6>Product</h6>
+        <h3>Product</h3>
         <a href="#challenges">Challenges</a>
         <a href="#stories">Success stories</a>
         <a href="#how-it-works">How it works</a>
         <a href="#testimonials">Testimonials</a>
       </div>
+      <!-- These pages don't exist yet. They were href="#", which silently
+           jumped the reader back to the top — the same dishonesty the auth
+           forms deliberately avoid. Same convention applied here: show the
+           destination, say it isn't live, don't pretend it navigates. Swap
+           each <span> back to an <a href="..."> as its page ships. -->
       <div class="footer-col">
-        <h6>Company</h6>
-        <a href="#">About</a>
-        <a href="#">Careers</a>
-        <a href="#">Contact</a>
+        <h3>Company</h3>
+        <span class="footer-pending">About<em>soon</em></span>
+        <span class="footer-pending">Careers<em>soon</em></span>
+        <span class="footer-pending">Contact<em>soon</em></span>
       </div>
       <div class="footer-col">
-        <h6>Account</h6>
+        <h3>Account</h3>
         <a href="login.html">Log in</a>
         <a href="signup.html">Sign up</a>
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
+        <span class="footer-pending">Privacy<em>soon</em></span>
+        <span class="footer-pending">Terms<em>soon</em></span>
       </div>
     </div>
     <div class="footer-bottom" data-reveal>
