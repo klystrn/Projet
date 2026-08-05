@@ -492,74 +492,61 @@ never activates would hide content outright, the site's hard rule).
 `fluid-full.png` **is loaded again** as `.flow-fluid`'s background — see
 "Known issues" below, this reverses what was previously documented there.
 
-### 6. Testimonials — pinned scroll-scrub (REBUILT — was a carousel)
-**This section's whole interaction model changed again — read carefully
-before touching it.** It used to be a carousel: highlighted centre card,
-arrow buttons, 4s auto-advance, a true infinite loop (clone-before-first/
-clone-after-last with a silent snap so it never visibly jumped back), and
-real touch-swipe. All of that — `.t-viewport`, `.t-track`, `.t-controls`,
-`.t-btn`, the clone/slot logic, the swipe handlers — is **gone**. The user
-asked explicitly to revamp it: *"Use the logo background 2 asset and zoom
-in (similar concept as the how it works using fluid background). As the
-user scrolls, the direction will be from right to left and there will be
-testimonials along different points on the main line in the asset."*
+### 6. Testimonials — recycling marquee wall (REBUILT a third time)
+**Third distinct design for this section — read carefully before touching
+it again.** History, fastest to slowest:
+1. A carousel: highlighted centre card, arrow buttons, 4s auto-advance,
+   an infinite loop via clone-before-first/clone-after-last with a silent
+   snap, real touch-swipe.
+2. A pinned scroll-scrub over `hero-visual.webp` ("Logo Background 2"),
+   panning right-to-left, each testimonial appearing at its own point in
+   the scroll — built on explicit request, but the user didn't like it
+   live and asked for a completely fresh design, **"bonus points if it
+   uses a projet asset."**
+3. **Current**: a continuous recycling marquee — the same technique as the
+   logo carousel (see "2. Logo carousel" above), applied to full testimonial
+   cards instead of small logo chips, on a light `--paper-warm` background
+   instead of a dark image. All of #1 and #2's markup/CSS/JS
+   (`.t-viewport`/`.t-track`/`.t-controls` from the carousel;
+   `.t-scrub`/`.t-stops`/`.t-dots` from the scroll-scrub) is gone.
 
-Current implementation is the same mechanic family as How It Works' Fluid
-Flow Steps: `.t-scrub` is a **420vh** wrapper, `.t-scrub-inner` sticks for
-the duration. `.t-scrub-bg` is `hero-visual.webp` (the same "Logo
-Background 2" derivative used in the hero), modestly zoomed in
-(`background-size:170% auto` — was `260%`, dialled back after the user
-flagged it as too zoomed in) with **`background-position-x` panning
-100% → 0% (right to left)** as the reader scrolls — the opposite axis from
-How It Works' diagonal pan, per the explicit ask. `.t-scrub-scrim` is a
-center-heavy radial + linear gradient, same reasoning as `.flow-scrim`
-(the stops sit near the stage's middle, which is where the artwork's
-brightest passages run).
+**Why a light section, specifically**: Featured challenges/Success stories
+and How It Works are both dark, immersive sections — with the old dark
+testimonials that was three dark sections in a row before the final CTA.
+Testimonials on `--paper-warm` breaks that up and gives the page some
+rhythm back.
 
-**All five testimonials sit at the same centred vertical position — not
-riding different points of the wave.** The first version gave each
-`.t-stop` its own `--ty` inline vertical offset (hand-picked, not sampled
-from the image the way `spectrum.webp`'s `BAND_ZOOM` table was) so they'd
-read as sitting at different points along the glowing curve as the
-background panned underneath. The user tried it live and asked for the
-opposite — cards fixed at "the same altitude position in the centre,"
-only the background moving. `--ty` and the inline styles setting it are
-gone; `.t-card.t-stop`'s transform is a plain `translate(-50%,-50%)`. If
-this direction ever gets asked for again, the removed CSS comment (git
-history) explains the anchor-from-centre math that made per-stop offsets
-safe against pushing a card into the heading above `.t-stops`.
+**The "projet asset" bonus**: `assets/icon-mark.png` (a clean copy of
+`Logo O Alone.png`, the icon mark by itself, still has its alpha channel)
+sits as a faint (`opacity:.08`) watermark in the top-left corner of every
+card, standing in for a literal curly quotation mark — ties the section
+back to the brand mark without being a photo/texture background again.
 
-`landing.js`'s scrub `tick()` buckets scroll progress into
-5 segments (same `Math.floor(p * stops.length * 0.999)` pattern as flow)
-and toggles `.is-active` accordingly; `.t-dots` are decorative progress
-dots only, not click targets, same as `.flow-dots`.
+**Mechanic**: `buildMarqueeRow(track, speed, direction)` in `landing.js` is
+a generalised twin of the logo carousel's IIFE, not a rewrite of it (that
+IIFE is untouched). It uses a different recycling technique than the logo
+marquee, though, because it has to run in both directions (the logo
+marquee only ever moves one way): instead of physically moving DOM nodes
+from head to tail as they clear an edge, it measures `cycleWidth` (the
+width of one full, un-cloned pass through the original cards) once, then
+just wraps the `offset` by exactly that amount whenever it crosses a cycle
+boundary. Because the track's content is cloned until it repeats at least
+twice, the pattern lines up with itself exactly every `cycleWidth`, so the
+wrap is seamless by construction with zero DOM manipulation mid-animation
+— and the same wrap logic works for `direction: 1` or `-1` symmetrically,
+which the logo marquee's node-shuffling approach doesn't. Currently one row
+(`#tWallTrack`), `direction:-1` (right-to-left), `32px/s` (slower than the
+logos' `46px/s` — testimonial cards carry much more to read).
 
-**Two non-obvious bugs found while building this, both from equal-
-specificity cascade conflicts — worth remembering for any future compound-
-class component:**
-- Every stop also carries `.t-card` for its visual chrome (background,
-  border-radius, badge, colour bar — reused unchanged from the old
-  carousel design). `.t-card{position:relative}` and `.t-stop{position:
-  absolute}` are both single-class selectors of equal specificity, and
-  `.t-card`'s rule happened to sit later in the file — it silently won,
-  turning every stop back into a normal in-flow block instead of the
-  overlapping, absolutely-positioned one the scrub needs. Fixed by using
-  the compound selector `.t-card.t-stop` (higher specificity, order no
-  longer matters) for all of the scrub-specific position/opacity/transform
-  rules.
-- The mobile/reduced-motion/no-js fallback (below) sets `.t-card.t-stop
-  {position:static; transform:none}` to collapse the pin into a plain
-  stacked list — but `collapsed()` in `landing.js` still marks every stop
-  `.is-active` (so nothing stays hidden), and `.t-card.t-stop.is-active`
-  (3 classes) outranks the fallback's 2-class selector regardless of media
-  query or source order, so the desktop centring transform kept winning and
-  every card rendered off-position, overflowing the viewport horizontally.
-  Fixed with `!important` on the fallback's `position`/`transform`.
-
-Below 900px / reduced motion / no-js: `.t-stops` becomes a plain vertical
-stack (no pin, no pan, no absolute positioning) — same rule as How It
-Works, since a scroll-gated stop that never activates would hide its
-content outright.
+**Fallbacks, same rule as everywhere else on the page**: reduced motion
+runs the clone-fill (so the DOM briefly has more than 5 cards) but skips
+the animation loop; CSS hides everything past the 5th child
+(`.t-card:nth-child(n+6)`) and wraps the remaining 5 into a static grid
+(`flex-wrap:wrap`) instead of leaving a frozen, overflowing single row. No-js
+never runs the clone loop at all — only 5 cards ever exist — but still
+gets the same wrap-into-a-grid CSS, since without it the unclipped
+`width:max-content` track would just overflow past the viewport edge with
+`.t-wall-row{overflow:hidden}` silently clipping the rest.
 
 - Quotes, names and avatars are **placeholders** — see "Known issues" #1.
   Avatars are illustrated silhouettes: an inline SVG, a gradient-filled
@@ -602,15 +589,15 @@ no breathing room. Symmetric with the existing `padding-bottom`.
 
 `Projet — Scroll Animation Library` (the user's markdown doc, supplied in
 chat) is the source for the named effects. Implemented and **still live**:
-Section Reveal on Scroll (#2), and **Fluid Flow Steps (#3), now used
-twice** — the original in How It Works (restored with 4 steps, no rubric
-content — see "5. How it works" above) and a second, differently-tuned
-instance now driving Testimonials too (right-to-left pan instead of
-diagonal, per-stop vertical offsets instead of one shared crossfade
-position — see "6. Testimonials" above). **Testimonials Fluid Parallax
-(#8) is gone** — it was the old carousel's `.t-bg` layer, removed along
-with the rest of the carousel in the testimonials rebuild; the section's
-motion now comes entirely from the Fluid-Flow-Steps-style scrub instead.
+Section Reveal on Scroll (#2), and **Fluid Flow Steps (#3)** in How It
+Works (restored with 4 steps, no rubric content — see "5. How it works"
+above). Testimonials briefly ran a second, differently-tuned instance of
+Fluid Flow Steps (right-to-left pan, per-stop vertical offsets) before
+being rebuilt again into a recycling marquee wall — see "6. Testimonials"
+above; that section's motion isn't from this library at all now, it reuses
+the Logo Carousel's own marquee technique instead. **Testimonials Fluid
+Parallax (#8) is gone** — it was the original carousel's `.t-bg` layer,
+removed along with the rest of that carousel.
 **Removed and staying removed**: Spectrum-to-Waveform Hero Handoff (#1, see
 "1. Hero & call to action" above — the hero's new background image is a
 still frame, not this effect) and Rubric Spectrum Bar (#7, moot with the
@@ -699,10 +686,12 @@ vestigial now that the chooser is gone — harmless, just never populated.
    note used to say.** The hero background is `hero-visual.webp`, a
    compressed derivative of `assets/Logo Background 2.png` (see "1. Hero &
    call to action" above) — a still frame, not the removed scroll-linked
-   handoff. **The same `hero-visual.webp` is also the Testimonials
-   scroll-scrub background** now (see "6. Testimonials" above) — if
-   `Logo Background 2.png` is ever re-exported, regenerating
-   `hero-visual.webp` (`ffmpeg -q:v 82`) updates both sections at once.
+   handoff. Testimonials briefly reused this same file as a scroll-scrub
+   background too, but that design didn't stick — see "6. Testimonials"
+   above, it's a recycling marquee wall now and doesn't reference
+   `hero-visual.webp` at all. If `Logo Background 2.png` is ever
+   re-exported, regenerate `hero-visual.webp` (`ffmpeg -q:v 82`) — only the
+   hero uses it now.
    How it works loads `fluid-full.png` again as `.flow-fluid`'s scrubbed
    background, since the pinned Fluid Flow Steps mechanic came back (see
    "5. How it works" above); `fluid-full.png` is used directly, no

@@ -686,81 +686,40 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .no-js .flow-dots, .reduced-motion .flow-dots{display:none;}
 
 /* ==========================================================================
-   6. TESTIMONIALS — pinned scroll-scrub along the wave background
-   Same mechanic family as How It Works' Fluid Flow Steps: hero-visual.webp
-   (the "Logo Background 2" derivative) zoomed in behind a sticky stage,
-   background-position panning RIGHT TO LEFT as the reader scrolls — the
-   opposite axis from the diagonal How It Works pan, per explicit ask. Each
-   testimonial fades in at its own point in the scroll and its own --ty
-   vertical offset (set inline per stop in index.html) so the five read as
-   sitting at different points along the image's glowing wave line rather
-   than all stacked dead-centre.
+   6. TESTIMONIALS — recycling marquee wall (REBUILT again — was a pinned
+   scroll-scrub over hero-visual.webp). Didn't land well once live; user
+   asked for a fresh design that still holds the same content. This reuses
+   the logo carousel's proven recycling-marquee technique (see
+   buildMarqueeRow() in landing.js) instead of another pinned scroll-jack,
+   and is a LIGHT section on purpose — Featured challenges/Success stories
+   and How It Works are both dark, so this breaks up what was three dark
+   sections in a row before the final CTA.
    ========================================================================== */
-.t-scrub{position:relative; height:420vh;}
-.t-scrub-inner{position:sticky; top:0; height:100vh; overflow:hidden; background:#0a0a0c;}
-.t-scrub-bg{
-  position:absolute; inset:-12%;
-  background-image:url('hero-visual.webp'); background-repeat:no-repeat;
-  background-size:170% auto; background-position:100% 40%;
-  will-change:background-position;
-}
-/* center-heavy scrim, same reasoning as .flow-scrim: the stops sit near the
-   middle of the stage, which is where the artwork's brightest passages run */
-.t-scrub-scrim{
-  position:absolute; inset:0;
-  background:
-    radial-gradient(ellipse 70% 65% at center, rgba(8,8,10,.42) 0%, rgba(8,8,10,.2) 55%, rgba(8,8,10,.5) 100%),
-    linear-gradient(180deg, rgba(8,8,10,.4), rgba(8,8,10,.12) 40%, rgba(8,8,10,.46));
-}
-.t-scrub-stage{
-  position:relative; z-index:2; height:100%; width:100%;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:0 24px; text-align:center;
-}
-.t-scrub .t-head{margin-bottom:0;}
-.t-scrub .t-head .eyebrow{color:#ffb191;}
-.t-scrub .t-head h2{color:#fff; font-size:clamp(28px,3.6vw,42px); margin-top:10px;}
+.t-wall{background:var(--paper-warm); padding:104px 0 96px; overflow:hidden;}
+.t-wall .t-head{text-align:center; margin-bottom:50px;}
+.t-wall-row{overflow:hidden; padding:6px 0;}
+.t-wall-track{display:flex; gap:24px; width:max-content; will-change:transform;}
 
-.t-stops{position:relative; width:100%; max-width:460px; height:280px; margin-top:44px;}
-/* All five stops sit at the same centred "altitude" — asked explicitly
-   after an earlier pass gave each its own --ty vertical offset to ride
-   different points of the wave; that read as distracting once live, so the
-   position is now fixed and only the background pans underneath.
-   .t-card.t-stop (not .t-stop alone): every stop also carries .t-card for its
-   visual chrome, and .t-card's own `position:relative` (below) is defined
-   later in the file — with equal specificity, source order would let that
-   win and silently turn every stop back into a normal in-flow block instead
-   of the absolutely-positioned, overlapping one this scrub needs. The
-   compound selector's higher specificity makes this rule win regardless of
-   where either class is declared. */
-.t-card.t-stop{
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%) scale(.95);
-  width:100%; opacity:0; pointer-events:none;
-  transition:opacity .5s var(--ease), transform .6s var(--ease);
-}
-.t-card.t-stop.is-active{
-  opacity:1; transform:translate(-50%,-50%) scale(1);
-  pointer-events:auto;
-}
-.t-dots{display:flex; justify-content:center; gap:9px; margin-top:26px;}
-.t-dot{width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.26); transition:background .4s var(--ease), width .4s var(--ease);}
-.t-dot.is-active{background:#fff; width:26px;}
-
-/* shared card chrome — reused as-is from the previous carousel design.
-   fixed business/builder hues, independent of the audience-toggle --accent —
+/* fixed business/builder hues, independent of the audience-toggle --accent —
    this tags who's speaking, not which mode you're browsing in. Students/
    builders are orange, companies are blue — same pairing as the nav toggle
    and the spectrum-split CTAs, kept consistent throughout the page. */
 .t-card{
   position:relative; overflow:hidden; text-align:left;
-  background:#fff; border-radius:20px; padding:26px 26px;
-  box-shadow:0 26px 60px -26px rgba(0,0,0,.5);
+  flex:0 0 clamp(280px,30vw,380px);
+  background:#fff; border-radius:20px; padding:28px 26px;
+  box-shadow:0 14px 40px -20px rgba(20,19,15,.22);
 }
 .t-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue);}
 .t-card[data-side="builder"]::before{background:var(--orange);}
-.t-stop.is-active.t-card{box-shadow:0 26px 60px -26px rgba(0,0,0,.5), 0 0 0 2px var(--blue);}
-.t-stop.is-active.t-card[data-side="builder"]{box-shadow:0 26px 60px -26px rgba(0,0,0,.5), 0 0 0 2px var(--orange);}
+/* the "projet asset" bonus: Logo O Alone.png (the icon mark alone) as a
+   faint watermark standing in for a literal quotation mark, low enough
+   opacity that it never competes with the quote text sitting on top of it */
+.t-quote-mark{
+  position:absolute; top:22px; left:24px; width:52px; height:52px;
+  background:url('icon-mark.png') center/contain no-repeat;
+  opacity:.08; pointer-events:none;
+}
 .t-badge{
   position:absolute; top:18px; right:18px;
   font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
@@ -768,39 +727,35 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   background:rgba(47,107,255,.12); color:#1d4fd6;
 }
 .t-card[data-side="builder"] .t-badge{background:rgba(255,91,36,.12); color:var(--orange-deep);}
-.t-quote{font-size:16px; line-height:1.55; margin-bottom:22px; margin-right:60px; font-weight:500;}
+.t-quote{position:relative; z-index:1; margin-top:10px; font-size:16px; line-height:1.55; margin-bottom:22px; margin-right:12px; font-weight:500;}
 .t-person{display:flex; align-items:center; gap:13px;}
 .t-avatar{width:44px; height:44px; border-radius:50%; flex:none; object-fit:cover;}
 .t-name{font-weight:700; font-size:14px;}
 .t-role{font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#9c988c; margin-top:2px;}
 
-/* Below 900px / reduced motion / no-js: plain stacked list, no pin, no pan —
-   same rule as How It Works, since a scroll-gated stop that never activates
-   would hide its content outright. */
-@media (max-width:900px){
-  .t-scrub{height:auto;}
-  .t-scrub-inner{position:relative; height:auto; padding:64px 0;}
-  .t-scrub-bg{background-position:50% 40%;}
-  .t-stops{position:static; height:auto; max-width:520px; margin:32px auto 0; display:flex; flex-direction:column; gap:20px;}
-  /* .t-card.t-stop, not .t-stop alone — same specificity reasoning as the
-     compound rule above: a plain .t-stop selector here has lower specificity
-     than .t-card.t-stop and would silently lose to it even inside this
-     media query, leaving the section pinned/absolute on mobile too.
-     !important on transform/position: collapsed() in landing.js adds
-     .is-active to every stop on mobile/reduced-motion so none of them stay
-     hidden, but .t-card.t-stop.is-active (3 classes) still outranks this (2
-     classes) and carries its own translate/scale transform for the desktop
-     layout — without !important that transform kept winning here and the
-     "static" stack still rendered every card off-position with the
-     desktop centring transform applied on top of it. */
-  .t-card.t-stop{position:static !important; opacity:1; transform:none !important; pointer-events:auto;}
-  .t-dots{display:none;}
+@media (max-width:640px){
+  .t-wall{padding:70px 0 64px;}
+  .t-card{flex:0 0 82vw;}
 }
-.no-js .t-scrub, .reduced-motion .t-scrub{height:auto;}
-.no-js .t-scrub-inner, .reduced-motion .t-scrub-inner{position:relative; height:auto; padding:64px 0;}
-.no-js .t-stops, .reduced-motion .t-stops{position:static; height:auto; max-width:520px; margin:32px auto 0; display:flex; flex-direction:column; gap:20px;}
-.no-js .t-card.t-stop, .reduced-motion .t-card.t-stop{position:static !important; opacity:1; transform:none !important; pointer-events:auto;}
-.no-js .t-dots, .reduced-motion .t-dots{display:none;}
+
+/* Below reduced-motion: the marquee's own clone-fill still runs (see
+   buildMarqueeRow in landing.js — only the animation loop is skipped), so
+   the track keeps whatever clones it built before stopping. Hiding
+   everything past the 5th child shows just the real, original cards, wrapped
+   into a static grid instead of a frozen mid-scroll single row (which would
+   just overflow and clip past the viewport edge with no way to see the
+   rest).
+   Below no-js: the clone loop never runs at all (script never executes), so
+   only the 5 original cards exist — but `.t-wall-track{width:max-content}`
+   would still lay them out as one long unwrapped row wider than the
+   viewport, silently clipped by `.t-wall-row{overflow:hidden}` with no way
+   to reach the rest. Same wrap-into-a-grid fix, just without needing the
+   nth-child hide since there's nothing extra to hide. */
+.reduced-motion .t-wall-row, .no-js .t-wall-row{overflow:visible;}
+.reduced-motion .t-wall-track, .no-js .t-wall-track{
+  flex-wrap:wrap; width:auto; justify-content:center; transform:none !important;
+}
+.reduced-motion .t-card:nth-child(n+6){display:none;}
 
 /* ==========================================================================
    FINAL CTA

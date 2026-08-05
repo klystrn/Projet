@@ -390,78 +390,77 @@
        (a clipped head-and-shoulders shape over a gradient), not photographs
        of real people. Replace with real, permissioned quotes and portraits
        before launch. -->
-  <!-- Pinned scroll-scrub, same mechanic family as How It Works' Fluid Flow
-       Steps: hero-visual.webp (the "Logo Background 2" derivative), modestly
-       zoomed in, behind the stage, panning right-to-left as the reader
-       scrolls. All five testimonials fade in at the same centred vertical
-       position — an earlier pass gave each its own vertical offset so they
-       rode different points of the wave, but that read as distracting, so
-       now only the background moves underneath a fixed card position.
-       Collapses to a plain stacked list below 900px / reduced motion /
-       no-js — same rule as How It Works: a
-       scroll-gated stop that never activates would hide its content outright. -->
-  <section class="t-scrub" id="testimonials">
-    <div class="t-scrub-inner">
-      <div class="t-scrub-bg" aria-hidden="true"></div>
-      <div class="t-scrub-scrim" aria-hidden="true"></div>
-      <div class="t-scrub-stage">
-        <div class="t-head" id="testimonials-head">
-          <span class="eyebrow">Testimonials</span>
-          <h2>What the pilot sounded like.</h2>
-        </div>
+  <!-- REBUILT again — the pinned scroll-scrub over hero-visual.webp (right
+       to left pan, per an earlier ask) didn't land well once live, and the
+       user asked for a fresh design, "bonus points if it uses a projet
+       asset." This is a continuous recycling marquee of quote cards — same
+       proven mechanic as the logo carousel (`buildMarqueeRow()` below is a
+       generalised twin of that IIFE, not a rewrite of it), not another
+       pinned scroll-scrub. A light warm section on purpose: Featured
+       challenges/Success stories and How It Works are both dark, so a light
+       Testimonials breaks up what was three dark sections in a row before
+       the final CTA. The "projet asset" bonus is `Logo O Alone.png` (the
+       icon mark alone) as a faint watermark on every card, standing in for
+       a literal quotation mark. -->
+  <section class="t-wall" id="testimonials">
+    <div class="wrap">
+      <div class="t-head" data-reveal>
+        <span class="eyebrow">Testimonials</span>
+        <h2>What the pilot sounded like.</h2>
+      </div>
+    </div>
 
-        <div class="t-stops">
-          <article class="t-card t-stop" data-side="business">
-            <span class="t-badge">Company</span>
-            <p class="t-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</p>
-            <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient><clipPath id="avc5"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av5)"/><g clip-path="url(#avc5)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-              <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
-            </div>
-          </article>
+    <div class="t-wall-row">
+      <div class="t-wall-track" id="tWallTrack">
+        <article class="t-card" data-side="business">
+          <span class="t-quote-mark" aria-hidden="true"></span>
+          <span class="t-badge">Company</span>
+          <p class="t-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</p>
+          <div class="t-person">
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient><clipPath id="avc5"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av5)"/><g clip-path="url(#avc5)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
+          </div>
+        </article>
 
-          <article class="t-card t-stop" data-side="builder">
-            <span class="t-badge">Builder</span>
-            <p class="t-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</p>
-            <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient><clipPath id="avc4"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av4)"/><g clip-path="url(#avc4)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-              <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
-            </div>
-          </article>
+        <article class="t-card" data-side="builder">
+          <span class="t-quote-mark" aria-hidden="true"></span>
+          <span class="t-badge">Builder</span>
+          <p class="t-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</p>
+          <div class="t-person">
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient><clipPath id="avc4"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av4)"/><g clip-path="url(#avc4)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
+          </div>
+        </article>
 
-          <article class="t-card t-stop" data-side="business">
-            <span class="t-badge">Company</span>
-            <p class="t-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</p>
-            <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient><clipPath id="avc3"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av3)"/><g clip-path="url(#avc3)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-              <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
-            </div>
-          </article>
+        <article class="t-card" data-side="business">
+          <span class="t-quote-mark" aria-hidden="true"></span>
+          <span class="t-badge">Company</span>
+          <p class="t-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</p>
+          <div class="t-person">
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient><clipPath id="avc3"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av3)"/><g clip-path="url(#avc3)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
+          </div>
+        </article>
 
-          <article class="t-card t-stop" data-side="builder">
-            <span class="t-badge">Builder</span>
-            <p class="t-quote">&ldquo;I finally had something real to point at. Not a bullet point — actual work, and I got to explain why I built it that way.&rdquo;</p>
-            <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient><clipPath id="avc2"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av2)"/><g clip-path="url(#avc2)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-              <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
-            </div>
-          </article>
+        <article class="t-card" data-side="builder">
+          <span class="t-quote-mark" aria-hidden="true"></span>
+          <span class="t-badge">Builder</span>
+          <p class="t-quote">&ldquo;I finally had something real to point at. Not a bullet point — actual work, and I got to explain why I built it that way.&rdquo;</p>
+          <div class="t-person">
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient><clipPath id="avc2"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av2)"/><g clip-path="url(#avc2)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
+          </div>
+        </article>
 
-          <article class="t-card t-stop" data-side="business">
-            <span class="t-badge">Company</span>
-            <p class="t-quote">&ldquo;Seeing the actual submissions told us more than three rounds of interviews ever did.&rdquo;</p>
-            <div class="t-person">
-              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient><clipPath id="avc1"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><g clip-path="url(#avc1)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-              <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
-            </div>
-          </article>
-        </div>
-
-        <div class="t-dots" aria-hidden="true">
-          <span class="t-dot"></span><span class="t-dot"></span>
-          <span class="t-dot"></span><span class="t-dot"></span>
-          <span class="t-dot"></span>
-        </div>
+        <article class="t-card" data-side="business">
+          <span class="t-quote-mark" aria-hidden="true"></span>
+          <span class="t-badge">Company</span>
+          <p class="t-quote">&ldquo;Seeing the actual submissions told us more than three rounds of interviews ever did.&rdquo;</p>
+          <div class="t-person">
+            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient><clipPath id="avc1"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><g clip-path="url(#avc1)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+            <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
+          </div>
+        </article>
       </div>
     </div>
   </section>

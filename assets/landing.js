@@ -504,52 +504,77 @@
     scrollUpdaters.push(tick);
   })();
 
-  /* ---------------- 6. Testimonials scroll-scrub ----------------
-     Same shape as the How It Works flow-scrub: a tall pinned wrapper, one
-     continuous journey across hero-visual.webp's background-position, and a
-     `paint(idx)` that toggles which stop is on screen. Two differences: the
-     pan direction is a straight right-to-left sweep (background-position-x
-     100% -> 0%, y held constant) rather than flow's diagonal one, and each
-     stop carries its own --ty (read from inline style, set per stop in
-     index.html) so the five testimonials sit at different points along the
-     image's wave line instead of one shared dead-centre spot. Collapses to a
-     plain stacked list under 900px / reduced motion / no-js (see
-     landing.css) — a scroll-gated stop that never activates would hide its
-     content outright. */
-  (function () {
-    var wrap = document.getElementById("testimonials");
-    if (!wrap) return;
-    var bg = wrap.querySelector(".t-scrub-bg");
-    var stops = wrap.querySelectorAll(".t-stop");
-    var dots = wrap.querySelectorAll(".t-dot");
-    if (!stops.length) return;
+  /* ---------------- 6. Testimonials wall — recycling marquee ----------------
+     Generalised twin of the logo carousel IIFE above (buildMarqueeRow takes
+     a direction so it can also run right-to-left), not a rewrite of it — the
+     logo marquee itself is untouched. Uses modular wraparound instead of the
+     logo marquee's move-node-to-the-tail technique: once the pre-cloned
+     track is at least 2x the viewport wide, `cycleWidth` (one full pass
+     through the original, un-cloned cards) is measured, and the offset just
+     wraps by exactly that amount whenever it crosses a cycle boundary. Since
+     the pattern repeats exactly every `cycleWidth`, the wrap is seamless by
+     construction — no DOM moves mid-animation, and the same technique works
+     for both directions symmetrically, which the node-shuffling approach
+     doesn't (see landing.js's own logo-carousel comment for why that one
+     works the way it does). */
+  function buildMarqueeRow(track, speed, direction) {
+    if (!track) return;
+    var original = Array.prototype.slice.call(track.children);
+    if (!original.length) return;
+    var gap = parseFloat(getComputedStyle(track).gap) || 0;
 
-    function collapsed() { return reducedMotion || window.innerWidth <= 900; }
-
-    function paint(idx) {
-      stops.forEach(function (s, i) { s.classList.toggle("is-active", i === idx); });
-      dots.forEach(function (d, i) { d.classList.toggle("is-active", i === idx); });
+    var guard = 0;
+    while (track.scrollWidth < window.innerWidth * 2 && guard < 40) {
+      original.forEach(function (n) {
+        var clone = n.cloneNode(true);
+        clone.setAttribute("aria-hidden", "true");
+        track.appendChild(clone);
+      });
+      guard++;
     }
 
-    function tick() {
-      if (collapsed()) {
-        stops.forEach(function (s) { s.classList.add("is-active"); });
-        return;
-      }
-      var r = wrap.getBoundingClientRect();
-      var total = wrap.offsetHeight - window.innerHeight;
-      if (total <= 0) return;
-      var p = clamp(-r.top / total, 0, 1);
+    if (reducedMotion) return; // static wrap grid; see landing.css
 
-      // right to left: 100% (rightmost crop) at p=0, down to 0% (leftmost) at p=1
-      if (bg) bg.style.backgroundPosition = (100 - p * 100).toFixed(2) + "% 40%";
+    var cycleWidth = 0;
+    original.forEach(function (n) { cycleWidth += n.offsetWidth + gap; });
+    if (cycleWidth <= 0) return;
 
-      paint(Math.min(Math.floor(p * stops.length * 0.999), stops.length - 1));
+    var offset = direction === 1 ? -cycleWidth : 0;
+    var last = null;
+    var onscreen = true, hovered = false;
+    function running() { return onscreen && !hovered; }
+
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        onscreen = entries[0].isIntersecting;
+        if (running()) { last = null; requestAnimationFrame(tick); }
+      }, { threshold: 0 }).observe(track.parentNode);
     }
+    track.parentNode.addEventListener("mouseenter", function () { hovered = true; });
+    track.parentNode.addEventListener("mouseleave", function () {
+      hovered = false;
+      if (running()) { last = null; requestAnimationFrame(tick); }
+    });
+    track.addEventListener("focusin", function () { hovered = true; });
+    track.addEventListener("focusout", function () {
+      hovered = false;
+      if (running()) { last = null; requestAnimationFrame(tick); }
+    });
 
-    tick();
-    scrollUpdaters.push(tick);
-  })();
+    function tick(now) {
+      if (!running()) return;
+      if (last === null) last = now;
+      var dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      offset += direction * speed * dt;
+      if (direction === 1 && offset >= 0) offset -= cycleWidth;
+      if (direction === -1 && offset <= -cycleWidth) offset += cycleWidth;
+      track.style.transform = "translateX(" + offset + "px)";
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  buildMarqueeRow(document.getElementById("tWallTrack"), 32, -1);
 
   /* ---------------- Featured-challenge countdown ----------------
      A real ticking clock against a PLACEHOLDER deadline: hours-from-page-load
