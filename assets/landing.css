@@ -71,6 +71,43 @@ button{font:inherit;}
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
 }
 
+/* ==========================================================================
+   ARTWORK SOURCES — AVIF primary, WebP fallback
+   ------------------------------------------------------------------------
+   These three are smooth-gradient artworks, and all three are ZOOMED on
+   screen (the flow scrub runs at background-size:220%, each spectrum bar
+   zooms into its own row), which magnifies any encoding artifact.
+   WebP's lossy mode is 4:2:0 ONLY — it throws away half the colour
+   resolution in each axis by design, which is the worst possible trade for
+   gradient art. Measured against the PNG masters, that capped WebP at
+   ~32-35dB no matter the quality setting (q=82 gave 31.8dB; q=100 gave
+   32.9dB — the slider barely moves because subsampling, not quantisation,
+   is the bottleneck). AVIF at 4:4:4 reaches 43-46dB at a comparable size.
+
+   Declared once here as custom properties so the call sites stay readable.
+   The plain url() below is the fallback; the @supports block upgrades it
+   only where image-set()+AVIF actually decode. Regenerate with:
+     ffmpeg -i <master>.png -c:v libaom-av1 -crf 6 -pix_fmt yuv444p \
+            -still-picture 1 -cpu-used 3 <name>.avif
+   Keeping -pix_fmt yuv444p is the whole point — do not let it fall back
+   to yuv420p.
+   ========================================================================== */
+:root{
+  --img-fluid-full:url("fluid-full.webp");
+  --img-hero-visual:url("hero-visual.webp");
+  --img-spectrum:url("spectrum.webp");
+}
+@supports (background-image:image-set(url("x.avif") type("image/avif"))){
+  :root{
+    --img-fluid-full:image-set(url("fluid-full.avif") type("image/avif"),
+                               url("fluid-full.webp") type("image/webp"));
+    --img-hero-visual:image-set(url("hero-visual.avif") type("image/avif"),
+                                url("hero-visual.webp") type("image/webp"));
+    --img-spectrum:image-set(url("spectrum.avif") type("image/avif"),
+                             url("spectrum.webp") type("image/webp"));
+  }
+}
+
 /* Skip link — off-screen until it takes keyboard focus, then it drops into
    the top-left corner as a normal-looking button. Above the sticky nav's
    z-index (200) so it can never be painted behind it. */
@@ -343,7 +380,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
      the other big contributor pushing the logo carousel below the fold */
   position:relative; border-radius:26px; overflow:hidden; aspect-ratio:1/0.86;
   background:linear-gradient(180deg, rgba(20,19,15,0) 45%, rgba(20,19,15,.6) 100%),
-    url("hero-visual.webp") center/cover no-repeat,
+    var(--img-hero-visual) center/cover no-repeat,
     linear-gradient(155deg,var(--amber-light) 0%, var(--orange) 22%, var(--violet) 48%, var(--navy-mid) 74%, var(--navy-deep) 100%);
   box-shadow:0 34px 80px -34px rgba(20,19,15,.55);
 }
@@ -556,7 +593,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   width:var(--bar-w);
   height:calc(100vh / var(--n) + 1px);          /* +1px kills sub-pixel seams */
   top:calc(var(--i) * 100vh / var(--n));
-  background-image:url('spectrum.webp');
+  background-image:var(--img-spectrum);
   /* --zx/--ox (set per bar in landing.js) zoom into and re-centre on just
      that row's colourful diagonal band. The source image is mostly black
      margin either side of the band, and — because it's a diagonal — the
@@ -630,7 +667,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
     transform:none !important;
   }
   .ss-stripe-inner{
-    background-image:url('spectrum.webp'); background-size:cover; background-position:center;
+    background-image:var(--img-spectrum); background-size:cover; background-position:center;
     transform:rotate(180deg);
   }
   .ss-stripe .ss-bar{display:none;}
@@ -682,7 +719,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 }
 .flow-fluid{
   position:absolute; inset:0;
-  background-image:url('fluid-full.webp');
+  background-image:var(--img-fluid-full);
   background-size:220% 220%;
   background-position:0% 100%;
   opacity:.58; will-change:background-position;

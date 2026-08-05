@@ -750,26 +750,62 @@ vestigial now that the chooser is gone — harmless, just never populated.
    "clock counting down to the next event" idea floated for the hero — that
    one is still not built, since there's still no real *event* date, only a
    per-challenge deadline concept.
-3. **Superseded — both assets are back in use, the opposite of what this
-   note used to say.** The hero background is `hero-visual.webp`, a
-   compressed derivative of `assets/Logo Background 2.png` (see "1. Hero &
-   call to action" above) — a still frame, not the removed scroll-linked
-   handoff. Testimonials briefly reused this same file as a scroll-scrub
-   background too, but that design didn't stick — see "6. Testimonials"
-   above, it's a recycling marquee wall now and doesn't reference
-   `hero-visual.webp` at all. If `Logo Background 2.png` is ever
-   re-exported, regenerate `hero-visual.webp` (`ffmpeg -q:v 82`) — only the
-   hero uses it now.
-   How it works loads `fluid-full.webp` as `.flow-fluid`'s scrubbed
-   background, since the pinned Fluid Flow Steps mechanic came back (see
-   "5. How it works" above). **Updated**: this was `fluid-full.png` used
-   directly with no derivative; a perf pass converted it to
-   `fluid-full.webp` (78KB vs. the 1.19MB PNG, `ffmpeg -q:v 82` — the same
-   convention as `hero-visual.webp`) since it's an opaque RGBA source with
-   no real transparency to lose. `fluid-full.png` stays on disk as the
-   master for future re-exports, same pattern as `fluid_animation_3500ms.mp4`
-   → `fluid-loop.mp4`; regenerate the webp from it if the master is ever
-   re-exported.
+3. **Background artwork — AVIF primary, WebP fallback. The old `ffmpeg
+   -q:v 82` WebP convention is RETIRED; do not reapply it to these.**
+   The hero background (`.hero-visual`), the How-it-works scrub
+   (`.flow-fluid`) and the light-spectrum wave (`.ss-bar`) are all smooth
+   gradient artworks, and all three are ZOOMED on screen — the flow scrub
+   runs at `background-size:220%` (a 2.9x upscale at 1440px, 5.2x at
+   2560px) and each spectrum bar zooms into its own row. That magnifies
+   every encoding artifact.
+
+   **The bug this caused, and the root cause:** the user reported the
+   How-it-works background had "lost its quality." Measured against the
+   PNG masters, `fluid-full.webp` was at **31.8dB PSNR** (blue channel
+   29.2dB) — visibly mushy filaments and banded gradients. The cause was
+   NOT the quality number: **WebP's lossy mode is 4:2:0 only**, so it
+   discards half the colour resolution in each axis by design. Re-running
+   at q=100 only reached 32.9dB — the slider barely moves, because
+   subsampling rather than quantisation is the ceiling. Gradient art is
+   the worst possible case for that trade.
+
+   **The fix:** AVIF at true 4:4:4. Measured result —
+   `fluid-full` 31.8 → **43.8dB**, `hero-visual` 33.6 → **43.3dB**,
+   `spectrum` 41.9 → **45.8dB**, at comparable file sizes (156K/192K/164K;
+   ~0.60MB total media for a full scroll-through). Regenerate with:
+
+   ```
+   ffmpeg -i <master>.png -c:v libaom-av1 -crf 6 -pix_fmt yuv444p \
+          -still-picture 1 -cpu-used 3 <name>.avif
+   ```
+
+   **Keep `-pix_fmt yuv444p`** — letting it fall back to `yuv420p` re-creates
+   the exact bug. Masters: `fluid-full.png`, `Logo Background 2.png`,
+   `official-spectrum.png` (all stay on disk).
+
+   Delivery is via three custom properties at the top of `landing.css`
+   (`--img-fluid-full` / `--img-hero-visual` / `--img-spectrum`): a plain
+   `url(...webp)` default, upgraded inside `@supports` to
+   `image-set(avif, webp)`. That is two independent fallback layers — no
+   `image-set` support falls back to the WebP declaration, and `image-set`
+   without an AVIF decoder falls back to the WebP entry — so **the `.webp`
+   files must be kept**, they are not dead weight.
+
+   One caveat worth knowing: `Logo Background 2.png` has an alpha channel,
+   but it is exactly **one semi-transparent row (y=602, the bottom edge,
+   alpha 128)** out of 651,240 px — an export artifact, and hidden anyway
+   by `.hero-visual`'s `border-radius:26px; overflow:hidden`. That is why
+   flattening it to opaque AVIF is safe. (It had to be flattened: this
+   ffmpeg's libaom path silently drops alpha, writing `yuv444p` even when
+   asked for `yuva444p`. If a future asset has *meaningful* transparency,
+   AVIF via this toolchain is not an option — check the alpha histogram
+   first, don't assume.)
+
+   `assets/fluid.webp` (the final-CTA video poster) is deliberately left as
+   WebP: `poster` takes a single URL and can't use `image-set`, and there
+   is no PNG master for it — it is similar to but not the same frame as
+   `fluid-full.png` (37.9dB between them), so it can't be regenerated from
+   one.
 4. **No real backend.** Static HTML/CSS/JS, no framework, no build step.
    **Routing is now resolved**: `challenges.html` was built (see "Site
    architecture" above), so every "Browse challenges" CTA and
@@ -783,12 +819,24 @@ vestigial now that the chooser is gone — harmless, just never populated.
    top) they render as `.footer-pending` spans — the destination is named
    and marked "soon", the same honesty convention the auth forms use. Swap
    each `<span>` back to an `<a href="…">` as its page ships.
-5. **`assets/fluid_animation_3500ms.mp4` (18.7MB) is the raw master export**
-   and is not referenced by any page. `assets/fluid-loop.mp4` (~1.1MB,
-   `ffmpeg -vf scale=1280:-2 -an -crf 23`) is what ships (final CTA and
-   testimonials background only now — not the hero). Re-run that same
-   command if the animation is ever re-exported; never hand the raw export
-   to a page.
+5. **`assets/fluid_animation_3500ms.mp4` (18.7MB, 3840x2160) is the raw
+   master export** and is not referenced by any page. `assets/fluid-loop.mp4`
+   is what ships (final CTA only now — not the hero, not testimonials).
+   **Re-encoded at 1920x1080 (was 1280x720):** the final CTA renders up to
+   ~1176px wide, so 720p was being upscaled ~1.8x on a retina display.
+   Compression was never its problem (the old file already measured 43.1dB
+   against the master); resolution was. Now:
+
+   ```
+   ffmpeg -i fluid_animation_3500ms.mp4 -vf "scale=1920:-2:flags=lanczos" \
+          -an -c:v libx264 -crf 21 -preset slow -pix_fmt yuv420p \
+          -movflags +faststart fluid-loop.mp4
+   ```
+
+   2.6MB / 44.9dB. The size is affordable specifically because the element
+   is `preload="none"` at the bottom of the page — verified it transfers
+   0 bytes on a normal load, so it costs nothing against LCP. Never hand the
+   raw 4K export to a page.
 6. **`spectrum.webp`'s per-bar `BAND_ZOOM` table is tied to the exact
    current image.** See "3 + 4. Featured challenges | Success stories"
    above — if this asset is ever re-exported or replaced, the 14
