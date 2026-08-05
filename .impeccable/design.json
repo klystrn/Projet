@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-05T00:00:00Z",
+  "title": "Design System: Projet",
+  "extensions": {
+    "colorMeta": {
+      "signal": {
+        "role": "primary",
+        "displayName": "Signal",
+        "canonical": "#ff5b24",
+        "tonalRamp": ["#4c1300", "#872200", "#c13000", "#fb3f00", "#ff6937", "#ff9571", "#ffc0ab", "#ffece5"]
+      },
+      "signal-deep": {
+        "role": "primary-hover",
+        "displayName": "Signal Deep",
+        "canonical": "#c73e10"
+      },
+      "current": {
+        "role": "secondary",
+        "displayName": "Current",
+        "canonical": "#2f6bff",
+        "tonalRamp": ["#00164c", "#002787", "#0038c1", "#0049fb", "#3770ff", "#719aff", "#abc3ff", "#e5edff"]
+      },
+      "current-deep": {
+        "role": "secondary-hover",
+        "displayName": "Current Deep",
+        "canonical": "#1d4fd6"
+      },
+      "spectrum-violet": {
+        "role": "tertiary",
+        "displayName": "Spectrum Violet",
+        "canonical": "#7a3f8f",
+        "tonalRamp": ["#2d1735", "#50295e", "#723b86", "#954dae", "#ad74c2", "#c59cd4", "#ddc5e5", "#f5edf7"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#14130f",
+        "tonalRamp": ["#2c2a21", "#4d493a", "#6e6953", "#90886c", "#a9a38d", "#c2beae", "#dbd9cf", "#f4f3f0"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#3a382f"
+      },
+      "paper": {
+        "role": "neutral-bg",
+        "displayName": "Paper",
+        "canonical": "#ffffff"
+      },
+      "paper-warm": {
+        "role": "neutral-bg",
+        "displayName": "Paper Warm",
+        "canonical": "#f5f4ef",
+        "tonalRamp": ["#2f2c1d", "#534e34", "#776f4a", "#9b9161", "#b2aa84", "#c8c3a8", "#dfdccb", "#f5f4ef"]
+      },
+      "hairline": {
+        "role": "neutral-border",
+        "displayName": "Hairline",
+        "canonical": "#e6e3da"
+      },
+      "muted-label": {
+        "role": "neutral-muted",
+        "displayName": "Muted Label",
+        "canonical": "#9c988c"
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero H1 only." },
+      "headline": { "displayName": "Headline", "purpose": "Section H2s." },
+      "title": { "displayName": "Title", "purpose": "Card and component titles." },
+      "body": { "displayName": "Body", "purpose": "Sub-copy, ledes, quotes." },
+      "label": { "displayName": "Label", "purpose": "Eyebrows, badges, mono stats, nav data." }
+    },
+    "shadows": [
+      { "name": "card-ambient", "value": "0 14px 40px -20px rgba(20,19,15,.22)", "purpose": "Resting elevation for light-surface cards (testimonial wall)." },
+      { "name": "hero-card-float", "value": "0 24px 54px -20px rgba(0,0,0,.65)", "purpose": "The glass hero-status card floating over the hero visual." },
+      { "name": "visual-frame", "value": "0 34px 80px -34px rgba(20,19,15,.55)", "purpose": "Separates the hero image frame from the page behind it." },
+      { "name": "nav-compact", "value": "0 8px 26px -20px rgba(20,19,15,.3)", "purpose": "Applied once the sticky nav scrolls past 48px and compacts." },
+      { "name": "mini-card-hover", "value": "0 14px 30px -16px rgba(0,0,0,.55)", "purpose": "Featured-challenge mini cards, hover only." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(.16,.84,.44,1)", "purpose": "Default easing for every transition and animation on the page." },
+      { "name": "button-lift", "value": "transform: translateY(-2px)", "purpose": "The universal button hover/focus feedback, used instead of a shadow change." },
+      { "name": "mode-swap", "value": "opacity .16s var(--ease)", "purpose": "Crossfade used by audience-mode-aware copy blocks when the toggle switches." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "480px" },
+      { "name": "md", "value": "640px" },
+      { "name": "lg", "value": "900px" },
+      { "name": "xl", "value": "980px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled pill button, the default CTA style; hovers to Signal orange.",
+      "html": "<button class=\"ds-btn-primary\">Post a challenge</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid transparent; background:#14130f; color:#fff; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:background .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { background:#ff5b24; transform:translateY(-2px); } .ds-btn-primary:focus-visible { outline:2px solid #ff5b24; outline-offset:3px; }"
+    },
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "Filled with the active audience accent (Signal or Current); hovers to that accent's deep variant.",
+      "html": "<button class=\"ds-btn-accent\">Participate</button>",
+      "css": ".ds-btn-accent { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid transparent; background:#ff5b24; color:#fff; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:background .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-accent:hover, .ds-btn-accent:focus-visible { background:#c73e10; transform:translateY(-2px); } .ds-btn-accent:focus-visible { outline:2px solid #c73e10; outline-offset:3px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Transparent outline button for secondary actions on light backgrounds.",
+      "html": "<button class=\"ds-btn-ghost\">Browse challenges</button>",
+      "css": ".ds-btn-ghost { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid #e6e3da; background:transparent; color:#14130f; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:border-color .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-ghost:hover, .ds-btn-ghost:focus-visible { border-color:#14130f; transform:translateY(-2px); } .ds-btn-ghost:focus-visible { outline:2px solid #14130f; outline-offset:3px; }"
+    },
+    {
+      "name": "Testimonial Card",
+      "kind": "card",
+      "refersTo": "card-testimonial",
+      "description": "White pill-cornered card with a top accent stripe tagging speaker side (orange=builder, blue=company) and a faint brandmark watermark.",
+      "html": "<article class=\"ds-t-card\"><span class=\"ds-t-badge\">Builder</span><p class=\"ds-t-quote\">“The live defense is what actually convinced us.”</p><div class=\"ds-t-person\"><span class=\"ds-t-name\">Hiring lead</span></div></article>",
+      "css": ".ds-t-card { position:relative; overflow:hidden; text-align:left; width:320px; background:#fff; border-radius:20px; padding:28px 26px; box-shadow:0 14px 40px -20px rgba(20,19,15,.22); font-family:'Satoshi',sans-serif; } .ds-t-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#ff5b24; } .ds-t-badge { position:absolute; top:18px; right:18px; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:rgba(255,91,36,.12); color:#c73e10; } .ds-t-quote { margin-top:10px; font-size:16px; line-height:1.55; margin-bottom:22px; font-weight:500; color:#14130f; } .ds-t-name { font-weight:700; font-size:14px; color:#14130f; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Pill-shaped text input; border shifts to the active accent on focus.",
+      "html": "<input class=\"ds-input\" type=\"email\" placeholder=\"you@company.com\" />",
+      "css": ".ds-input { flex:1; min-width:0; padding:10px 13px; border-radius:999px; border:1px solid #e6e3da; background:#fff; font-size:13.5px; color:#14130f; font-family:'Satoshi',sans-serif; transition:border-color .2s cubic-bezier(.16,.84,.44,1); } .ds-input:focus-visible { outline:none; border-color:#ff5b24; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Small mono pill tagging status or category, tinted by accent side.",
+      "html": "<span class=\"ds-badge\">Company</span>",
+      "css": ".ds-badge { display:inline-flex; align-items:center; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:rgba(47,107,255,.12); color:#1d4fd6; }"
+    },
+    {
+      "name": "Audience Mode Toggle",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Signature component: a pill-track toggle with a sliding, color-shifting indicator behind whichever audience option is active.",
+      "html": "<div class=\"ds-mode-switch\"><span class=\"ds-mode-indicator\"></span><button class=\"ds-mode-opt is-active\">For students</button><button class=\"ds-mode-opt\">For companies</button></div>",
+      "css": ".ds-mode-switch { position:relative; display:inline-flex; padding:3px; gap:2px; background:#f5f4ef; border:1px solid #e6e3da; border-radius:999px; font-family:'JetBrains Mono',monospace; } .ds-mode-indicator { position:absolute; top:3px; left:3px; width:calc(50% - 3px); height:calc(100% - 6px); border-radius:999px; background:#ff5b24; z-index:0; transition:transform .32s cubic-bezier(.16,.84,.44,1), background .32s cubic-bezier(.16,.84,.44,1); } .ds-mode-opt { position:relative; z-index:1; padding:7px 15px; border-radius:999px; border:none; background:none; cursor:pointer; font-size:11.5px; font-weight:600; letter-spacing:.03em; color:#3a382f; transition:color .22s cubic-bezier(.16,.84,.44,1); } .ds-mode-opt.is-active { color:#fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Signal Flare",
+    "overview": "Projet's whole surface is built around one idea: a single warm accent burning against a calm, mostly-neutral field, and that flare only ever means one thing — real activity, happening right now. The live-status pulse on the hero card, the countdown ticking down to a challenge deadline, the recycling logo and testimonial marquees, the shear of the light-spectrum wave as a visitor hovers between \"Featured challenges\" and \"Success stories\" — none of it is ambient decoration. Every moving element on the page is standing in for the same claim the copy makes in words: that proof is live and ongoing, not a static portfolio.\n\nThe system carries a second, cooler signal alongside the first: builders and students read the page in Signal orange, companies read it in Current blue, and the accent color itself is the audience switch. This is not two different designs pretending to be one — it's one calm, confident-startup shell (bold black-on-white type, real stated numbers, no soft SaaS gradients or stock illustration standing in for substance) that relabels its own accent depending on who's looking. The spectrum gradient bridging orange to blue — through a middle violet — appears everywhere a designer might otherwise reach for a divider: the hero headline, the footer's top edge, the seam of the light-spectrum wave. It's the visual proof that the two audiences are joined by one process, not two separate products bolted together.\n\nDensity is generous, not dense — this is a persuade-mode marketing surface, not a dashboard, and it gives its stats, cards, and CTAs room to breathe. Nothing renders in hard corners, and nothing sits completely still without a reason: every interactive control confirms itself with a lift, a color shift, or a sliding glyph the instant it's touched.",
+    "keyCharacteristics": [
+      "One accent lit against a mostly-neutral (ink/paper) field, never two accents competing for attention on the same surface",
+      "The accent itself carries meaning — it names which audience is currently being addressed",
+      "Motion is evidentiary, not decorative: it always stands in for \"this is live, this is real work happening now\"",
+      "Confident, plainly-stated startup tone: bold headlines, real numbers, no hedge-everything softness",
+      "Every interactive element visibly responds to hover/focus — nothing is static once touched"
+    ],
+    "rules": [
+      { "name": "The Two-Signal Rule", "body": "Only Signal or Current is active as the page's accent at any moment — never both, and a surface never lets orange and blue compete as two live CTAs. The one deliberate exception is the light-spectrum wave's two panel buttons, which are pinned to their literal side color regardless of audience mode, because their job is to label which half of the split they belong to, not to reflect who's currently browsing.", "section": "colors" },
+      { "name": "The Mono-Label Rule", "body": "Any small-caps or label-scale text — eyebrows, badges, nav toggle labels, stat captions, countdown digits — is always set in JetBrains Mono, never Satoshi.", "section": "typography" },
+      { "name": "The Motion-Over-Shadow Rule", "body": "Buttons never change shadow on hover — they lift (translateY(-2px)) instead. Shadow answers \"is this surface floating above another,\" motion answers \"did you just interact with this.\"", "section": "elevation" },
+      { "name": "The No-Hard-Corner Rule", "body": "Nothing in the system ships a 0px corner. The only question is how generous the round is, never whether to round at all.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do let the accent color (--accent) name the audience — never hardcode Signal or Current onto a control that should track the current mode.",
+      "Do pair every hover/focus state with visible motion (lift, underline sweep, arrow reveal, color shift) — a static default-only control reads as dead.",
+      "Do round every corner — pill for controls, 13–28px for containers, scaled to size.",
+      "Do set any label-scale text (eyebrows, badges, stats, captions) in JetBrains Mono, uppercase, wide tracking.",
+      "Do treat scroll-linked and hover-driven motion as enhancement only — every effect must render its end state under prefers-reduced-motion or with JavaScript disabled, never disappear."
+    ],
+    "donts": [
+      "Don't run Signal and Current as two live, competing CTAs on the same surface outside the light-spectrum split's side-fixed panel buttons.",
+      "Don't apply a shadow change as a button's hover feedback — use the translateY(-2px) lift instead.",
+      "Don't reuse Muted Label (#9c988c) for body copy or anything below ~13px without checking contrast first — it sits close to the WCAG AA text threshold against white and is easy to under-size into a failure.",
+      "Don't introduce a third accent hue. Spectrum Violet exists only as a gradient midpoint, never as a control fill."
+    ]
+  }
+}
