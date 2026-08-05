@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projet — Hire on proof, not paper.</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/landing.css">
+<meta name="description" content="Companies post real briefs. Builders submit work anonymously and defend it live in 15 minutes. Hire on proof, not paper.">
+<link rel="canonical" href="https://myprojet.co/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Projet">
+<meta property="og:url" content="https://myprojet.co/">
+<meta property="og:title" content="Projet — Hire on proof, not paper.">
+<meta property="og:description" content="Companies post real briefs. Builders submit work anonymously and defend it live in 15 minutes.">
+<meta property="og:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Projet — Hire on proof, not paper.">
+<meta name="twitter:description" content="Companies post real briefs. Builders submit work anonymously and defend it live in 15 minutes.">
+<meta name="twitter:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta name="theme-color" content="#14130f">
+<script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<!-- ============================ NAV (universal) ============================ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="logo" aria-label="Projet — home">
+      <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+    </a>
+    <nav class="links">
+      <a href="#challenges">Challenges</a>
+      <a href="#stories">Success stories</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#testimonials">Testimonials</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="login.html" class="nav-auth">Log in</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="m-link" href="#challenges">Challenges</a>
+    <a class="m-link" href="#stories">Success stories</a>
+    <a class="m-link" href="#how-it-works">How it works</a>
+    <a class="m-link" href="#testimonials">Testimonials</a>
+    <div class="mobile-menu-ctas">
+      <a href="login.html" class="btn btn-ghost">Log in</a>
+      <a href="signup.html" class="btn btn-primary">Sign up</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ======================= 1. HERO & CALL TO ACTION ======================= -->
+  <section class="hero wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">Hiring on proof</span>
+        <h1>Hire on proof,<br><span class="accent">not paper.</span></h1>
+        <p class="hero-sub">
+          Companies post a real brief from their backlog. Builders submit work anonymously —
+          then defend it live, in 15 minutes, under questioning.
+        </p>
+
+        <!-- the two calls to action: one per side of the marketplace -->
+        <div class="hero-ctas">
+          <a href="signup.html?role=business" class="btn btn-orange">Post a challenge</a>
+          <a href="#challenges" class="btn btn-ghost">Browse challenges</a>
+        </div>
+
+        <!-- statistic below the CTAs — real Hack &amp; Hire pilot figures -->
+        <div class="hero-stat">
+          <!-- the "+" lives INSIDE the <b>, not as a bare text node after it:
+               .hero-stat-row span is a flex row, so its gap would otherwise
+               land between the number and the plus ("120 + builders") -->
+          <div class="hero-stat-row">
+            <span><b><span class="count-up" data-count-to="120">120</span>+</b> builders</span>
+            <span><b class="count-up" data-count-to="7">7</b> companies</span>
+            <span><b><span class="count-up" data-count-to="10">10</span>+</b> live defenses</span>
+            <span><b class="count-up" data-count-to="2">2</b> hires</span>
+          </div>
+          <p class="hero-stat-cap">Hack &amp; Hire pilot — Block71 @ NUS</p>
+        </div>
+      </div>
+
+      <!-- Spectrum-to-Waveform handoff: spectrum at rest, waveform once scrolled -->
+      <div class="hero-visual">
+        <div class="hero-layer hero-layer--spectrum" aria-hidden="true"></div>
+        <div class="hero-layer hero-layer--wave" aria-hidden="true"></div>
+        <div class="hero-card">
+          <div class="hero-card-top">
+            <span class="tag">DEFENSE IN PROGRESS</span>
+            <span class="tag hero-card-live">LIVE</span>
+          </div>
+          <div class="hero-card-title">Rebuild the pricing page conversion flow</div>
+          <div class="hc-row"><span class="hc-rank">01</span><span>Brief posted &middot; 6 days open</span></div>
+          <div class="hc-row"><span class="hc-rank">02</span><span><span class="count-up" data-count-to="42">42</span> anonymous submissions</span></div>
+          <div class="hc-row"><span class="hc-rank">03</span><span>15-min defense &middot; scoring live</span></div>
+          <div class="hc-row"><span class="hc-rank">04</span><span>Hire decision with evidence</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 2. LOGO CAROUSEL =========================
+       PLACEHOLDER CONTENT — these are well-known brand names standing in so
+       the carousel can be reviewed at realistic visual weight. They are NOT
+       Projet customers. The label below says "placeholder logos" rather than
+       "trusted by" precisely so the page never asserts a client list it
+       doesn't have. Swap for real partner logos before any public launch.
+       Marquee recycles items in JS (landing.js) so it never rewinds. -->
+  <section class="logos" data-reveal>
+    <div class="wrap">
+      <p class="logos-label">Placeholder logos &mdash; pending real partners</p>
+    </div>
+    <div class="logo-marquee">
+      <div class="logo-track" id="logoTrack">
+        <span class="logo-chip">Google</span>
+        <span class="logo-chip">Apple</span>
+        <span class="logo-chip">Shopify</span>
+        <span class="logo-chip">Stripe</span>
+        <span class="logo-chip">Grab</span>
+        <span class="logo-chip">Notion</span>
+        <span class="logo-chip">Figma</span>
+        <span class="logo-chip">Sea</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 + 4. FEATURED CHALLENGES | SUCCESS STORIES ============
+       One "light spectrum wave" stage split down the middle. Scrolling in
+       dissolves the white veil so the viewer drops into the spectrum; the
+       bars along the seam shear away from whichever side is active. Rests on
+       Featured challenges by default. -->
+  <div class="spectrum-split" id="spectrumSplit">
+    <div class="ss-stage" id="ssStage" data-active="challenges">
+      <div class="ss-veil" id="ssVeil" aria-hidden="true"></div>
+
+      <!-- LEFT: featured challenges + sign-up CTA -->
+      <section class="ss-panel ss-panel--challenges" data-side="challenges" id="challenges">
+        <div class="ss-inner">
+          <span class="ss-eyebrow">Featured challenges</span>
+          <h2>Real briefs, straight from the backlog.</h2>
+          <p class="ss-lede">
+            Not take-home busywork — actual problems teams need solved. Pick one,
+            build it on your own time, then defend it.
+          </p>
+          <!-- PLACEHOLDER: sample briefs, not live listings -->
+          <div class="ss-cards">
+            <div class="ss-card">
+              <div>
+                <div class="ss-card-t">Rebuild the pricing page conversion flow</div>
+                <div class="ss-card-m">Product &middot; 6 days left</div>
+              </div>
+              <span class="ss-card-pill">OPEN</span>
+            </div>
+            <div class="ss-card">
+              <div>
+                <div class="ss-card-t">Cut onboarding drop-off in the mobile app</div>
+                <div class="ss-card-m">Design &middot; 11 days left</div>
+              </div>
+              <span class="ss-card-pill">OPEN</span>
+            </div>
+            <div class="ss-card">
+              <div>
+                <div class="ss-card-t">Ship a data pipeline for churn signals</div>
+                <div class="ss-card-m">Engineering &middot; 4 days left</div>
+              </div>
+              <span class="ss-card-pill">OPEN</span>
+            </div>
+          </div>
+          <a href="signup.html?role=builder" class="btn btn-white">Sign up to compete</a>
+        </div>
+      </section>
+
+      <!-- the light spectrum wave band -->
+      <div class="ss-stripe" aria-hidden="true">
+        <div class="ss-stripe-inner" id="ssBars"></div>
+      </div>
+
+      <!-- RIGHT: success stories + problem validation -->
+      <section class="ss-panel ss-panel--stories" data-side="stories" id="stories">
+        <div class="ss-inner">
+          <span class="ss-eyebrow">Success stories</span>
+          <h2>Proof that outlasts the resume.</h2>
+          <p class="ss-lede">
+            AI can write a CV and finish a take-home. It can't sit in the room and
+            defend the decisions behind the work.
+          </p>
+          <div class="ss-stats">
+            <div class="ss-stat"><b>120+</b><span>student builders took part</span></div>
+            <div class="ss-stat"><b>7</b><span>companies posted real briefs</span></div>
+            <div class="ss-stat"><b>10+</b><span>live defenses run end to end</span></div>
+            <div class="ss-stat"><b>2</b><span>hires made off the back of it</span></div>
+          </div>
+          <p class="ss-note">Hack &amp; Hire pilot &middot; Block71 @ NUS</p>
+          <a href="signup.html?role=business" class="btn btn-outline-white">Post a challenge</a>
+        </div>
+      </section>
+
+      <!-- explicit control: hover is unreachable on touch and by keyboard -->
+      <div class="ss-tabs" role="tablist" aria-label="Switch panel">
+        <button class="ss-tab" data-side="challenges" role="tab" aria-selected="true">Featured challenges</button>
+        <button class="ss-tab" data-side="stories" role="tab" aria-selected="false">Success stories</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== 5. HOW IT WORKS ========================
+       Fluid Flow Steps: one continuous move through fluid-full.png while the
+       five stages advance. Collapses to a static list under 900px/no-js. -->
+  <div class="flow" id="flow">
+    <div class="flow-inner">
+      <div class="flow-fluid" aria-hidden="true"></div>
+      <div class="flow-scrim" aria-hidden="true"></div>
+      <div class="flow-stage">
+        <div class="flow-head" id="how-it-works">
+          <span class="eyebrow">How it works</span>
+          <h2>Five steps from brief to hire.</h2>
+        </div>
+
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="flow-num">STEP 01</span>
+            <h3>Post &amp; apply</h3>
+            <p>A company publishes a real brief from its own backlog. Builders apply to take it on.</p>
+          </div>
+
+          <div class="flow-step">
+            <span class="flow-num">STEP 02</span>
+            <h3>Async submission</h3>
+            <p>Builders do the work on their own time and submit it anonymously — no name, no school, no CV attached.</p>
+          </div>
+
+          <div class="flow-step">
+            <span class="flow-num">STEP 03</span>
+            <h3>Live 15-min defense</h3>
+            <p>The part AI can't sit in for. Candidates walk through their decisions live and answer for them under questioning.</p>
+          </div>
+
+          <div class="flow-step">
+            <span class="flow-num">STEP 04</span>
+            <h3>Rubric scoring</h3>
+            <p>Scored against a fixed rubric, so every candidate is judged on the same four things. Pass mark is 3.5 out of 5.</p>
+            <!-- Rubric Spectrum Bar — segments draw in when the step activates -->
+            <div class="rubric">
+              <div class="rubric-bar" role="img" aria-label="Rubric weighting: Ownership 40%, Technical depth 25%, Live navigation 20%, Communication 15%">
+                <span class="rubric-seg" style="--w:40%; --d:0ms;   background:#ff5b24;"></span>
+                <span class="rubric-seg" style="--w:25%; --d:120ms; background:#ff9a5a;"></span>
+                <span class="rubric-seg" style="--w:20%; --d:240ms; background:#7a3f8f;"></span>
+                <span class="rubric-seg" style="--w:15%; --d:360ms; background:#2f6bff;"></span>
+              </div>
+              <div class="rubric-legend" aria-hidden="true">
+                <span><i style="background:#ff5b24"></i>Ownership 40%</span>
+                <span><i style="background:#ff9a5a"></i>Technical depth 25%</span>
+                <span><i style="background:#7a3f8f"></i>Live navigation 20%</span>
+                <span><i style="background:#2f6bff"></i>Communication 15%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-step">
+            <span class="flow-num">STEP 05</span>
+            <h3>Hire decision</h3>
+            <p>The company decides with evidence in hand — work it can see, reasoning it heard defended live.</p>
+          </div>
+        </div>
+
+        <div class="flow-dots" aria-hidden="true">
+          <span class="flow-dot"></span><span class="flow-dot"></span><span class="flow-dot"></span>
+          <span class="flow-dot"></span><span class="flow-dot"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= 6. TESTIMONIALS =========================
+       PLACEHOLDER CONTENT — quotes, names and avatars are all stand-ins so
+       the carousel can be reviewed. Avatars are generated gradient marks, not
+       photographs of real people. Replace with real, permissioned quotes and
+       portraits before launch. -->
+  <section class="testimonials" id="testimonials" tabindex="-1">
+    <div class="t-bg" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="t-head" data-reveal>
+        <span class="eyebrow">Testimonials</span>
+        <h2>What the pilot sounded like.</h2>
+      </div>
+
+      <div class="t-viewport">
+        <div class="t-track">
+
+          <article class="t-card">
+            <p class="t-quote">&ldquo;The defense is where it clicked. Fifteen minutes told us more than three rounds of interviews ever did.&rdquo;</p>
+            <div class="t-person">
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">HL</text></svg>
+              <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
+            </div>
+          </article>
+
+          <article class="t-card">
+            <p class="t-quote">&ldquo;I finally had something real to point at. Not a bullet point — actual work, and I got to explain why I built it that way.&rdquo;</p>
+            <div class="t-person">
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a3f8f"/><stop offset="1" stop-color="#2f6bff"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av2)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">BD</text></svg>
+              <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
+            </div>
+          </article>
+
+          <article class="t-card">
+            <p class="t-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</p>
+            <div class="t-person">
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b24"/><stop offset="1" stop-color="#7a3f8f"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av3)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">FD</text></svg>
+              <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
+            </div>
+          </article>
+
+          <article class="t-card">
+            <p class="t-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</p>
+            <div class="t-person">
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f6bff"/><stop offset="1" stop-color="#0c1638"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av4)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">BD</text></svg>
+              <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
+            </div>
+          </article>
+
+          <article class="t-card">
+            <p class="t-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</p>
+            <div class="t-person">
+              <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient></defs><circle cx="23" cy="23" r="23" fill="url(#av5)"/><text x="23" y="29" text-anchor="middle" font-family="Satoshi, sans-serif" font-size="16" font-weight="700" fill="#fff">EM</text></svg>
+              <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div class="t-controls">
+        <button class="t-btn t-prev" aria-label="Previous testimonial">&#8592;</button>
+        <div class="t-dots">
+          <button class="t-dot is-active" aria-label="Testimonial 1"></button>
+          <button class="t-dot" aria-label="Testimonial 2"></button>
+          <button class="t-dot" aria-label="Testimonial 3"></button>
+          <button class="t-dot" aria-label="Testimonial 4"></button>
+          <button class="t-dot" aria-label="Testimonial 5"></button>
+        </div>
+        <button class="t-btn t-next" aria-label="Next testimonial">&#8594;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ FINAL CTA ============================ -->
+  <section class="wrap final-wrap">
+    <div class="final" data-reveal>
+      <video class="final-tex" muted loop autoplay playsinline preload="none" poster="assets/fluid.webp" aria-hidden="true">
+        <source src="assets/fluid-loop.webm" type="video/webm">
+        <source src="assets/fluid-loop.mp4" type="video/mp4">
+      </video>
+      <div class="final-inner">
+        <h2>Stop reading about the work. Watch it get defended.</h2>
+        <p>Hire on proof, not paper.</p>
+        <div class="final-btns">
+          <a href="signup.html?role=business" class="btn btn-white">Post a challenge</a>
+          <a href="signup.html?role=builder" class="btn btn-outline-white">Browse challenges</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ FOOTER (universal) ============================ -->
+<footer id="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+        <p>Proof-based hiring. Companies post real briefs, builders defend real work.</p>
+      </div>
+      <div class="footer-col">
+        <h6>Product</h6>
+        <a href="#challenges">Challenges</a>
+        <a href="#stories">Success stories</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#testimonials">Testimonials</a>
+      </div>
+      <div class="footer-col">
+        <h6>Company</h6>
+        <a href="#">About</a>
+        <a href="#">Careers</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h6>Account</h6>
+        <a href="login.html">Log in</a>
+        <a href="signup.html">Sign up</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Projet. All rights reserved.</span>
+      <span>Singapore</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/landing.js"></script>
+</body>
+</html>

@@ -26,9 +26,9 @@ under questioning.
 - **Traction**: "Hack & Hire" pilot at Block71 @ NUS — 120+ student
   builders, 7 companies, 10+ live defenses run, 2 hires
 
-Full positioning language (headlines, stats, evidence citations, pricing
-math) is already written into `projet-landing.html` — treat that file as
-the source of truth for copy/voice, don't re-derive it from this summary.
+The live copy/voice now lives in `index.html` — treat that as the source of
+truth, not this summary. (The old `projet-landing.html`, which used to hold
+it, is archived; see "Site architecture" below.)
 
 ## Brand tokens
 
@@ -45,11 +45,11 @@ Mono / labels / data: JetBrains Mono (Google Fonts)
 ```
 
 The real logo is "Pr" + a circular orange icon + "jet" set in Satoshi
-Black. It exists in a Figma file (see below) in dark/white/orange variants.
-Neither prototype in this folder currently embeds the *real* logo asset —
-both use a small CSS-drawn circle as a placeholder to avoid depending on
-Figma's temporary export URLs (see "Known issues" below). **Swapping in the
-real logo file is an open task.**
+Black. **Resolved** — the real exports are committed and in use: trimmed
+web copies at `assets/logo-dark.png` (light backgrounds) and
+`assets/logo-white.png` (dark backgrounds), with favicons generated from the
+icon mark (`favicon.ico`, `favicon-32.png`, `apple-touch-icon.png`). The
+originals are also in `assets/` (`Logo Full Black/White/Orange.png`, etc.).
 
 ## Figma source files
 
@@ -83,547 +83,265 @@ shipped code — always download/export the actual asset file locally (as
 was done for `projet-split-hero/assets/spectrum.jpg`) rather than linking
 the API URL directly.
 
-## Copy source of truth — IMPORTANT, read before editing home-page copy
+## Site architecture — REBUILT (Aug 2026). Read this first.
 
-**The home pages are NOT written from the pitch deck.** The user explicitly
-redirected this: home-page content comes from Andrei's existing landing app,
-`https://github.com/AndreiYo037/projet-landing`, specifically
-`src/lib/content.ts` (plus a little hardcoded copy in `src/components/Hero.tsx`).
-
-That repo is a different owner, so `add_repo` refuses it (cross-tier). It is
-public, though, and `git clone https://github.com/AndreiYo037/projet-landing.git`
-works through the session's git proxy. The deployed site
-(`projet-landing.vercel.app`) is **blocked** by this environment's network
-policy — WebFetch, headless Chromium and curl all get a 403 at the gateway, so
-clone the repo instead of trying to fetch the URL.
-
-`tools-build-pages.py` at the repo root regenerates `business.html` and
-`builders.html` from that copy. It is a one-shot generator, not a build step —
-run it, commit the HTML, and the site stays dependency-free. Edit the generator
-rather than the two HTML files directly, or the next run will overwrite you.
-
-### What the product actually is (per that content)
-
-Challenge-based talent discovery: a business **posts a challenge** from its
-backlog, **students compete** on it, businesses **review real output instead of
-resumes**, and top performers advance to interviews/internships. Tagline:
-"Where real work is the strongest hiring signal."
-
-Business model is `Pay to publish a challenge` for businesses and `Join free`
-for students.
-
-### Deck-era content that was REMOVED — do not reintroduce
-
-The earlier build of these pages was written from the pitch deck and framed
-the product around a **live 15-minute defense scored on a rubric**. None of
-that exists in Andrei's content, so it was all cut from the home pages:
-
-- the live defense / defense demo / rubric (Ownership 40% etc.)
-- the Schmidt, Oh & Shaffer validity chart
-- S$250 listing / S$500 unlock pricing
-- Hack & Hire pilot traction (120+ builders, 7 companies, 10+ defenses, 2 hires)
-  and the Block71 @ NUS proof strip
-
-**Update: the per-audience FAQ was reintroduced (see `business.html` /
-`builders.html` below), on explicit user confirmation, when Thi's wireframe
-called for one in the nav's Resources dropdown.** Its content is new,
-though — written from this page's own established copy (`MODEL_BIZ`/
-`MODEL_STU`, the offers, `HOW`), not the deck-era rubric/pricing FAQ this
-section originally described. Don't confuse the two if a future edit finds
-old deck-FAQ copy lying around; that version stays removed.
-
-Two things still carry the deck framing and were deliberately left alone —
-**flag them rather than silently reconciling**: `projet-landing.html` (the
-legacy "overview" page) and the "Who/what Projet is" section at the top of
-this file.
-
-**Terminology — resolved: "Builder", never "Students".** Andrei's content
-said "Students" throughout; the user asked explicitly to use "Builder"
-everywhere instead. Applied across the generator (mission line, how-it-works
-copy, the business-model card heading, final-CTA headline, footer tagline),
-the chooser, `login.html`, and the legacy overview page's traction stats.
-The one place still saying "student" is intentional: `projet-split-hero`'s
-internal `data-audience="student"` attribute / `.panel--student` class are
-JS/CSS plumbing, not visible copy — `script.js` already maps that value to
-`"builder"` before it ever reaches `localStorage` or the UI. If Andrei's
-`content.ts` is re-pulled later, re-apply the student→builder swap; it isn't
-upstream.
-
-**Accent color — orange for business, blue for builder, one mechanism.**
-Don't hand-patch a new component with `style="color:var(--blue)"` on the
-builder page; that's exactly how `pain-card`/`offer-num`/`model-list` ended
-up staying orange there while `eyebrow` and the hero accent-span (patched
-per-instance) didn't. Instead: components read `var(--accent)`, which
-`assets/site.css` defines as `var(--orange)` by default and overrides to
-`var(--blue)` under `html.mode-builder`. `tools-build-pages.py` adds that
-class to `<html>` for the builder page — that's the only place the mode is
-set. Legacy-only sections still on `projet-landing.html` (defense, evidence,
-pricing, comparison) intentionally keep `var(--orange)` directly, since that
-page has no mode.
-
-## Site architecture / user flow (decided)
-
-The user flow is now wired end to end:
+**The whole previous multi-page site was scrapped on the user's explicit
+instruction.** There is now one page: a landing page at `index.html`, which
+is also the entry point (launching the site lands you here — there is no
+longer a chooser gate in front of it).
 
 ```
-projet-split-hero/index.html   (the actual landing page / entry point)
-        │  choose Business or Builder
-        ├──► business.html     (dual-mode homepage, wireframe-based)
-        └──► builders.html     (same page, generated in builder mode)
-
-projet-landing.html is now a secondary "Overview" page (audience-agnostic,
-reachable from either home page's footer / logo-adjacent link) — it's no
-longer the primary entry point.
+index.html          the landing page — the entire public site
+login.html          front-end-only auth (kept, still functional)
+signup.html         front-end-only auth (kept; ?role= still prefills)
+assets/             shared images/video + landing.css + landing.js + site.css
+archive/            everything the landing page replaced
 ```
 
-**`business.html` / `builders.html` are now built from Thi's hand-drawn
-wireframe (July 2026), not the earlier problem-first Willo-style layout.**
-The previous version (hero-opens-on-the-problem, proof strip, take-homes-
-broke comparison) is archived at `archive/business-v1.html` /
-`archive/builders-v1.html` for reference — do not resurrect it as the live
-page. Section order top to bottom now: hero, logo strip, featured-
-challenges teaser, problem statement + pain points, what we offer, how it
-works (pinned scrub), testimonials, product-demo placeholder, business
-model, final CTA. See "`business.html` / `builders.html`" below for the
-detail on each new piece.
+Everything below is in `archive/` and is **reference only — do not
+resurrect any of it as a live page**:
 
-All three pages plus `projet-split-hero/` now share one stylesheet and one
-script file: `assets/site.css` and `assets/site.js` (previously each page
-carried its own copy of the same ~14KB of CSS — this was extracted once to
-kill that duplication). Page-specific tweaks (e.g. the builder page's blue
-accent overrides) live in a small inline `<style>` block in that page only.
+| Archived | Was |
+|---|---|
+| `business-v1/v2.html`, `builders-v1/v2.html` | the dual-mode audience homepages |
+| `projet-split-hero/` | the "pick your side" chooser that used to be the entry point |
+| `projet-landing-v1.html` | the original single-file marketing/overview page |
+| `challenges-v1.html` | the challenges stub |
+| `tools-build-pages.py` | the generator that produced business/builders |
 
-### Mobile / responsive
+`assets/site.css` and `assets/site.js` are **still live** — `login.html` and
+`signup.html` depend on them. Don't delete them when tidying. The landing
+page deliberately does *not* use them; it has its own `assets/landing.css`
+and `assets/landing.js` so it can evolve without inheriting the old pages'
+layout baggage.
 
-All four pages are responsive and verified with no horizontal overflow from
-320px up. Breakpoints in `assets/site.css`: **900px** (nav collapses to a
-hamburger), **640px** (main phone layout), **480px / 420px / 359px** (fine
-adjustments), and **760px** for `projet-split-hero`. Notable decisions:
+## "Light spectrum wave" — the house name for the signature animation
 
-- **Mobile nav.** Below 900px the inline links are replaced by a hamburger
-  (`#navToggle`) opening `#mobileMenu`, which holds the section links plus
-  the audience switch and CTAs. The primary CTA stays in the header bar down
-  to 359px. Toggle logic is in `assets/site.js` (closes on link tap, Escape,
-  and on resize past the breakpoint).
-- **`.hero` / `.section` use longhand vertical padding.** They must *not*
-  use the `padding: Xpx 0` shorthand: both are applied alongside `.wrap` on
-  the same element, have equal specificity, and sit later in the file, so a
-  shorthand silently zeroes `.wrap`'s horizontal padding and flattens every
-  page against the viewport edge on mobile. This was a real (long-standing)
-  bug — it was invisible on desktop only because `.wrap`'s `max-width`
-  centred the content anyway.
-- **Evidence chart** (`.bar-row`) restacks at 640px: its fixed 180px label
-  column left the bar just 134px wide on a 390px screen, so the label moves
-  to its own row above a full-width bar.
-- **`projet-split-hero` on touch** shows both panels' description copy
-  outright and navigates on a **single tap**, rather than reproducing the
-  desktop hover-reveal as a two-tap preview. A first tap that only previews
-  reads as a dead tap on the one screen whose whole job is choosing a side,
-  and the hidden copy left an empty gap holding its place. Desktop keeps the
-  hover reveal + 5/8 expand unchanged.
-- **Hover state is driven by the `data-hover` attribute**, not bare `:hover`.
-  Touch browsers emulate a sticky `:hover` that otherwise left one panel's
-  copy stuck open. `:hover` survives only inside `@media (hover:hover)` as a
-  no-JS fallback.
-- **Keyboard focus is gated on `:focus-visible`** (`keyboardFocused()` in
-  `projet-split-hero/script.js`). Tapping a link also focuses it, which used
-  to set `data-hover` *before* the click handler ran — so the click saw
-  "already previewed" and navigated immediately, meaning the touch preview
-  never actually worked.
-- The split-hero band is **clipped** (`overflow:hidden`) and thinned on
-  mobile. Its bars are meant to fan past the seam into empty panel margin on
-  desktop; once the panels stack, that same overflow ran straight through the
-  headline and CTA.
-- `.final-cta` has a **scrim** over the swirl texture — white copy vanished
-  into the artwork's bright cream/orange passages, worst on mobile where the
-  block is short enough to put the light part directly behind the headline.
-- `[id]{scroll-margin-top:92px}` keeps in-page anchor targets from landing
-  underneath the sticky header.
+The user named this. It refers to the bar-shear mechanic first built for the
+old audience chooser and now used in the Featured challenges / Success
+stories split: the spectrum image (`assets/spectrum.webp`) sliced into a
+stack of horizontal bars along a seam, which **shear away from whichever
+side is active** — each bar offset by its own amplitude on a sine curve
+(bulging toward the middle bars) and delayed by index, so the motion reads
+as a cascade rather than a rigid block sliding. Use this name for it.
 
-### `projet-landing.html`
-A single-file marketing/overview page (static HTML/CSS/JS, no build step).
-The "scroll story" version: hero, problem stats, take-homes-broke
-comparison, 5-step how-it-works, an interactive defense rubric section
-with animated bars, the Schmidt/Oh/Shaffer evidence chart, traction stats,
-pricing cards, final CTA, footer. Content is drawn directly from the pitch
-deck (`Projet_consultant` project files / uploaded pitch deck PDF),
-upgraded from an earlier, more generic draft that lived at
-`https://projet-landing.vercel.app/` (that URL is blocked by this
-environment's network policy — CLAUDE-in-this-repo has never actually
-fetched it; treat this file's content as the source of truth instead of
-trying to diff against the old draft).
+## Copy framing — the deck framing is BACK. This reverses an earlier decision.
 
-**Status**: Functionally complete as a secondary overview page. No longer
-the primary entry point (see "Site architecture" above) — its hero now
-offers two direct links ("I'm hiring" / "I'm building") into
-`business.html` / `builders.html` instead of the old JS toggle that swapped
-hero copy in place. The Figma-hosted favicon, logo mark, and hero/final-CTA
-texture images have been swapped for local files (`assets/favicon.svg`, a
-CSS-drawn `.logo-mark`, and `assets/spectrum.webp`) so the page no longer
-depends on expiring Figma export URLs. The texture is a generated
-placeholder standing in for the real fluid-swirl composite (see "Known
-issues" #4) — swap it for the real export whenever that's available.
+An earlier build deliberately removed the pitch-deck framing (live 15-minute
+defense, the rubric, Hack & Hire traction) because the then-current home-page
+copy came from Andrei's landing repo, which had none of it. **The user has
+now explicitly reinstated it**: they specified the How-it-works flow as
+"Post/Apply → Async submission → Live 15-min defense → Rubric scoring → Hire
+decision" in their own words. So on `index.html`:
 
-### `business.html` / `builders.html`
-The single dual-mode homepage a visitor lands on after picking a path in
-`projet-split-hero/` — one generator (`tools-build-pages.py`), two output
-files (business/builder mode), built from Thi's hand-drawn wireframe. See
-"Site architecture" above for the section order. Both are single, self-
-contained HTML files that pull in `assets/site.css` and `assets/site.js` —
-no page-specific build step.
+- The **live 15-minute defense** is the centrepiece again (hero, step 03).
+- The **rubric** is back and rendered as the Rubric Spectrum Bar in step 04
+  — Ownership 40% / Technical depth 25% / Live navigation 20% /
+  Communication 15%, pass at 3.5/5.
+- The **Hack & Hire pilot numbers** are used as the hero statistic and the
+  Success-stories problem validation: 120+ builders, 7 companies, 10+ live
+  defenses, 2 hires (Block71 @ NUS).
 
-**Nav dropdowns (Challenges / Resources).** Replace the old flat anchor
-links above 900px. `.nav-dropdown` opens its `.nav-drop-panel` via plain
-CSS `:hover`/`:focus-within` (works with JS off), with `site.js` layering
-click-to-toggle + outside-click/Escape-to-close on top for touch and
-explicit keyboard control — `nav()` in `tools-build-pages.py` builds both
-the desktop dropdown markup and a separate flattened `mobile_links` list
-for `#mobileMenu` (a floating panel doesn't make sense in the stacked
-sheet). Challenges' "sort" links (All / Active / Newest / Most popular)
-are decorative previews, not real filtering — `challenges.html` is still a
-stub with no listing to filter, so nothing here promises functionality
-that doesn't exist. Below 900px `.nav-dropdown{display:none;}` — the
-mobile menu's flat links cover the same destinations.
+Andrei's `content.ts` copy ("challenge-based talent discovery", "Where real
+work is the strongest hiring signal") is **not** what this page is written
+from any more. The archived pages still carry it if it's ever needed.
 
-**Logo strip.** No real customer logos exist yet, so `LOGOS` in
-`tools-build-pages.py` is a list of placeholder chip labels ("Company",
-"Studio", …), never invented company names. `.logo-track` contains that
-list rendered twice back to back — translating it by exactly `-50%` via a
-`26s linear infinite` CSS animation loops seamlessly with no JS. Paused
-under `.no-js` / `.reduced-motion` and `prefers-reduced-motion`.
+Still true, and unchanged: **"Builder", never "Students"** in visible copy.
 
-**Testimonials carousel.** Same placeholder-content rule as the logo strip
-— quotes in `MODES[...]["testimonials"]` are attributed to a role only
-("Hiring lead, early pilot"), never a named person or company, until real
-ones exist. The carousel itself is a real, working native horizontal
-scroller (`scroll-snap-type:x mandatory`) — the prev/next buttons in
-`site.js` just call `scrollBy()` one card-width at a time; touch users can
-already swipe it directly, so the buttons hide below 640px. Don't mistake
-the placeholder copy for a reason the mechanic itself is fake — it isn't.
+## The landing page, section by section
 
-**Product demo placeholder.** No real demo video exists, so `#demo` is a
-dark placeholder card (play-button glyph + "Product demo coming soon") —
-deliberately *not* the hero's abstract fluid-swirl loop presented as if it
-were a product demo, which would be misleading about what that asset
-actually shows.
+All six sections the user specified, in order, plus a final CTA. Nav and
+footer are the two universal components.
 
-**Featured-challenges teaser moved earlier.** The `.challenges-teaser`
-banner (see below) now sits right after the logo strip, matching the
-wireframe's "Featured challenges (in the future)" placement — it used to
-sit between "How it works" and "Business model." There's only one teaser
-banner on the page; it was not duplicated in both places.
+### Nav / footer (universal)
+Sticky nav, compacts past 48px of scroll. Anchor links to the four
+in-page destinations + Log in / Sign up. Collapses to a hamburger below
+900px (`#navToggle` / `#mobileMenu`, closes on link tap, Escape, and on
+resize past the breakpoint).
 
-**The three problem-section pain points animate on scroll**
-(`.pain-track` / `[data-pain-step]` in the markup, driven by the IIFE in
-`assets/site.js`). A connecting vertical line runs down the left edge; a
-fixed reference line at 55% of viewport height drives both the line's fill
-height (continuous 0–100%, updated every scroll/resize via `requestAnimationFrame`)
-and which point is "active" (a point activates once its vertical midpoint
-crosses that line) — so scrolling down visibly emphasises point 1, then 2,
-then 3 in sequence. Deliberately scroll+rAF rather than
-`IntersectionObserver`: IO only reports enter/exit, not the continuous
-progress value the line fill needs. `prefers-reduced-motion` and a `no-js`
-fallback both show all three points active and the line full immediately —
-there's no scroll-gated content that becomes permanently unreachable if JS
-never runs. The active point doesn't just recolor — `.pain-item.is-active`
-also grows (`h3` 19px→22px, plus `transform:scale(1.045)` on the whole item,
-`transform-origin:left center` so it doesn't push sideways) so the emphasis
-reads as physically larger, not just a color/opacity swap.
+### 1. Hero & call to action
+Headline "Hire on proof, not paper." (second line carries a spectrum
+gradient via `background-clip:text`). **Two CTAs** as specified — "Post a
+challenge" (primary) and "Browse challenges" — with the Hack & Hire
+statistic directly below them.
 
-**Five more scroll effects run off one shared ticker in `assets/site.js`**
-(a single `scroll`/`resize` listener gated by `requestAnimationFrame`, with
-each effect registering an update function into `scrollUpdaters` rather than
-adding its own listener):
-- A thin accent-colored bar (`#scrollProgress`, fixed top) tracks overall
-  page-scroll position.
-- `header.nav` gets `.is-compact` past 48px of scroll (tighter padding +
-  shadow) so the sticky header doesn't read as static.
-- The hero visual (`.hero-visual .texture`) gets a small parallax
-  `translateY`, capped so it does nothing once you've scrolled well past
-  the hero. It's oversized to 112% (`inset:-6%`) so the drift never
-  exposes an edge.
-- The `.offer-grid` / `.model-grid` cards (`[data-stagger]` in the markup)
-  fade/lift in one after another rather than all at once, via
-  `IntersectionObserver` (one-shot, unlike the continuous pain-track).
-- The hero-visual and final-CTA fluid-swirl `<video>` (see "Fluid animation
-  video" below) plays/pauses itself based on scroll visibility via a
-  dedicated `IntersectionObserver` (separate from `scrollUpdaters` since it
-  only needs enter/exit, not continuous progress).
+Runs the **Spectrum-to-Waveform Hero Handoff**: two stacked layers in
+`.hero-visual`, spectrum at rest, crossfading to the dotted waveform
+(`Logo Background 2.png`) once scrolled past ~90px. Both layers are always
+in the DOM; only opacity moves, so there's no reflow and nothing loads late.
 
-All of the above skip themselves under `prefers-reduced-motion` (the shared
-`reducedMotion` flag at the top of `site.js`) by showing the end state
-immediately — same rule as the pain-track: nothing becomes permanently
-hidden if motion is disabled or JS doesn't run.
+- The `+` in "120+" / "10+" lives **inside** the `<b>`, not as a bare text
+  node after it. `.hero-stat-row span` is a flex row, so its `gap` would
+  otherwise land between the number and the plus and render "120 + builders".
+  (Same class of bug as the old `.cand-left` one — worth remembering: a flex
+  `gap` applies between *anonymous* text-node flex items too.)
 
-**Fluid animation video.** The hero-visual and final-CTA texture — previously
-a static `<img src="assets/fluid.webp">` — is now a `<video>` (see
-"Known issues" #4 for the transcode story). No `autoplay` attribute in the
-markup; `site.js` plays each `[data-autoplay-video]` only while its section
-is on-screen (via `IntersectionObserver`) and never does under
-`prefers-reduced-motion`, so no-JS/reduced-motion visitors see the
-`fluid.webp` poster frame exactly like the old static image.
+### 2. Logo carousel
+**A true recycling marquee, not a duplicate-and-reset loop** — the user was
+explicit that it must not jump back, only reintroduce what scrolled off.
+`landing.js` moves each chip from the head of the track to its tail the
+moment it clears the left edge and credits the offset back by exactly that
+chip's width, so the transform oscillates near zero forever instead of
+rewinding. It clones the source chips until the track is ≥2× viewport width
+so something is always entering on the right, and pauses via
+`IntersectionObserver` when off-screen.
 
-**Challenges teaser.** A body-level CTA banner (`.challenges-teaser`, now
-right after the logo strip — see "Featured-challenges teaser moved
-earlier" above) links into `challenges.html`, so the challenges page is
-reachable from the home page's content, not just its nav/footer. Copy is
-per-audience (`m["teaser_h"]` / `m["teaser_p"]` in `tools-build-pages.py`'s
-`MODES` dict); the button reuses `m["accent"]` so it's orange on
-`business.html` and blue on `builders.html` like every other mode-aware
-CTA.
+**The logos are PLACEHOLDERS and are not customers.** See "Known issues" #1
+— this is the one thing on the page that must not ship as-is.
 
-**How it works is now a pinned scroll-scrub, not a static grid.**
-`.how-pin` (`data-how-pin` in the markup, generated from the same `HOW`
-list as before) is a 400vh-tall wrapper; `.how-pin-inner` sticks to the
-viewport while the user scrolls through it, and a continuous scroll-progress
-value — same shape as the pain-track math, off the shared ticker — decides
-which of the four `.how-stage-step`s is active (large centered heading +
-dot indicator). Collapses to a plain static stacked list under 900px / no-js
-/ reduced-motion (`.how-pin` loses its height and `.how-pin-inner` its
-sticky/flex positioning via CSS overrides) — sticky-scrubbing a narrow
-phone viewport reads as broken, not immersive, and the fallback has to
-reapply `.wrap`'s own side padding by hand since `.how-pin` sits outside
-`.wrap` (it needs full-bleed width for the sticky mechanics). The
-`#how-it-works` header section (the short "How it works" eyebrow+heading
-lead-in right before the pin) is deliberately excluded from section
-snapping (see below) — as its own snap point it sat only ~600px from the
-pin's own start, a second target close enough to be redundant.
+### 3 + 4. Featured challenges | Success stories
+One "light spectrum wave" stage, split down the middle, exactly as
+specified: **featured challenges + sign-up CTA on the left, success stories
++ problem validation on the right, defaulting to featured challenges.**
 
-**Gentle section-to-section scroll snapping.** `html{scroll-snap-type:y
-proximity}` plus `scroll-snap-align:start` on every `section.wrap` (and
-`.how-pin`) — "proximity", not "mandatory", so it only nudges the scroll
-position once a gesture has essentially stopped near a section boundary,
-never fighting a fast wheel/trackpad scroll. Wrapped in
-`@media (prefers-reduced-motion: no-preference)` since even proximity
-snapping is still browser-driven motion. **This was tested against the
-how-it-works pin specifically** (real multi-chunk wheel-scroll simulation,
-not a single instant `scrollTo` jump — an earlier test using the latter
-produced a false-positive "snap fights the pin" result caused by
-`scroll-behavior:smooth` animating through an intermediate snap point, not
-an actual conflict) and confirmed to coexist fine: scrolling all the way
-through the pin in realistic discrete increments advances every step in
-order with no skips or snap-backs, and dwelling near the pin's end (close
-to `#business-model`'s own snap point) only produces a ~9px drift, not a
-jump.
+`.spectrum-split` is a 260vh wrapper; `.ss-stage` sticks for the duration.
+Scrolling in fades `.ss-veil` (a white sheet matching the page background)
+from 1 to 0, so the white background dissolves and the viewer drops into the
+spectrum; it fades back up on the way out so the return to the white page is
+a transition rather than a cut.
 
-**Count-up numbers.** The hero card's mockup rows already contained real
-numbers as plain text ("42 submissions", "Ranked top 8%") — `countify()` in
-`tools-build-pages.py` wraps the first integer in each `card_rows` string
-in `<span class="count-up" data-count-to="N">N</span>`, pre-rendered with
-the real value so no-js/reduced-motion visitors just see the finished
-number. With JS + motion on, `site.js` resets each one to 0 and animates it
-up over ~900ms (eased) the first time it scrolls into view. Deliberately
-didn't invent new stats for this — these are the pre-existing hero-card
-mockup numbers, not marketing traction figures, so animating them doesn't
-run afoul of the "don't invent stats" rule below.
-- `.cand-left{display:flex; gap:10px;}`'s children must be exactly two
-  elements (`.cand-rank` + a `.cand-desc` wrapper around the rest of the
-  row). Letting `countify()`'s output sit as bare text + a `<span>` +
-  more bare text directly inside `.cand-left` split the row into several
-  anonymous flex items, and the flex `gap` landed *between* them too —
-  "Ranked top 8%" rendered as "Ranked top  8  %" with visible gaps around
-  the count-up span. Wrapping everything after `.cand-rank` in one
-  `.cand-desc` span fixes it: only two flex items, gap applies once.
+- Hover previews the other side; leaving returns to whichever side is
+  *pinned* (the tab choice, or the `challenges` default). Desktop pointers
+  only, gated on `(hover:hover) and (pointer:fine)`.
+- `.ss-tabs` exists because hover is unreachable on touch and by keyboard.
+- **The bars must not overlap the copy.** They are deliberately wider than
+  the band (`--bar-w: 1.7 × --stripe-w`) so they fan past it, and that
+  overhang has to land on empty panel margin — hence the seam-side padding
+  (`.ss-panel--challenges{padding-right}` / `--stories{padding-left}`).
+  This was a real bug on the first pass: at 2.5× the fan sat directly over
+  the Success-stories headline and stat numbers.
+- Active/inactive ratio is 1.5/1, not harder — the inactive side is real
+  content, not a teaser, and has to stay readable.
+- Below 900px the whole mechanic is dropped: panels stack, both show their
+  copy outright, and the band becomes a horizontal divider. A hover-to-expand
+  split has no meaning on a screen that can only show one column.
 
-**Card tilt.** `.offer-card` / `.model-card` tilt a few degrees toward the
-cursor on `mousemove`, restricted to `(hover: hover) and (pointer: fine)`
-devices via `matchMedia` (touch has no hover, so this would just leave a
-stuck tilt on whichever card was last tapped) and skipped under reduced
-motion. Plain inline `transform`/`transition` set directly in `site.js`,
-reset to `''` on `mouseleave` so it falls back to the CSS-driven
-`translateY(0)` resting state from the stagger reveal.
+### 5. How it works — Fluid Flow Steps
+The five steps the user specified. `.flow` is a 460vh wrapper with a sticky
+100vh stage; `background-position` on `.flow-fluid` moves continuously
+across `fluid-full.png` with scroll progress while the five steps advance,
+so it reads as one journey rather than five blocks. Step 04 draws in the
+**Rubric Spectrum Bar**.
 
-### `challenges.html`
-A deliberately empty stub, linked from both home pages' nav (a real link,
-not an anchor), footer "Product" column, and now a body-level
-`.challenges-teaser` banner too (see above). Its own small nav (no mode
-switch, no section anchors — there's nothing on the page for them to point
-at yet) plus a centered "coming soon" message and a CTA into `signup.html`.
-Exists so the nav's browse-challenges path isn't a dead link; replace the
-body with the real listing UI when that's built.
+- **Step transitions are asymmetric on purpose**: outgoing fades in .24s,
+  incoming waits .14s then fades in over .5s. All five steps are stacked at
+  the same absolute position, so a symmetric crossfade renders two headlines
+  legibly on top of each other for a third of a second.
+- **The scrim is heavy in the CENTRE, not just at the edges.** A normal
+  vignette (dark rim, light middle) put the fluid's brightest cream/orange
+  passages directly behind the white step copy and made it unreadable.
+- Collapses to a static stacked list below 900px / no-js / reduced motion.
+  In those states `.flow-inner` must be `position:relative`, **never
+  `static`** — and `.flow-fluid` must not be `position:fixed`, because
+  `overflow:hidden` does not clip fixed descendants and the fluid layer
+  escapes the section and paints over the spectrum split above it. That was
+  a real bug caught on mobile.
 
-### `projet-split-hero/`
-A second, separate prototype: a full-viewport "choose your path" landing
-screen (Business vs. Builder) meant to sit *before* the marketing page in
-the user journey. Self-contained, dependency-free static site, structured
-for a direct GitHub commit (see its own `README.md` inside the folder for
-mechanic details).
+### 6. Testimonials
+Carousel with statement + person + photo per card, **highlighted main card,
+arrow buttons, and a 4s auto-advance**, all as specified. The active card is
+centred in the viewport (clamped at both ends so the rail never shows a
+half-empty gap). Auto-advance pauses on hover/focus and stops permanently
+once the user touches a control; arrow-key support on the rail.
 
-**Design history / status — read carefully, this is mid-iteration:**
+- Quotes, names and avatars are **placeholders** — see "Known issues" #1.
+  Avatars are generated inline-SVG gradient marks with initials, deliberately
+  not photographs of real people.
+- Inactive dots use `rgba(20,19,15,.22)`, **not** `var(--line)` — that beige
+  is invisible against the near-white parallax backdrop and left the row
+  looking like one stray pill.
 
-1. **First version** (superseded): two flex panels with a shared
-   `position: fixed` background image behind both, panel width animating
-   50/50 → 66/33 on hover via `flex-grow`, plus a cursor-parallax shift on
-   the backdrop. User confirmed the proportions/structure were right but
-   the *visual design* was wrong.
-2. **Current version** (what's in this folder now): the light-spectrum
-   image is broken into a vertical stack of horizontal **bars** running
-   down the seam *between* the two panels (not as a shared full-bleed
-   backdrop anymore). On hover/focus of a panel, the bars shear
-   horizontally *away* from the hovered side (`translateX`), each bar
-   offset by a different amplitude (bulges toward the middle bars, via a
-   sine curve) and a staggered `transition-delay` per bar index, so the
-   motion reads as a cascade/ripple rather than a rigid block sliding.
-   The hovered panel's `flex-grow` increases simultaneously, so the effect
-   reads as "the bars fan open and the chosen side gets bigger."
-   - `index.html` and `styles.css` for this version were written and are
-     believed correct/current.
-   - `script.js` was rewritten in the same pass to: generate the bar
-     elements (`BAR_COUNT = 14`, sine-curve amplitude, staggered delay),
-     wire `mouseenter`/`mouseleave`/`focus`/`blur` on each `.panel` to set
-     `data-hover="business"|"student"` on `#split` (which the CSS reads to
-     drive both the panel `flex-grow` and the bar `transform`), and retain
-     touch handling (first tap previews via the same `data-hover`
-     mechanism, second tap or tapping the CTA text navigates).
-   - **Visually verified**: the divisor image (`assets/spectrum.jpg`) bakes
-     in 14 bands (matching `BAR_COUNT`) whose black/colour boundary follows
-     a slight curve rather than a straight diagonal — the user flagged that
-     the straight-line staircase looked wrong and asked for the curve, so
-     the asset generation was corrected (power-curve envelope, `t ** 1.55`)
-     before it was committed. Re-check in a live browser still worth doing
-     for cascade timing/amplitude feel, but the asset itself is confirmed
-     correct.
-   - The mobile/touch breakpoint logic in `styles.css` (`@media
-     (max-width:760px)`) rotates the band 90° for the stacked mobile
-     layout — carried over from the previous design, double check it still
-     reads well with the new curved asset.
-3. **Description text now hides on the seam side, revealed by the retreating
-   spectrum, not a plain fade-in-place.** Each panel's content is split into
-   two pieces: `.panel-content` (the "For" eyebrow + big title) stays on the
-   panel's *outer* edge exactly where it always was; `.panel-copy` +
-   `.panel-cta` are now wrapped in a new `.panel-reveal` block pinned to the
-   panel's *inner*, seam-side edge — right where the bars rest. `.panel`
-   became `display:flex; justify-content:space-between` with these two
-   blocks as its children (order flipped via CSS `order` for the student
-   panel, so its header still lands on its own outer/right edge). At rest
-   `.panel-reveal` is `clip-path:inset()`-collapsed to zero width *against
-   the seam* and `opacity:0`; on hover/focus it un-clips in the same
-   direction the bars shear away (business un-clips left-to-right, student
-   right-to-left) over the same `.85s` duration as the bar transform, so the
-   retreating spectrum reads as physically uncovering the text rather than
-   two unrelated animations happening to overlap. Verified mid-transition
-   (250ms into the 850ms hover transition) that the text is visibly clipped
-   exactly at the bars' current position, confirming the sync.
-   - `min-width:0` on both `.panel-content` and `.panel-reveal` was
-     necessary — without it the flex items don't shrink when a panel is
-     squeezed to its 3/8 hover-away width, and the far panel's title clips
-     against the *screen* edge instead of wrapping/shrinking.
-   - Touch (`@media (hover:none)`) and mobile (`@media (max-width:760px)`)
-     both still show `.panel-reveal` outright rather than clip-hidden — the
-     seam-side positioning is a desktop-hover-only refinement; stacked
-     mobile panels reset `.panel` to `flex-direction:column` and cancel the
-     `order` flip, back to a plain top-to-bottom read.
-   - Reduced motion snaps `.panel-reveal`'s transition to `.001ms` (same
-     treatment as the bars), rather than forcing it permanently visible —
-     it's still reachable via hover/focus regardless of motion preference,
-     unlike the scroll-gated content on the home pages, so the "never
-     permanently hide content" rule doesn't apply the same way here.
+## Animation reference library
+
+`Projet — Scroll Animation Library` (the user's markdown doc, supplied in
+chat) is the source for the named effects. Implemented from it so far:
+Spectrum-to-Waveform Hero Handoff (#1), Section Reveal on Scroll (#2),
+Fluid Flow Steps (#3), Rubric Spectrum Bar (#7), Testimonials Fluid
+Parallax (#8). Not yet used: Waveform Proof Ticker (#4), Audience Spectrum
+Toggle (#5 — moot, the audience toggle is gone), CTA Waveform Pulse (#6),
+Defense Spotlight (#9).
+
+**Every scroll-linked effect runs off one shared rAF-gated ticker** in
+`landing.js` (`scrollUpdaters`), not its own listener. Enter/exit-only
+effects use `IntersectionObserver` instead, since they don't need a
+continuous progress value.
+
+**The non-negotiable rule on this page: every effect renders its END STATE
+when motion is off or JS never runs — it never just skips.** Verified: under
+both `prefers-reduced-motion` and JS-disabled, all five flow steps, all
+reveals, all five testimonials and all counters render at their final values.
 
 ## Auth / accounts (front end only)
 
-`login.html` and `signup.html` exist and are reachable from every content
-page's nav ("Log in" + the primary CTA, which now points at
-`signup.html?role=…`). **They are front end only — no credentials go
-anywhere.** Validation, error/pending states and the fetch call are all
-written; each form just needs its empty `data-endpoint` attribute pointed at
-a real route. With no endpoint set the form says accounts aren't connected
-yet rather than faking a success.
+`login.html` and `signup.html` are kept and still work. **They are front end
+only — no credentials go anywhere.** Validation, error/pending states and the
+fetch call are written; each form just needs its empty `data-endpoint`
+attribute pointed at a real route. With no endpoint set the form says
+accounts aren't connected yet rather than faking a success.
 
 **Division of labour: this repo is front end / UI-UX only. The API and the
-MongoDB layer are Andrei's (co-founder).** The full contract — request
-bodies, response shapes, how `role` is resolved, and what still needs a
-decision (sessions, password reset, CSRF) — is in `BACKEND-HANDOFF.md`.
-Read that before touching the auth forms.
+MongoDB layer are Andrei's (co-founder).** The full contract is in
+`BACKEND-HANDOFF.md` — read that before touching the auth forms.
 
-The split-hero chooser writes the chosen side to
-`localStorage["projet:mode"]`, which pre-selects the role on the signup form
-for returning visitors.
+Both pages' logo now links to `index.html` (it pointed at the chooser, which
+is archived). `signup.html` still reads `?role=` from the query string, which
+is what the landing CTAs pass. Its `localStorage["projet:mode"]` fallback is
+vestigial now that the chooser is gone — harmless, just never populated.
 
 ## Known issues / open tasks
 
-1. **`projet-split-hero` visual check — mostly done.** The bar cascade and
-   the curved divisor asset have been generated and wired up; still worth
-   opening it in a browser (`npx serve .` from inside that folder, or just
-   open `index.html` directly) to check cascade timing/amplitude feel and
-   the mobile rotation. Tune `BAR_COUNT`, the amplitude curve, and the
-   per-bar delay in `script.js` to taste.
-2. **Resolved.** The user pushed the real logo exports to `assets/`
-   (`Logo Full Black/White/Orange.png`, `Logo 3 V2*.png`, `Logo O Alone.png`,
-   `Logo Background*.png`, `Test.png`). Trimmed, resized web copies are what
-   pages reference: **`assets/logo-dark.png`** on light backgrounds and
-   **`assets/logo-white.png`** on dark ones (chooser, auth asides), via
-   `.logo-img`. Favicons come from the icon mark — `favicon.ico`,
-   `favicon-32.png`, `apple-touch-icon.png`. `.logo-mark` / `.logo-word` are
-   still in the CSS purely as a no-image fallback; nothing renders them.
-3. **Resolved.** Favicon, logo mark, and hero/final-CTA texture all point
-   at local files instead of expiring Figma URLs, and (see #4) the
-   hero/final-CTA texture is now the real fluid-swirl composite rather
-   than a placeholder.
-4. **Resolved.** The user exported the real assets directly into
-   `assets/`: `official-spectrum.png` (the real diagonal light-spectrum
-   stripe) and `fluid-full.png` (the composited background+foreground
-   swirl — `fluid-foreground.png` is also there for reference, showing the
-   flat corners the user described before compositing). Optimized `.webp`
-   derivatives of both are what's actually referenced from HTML/CSS:
-   `assets/spectrum.webp` (used by `projet-split-hero`'s bar divisor) and
-   `assets/fluid.webp` (used as the `<video poster>` / no-video fallback for
-   the hero-visual/final-CTA texture — see below). The user later replaced
-   the original animation export with a shorter one, `assets/
-   fluid_animation_3500ms.mp4` (3.5s, but 4K/42Mbps/18.7MB straight out of
-   the export — far too heavy to ship as-is for a looping background). That
-   source file is kept in `assets/` as the master; **`assets/fluid-loop.mp4`**
-   (transcoded via ffmpeg — `scale=1280:-2`, audio stripped, h264 crf 23 —
-   down to ~1.1MB) is what pages actually reference. Re-run the same ffmpeg
-   command against a new source export if the animation is ever swapped
-   again; don't hand the raw export straight to a page.
-   `business.html`/`builders.html` hero-visual and final-CTA now render
-   `<video class="texture" muted loop playsinline preload="none"
-   poster="assets/fluid.webp" data-autoplay-video><source
-   src="assets/fluid-loop.mp4" type="video/mp4"></video>` (generated from
-   the `FLUID_VIDEO` constant in `tools-build-pages.py`, not hand-edited).
-   Deliberately **no `autoplay` attribute in the markup** — `assets/site.js`
-   plays/pauses each `[data-autoplay-video]` via `IntersectionObserver`
-   (only decoding the loop while its section is on screen) and skips this
-   entirely under `prefers-reduced-motion`, so no-JS and reduced-motion
-   visitors just see the static `fluid.webp` poster frame, exactly like the
-   old `<img>` did. `login.html`/`signup.html`'s `auth-aside` still uses the
-   plain `fluid.webp` image (not this video) — not part of this pass.
-5. **Resolved.** `projet-split-hero`'s panels now link to `business.html`
-   and `builders.html` (relative paths, `../business.html` /
-   `../builders.html` from inside the `projet-split-hero/` folder) — real
-   audience-specific home pages, not placeholder routes. See "Site
-   architecture / user flow" above for the full picture.
-6. **No real backend/routing exists.** Everything so far is static
-   HTML/CSS/JS prototypes with no framework, no build step, and no actual
-   page-to-page navigation implemented.
-7. **Flagging, not silently reconciling: the wireframe's Resources dropdown
-   listed "FAQs," which was deliberately dropped.** An earlier, explicit
-   decision in this file (see "Copy source of truth" above) says the
-   per-audience FAQ from the deck-era design should **not** be reintroduced.
-   The new nav's Resources dropdown ships with How it works / Testimonials /
-   Projects showcase / Contact only — no FAQ link, no FAQ section — pending
-   an explicit call from the user on whether to reintroduce one now that
-   the ask comes from a different source (a wireframe, not the deck).
-8. **Content still needing the real thing, clearly marked as placeholder in
-   the interim (never fabricated as if real):** the logo strip (generic
-   chip labels, no invented company names), the testimonials (quotes
-   attributed to a role only — "Hiring lead, early pilot" — never a named
-   person/company), and the product-demo section (an explicit "coming
-   soon" card, not the hero's abstract fluid loop repurposed as if it were
-   a demo). Swap each in once real content exists; the surrounding
-   mechanics (marquee loop, carousel, section layout) don't need to change.
+1. **PLACEHOLDER CONTENT — the launch blocker.** Three things on the landing
+   page are stand-ins and are marked as such in the HTML:
+   - **The logo carousel uses real, well-known brand names (Google, Apple,
+     Shopify, Stripe, Grab, Notion, Figma, Sea). These companies are NOT
+     Projet customers.** The user asked for recognisable logos so the
+     carousel could be reviewed at realistic visual weight. The strip is
+     labelled "Placeholder logos — pending real partners" rather than
+     "trusted by" precisely so the page never asserts a client list it
+     doesn't have. **This must be swapped for real, permissioned partner
+     logos before any public deploy** — shipping it as-is would be a false
+     claim of clientele, and using those marks commercially is a trademark
+     problem on top of that.
+   - **Testimonials** — quotes are invented, attributed to roles only
+     ("Hiring lead, early pilot"), with generated gradient avatars rather
+     than photos of real people. Replace with real, permissioned quotes and
+     portraits.
+   - **Featured challenge cards** — three sample briefs, not live listings.
+2. **The countdown-clock idea is not built.** The user floated "a clock that
+   shows a live countdown till the next event" as an idea, not a
+   requirement, and there's no real event date to count to. Ask what the
+   event is before building it.
+3. **The hero visual's waveform layer uses `Logo Background 2.png`
+   (1.1MB, unoptimised).** Every other shipped raster on the page has a
+   `.webp` derivative; this one doesn't yet. Generate one the same way
+   `fluid.webp` / `spectrum.webp` were made.
+4. **`fluid-full.png` (1.2MB) is loaded as a CSS background** in the flow
+   section — same optimisation opportunity.
+5. **No real backend/routing.** Static HTML/CSS/JS, no framework, no build
+   step. `challenges.html` no longer exists, so "Browse challenges" CTAs
+   point at `#challenges` (the in-page section) or `signup.html`.
+6. **`assets/fluid_animation_3500ms.mp4` (18.7MB) is the raw master export**
+   and is not referenced by any page. `assets/fluid-loop.mp4` (~1.1MB,
+   `ffmpeg -vf scale=1280:-2 -an -crf 23`) is what ships. Re-run that same
+   command if the animation is ever re-exported; never hand the raw export
+   to a page.
 
 ## Working conventions established so far
 
-- Copy is written directly from the pitch deck's actual numbers/claims —
-  don't invent new stats or soften specific figures (S$250/S$500, the
-  rubric percentages, the Schmidt/Oh/Shaffer validity numbers, etc.).
-- Keep new pages dependency-free static HTML/CSS/JS unless the user asks
-  for a framework — nothing here uses React/Vue/build tooling yet.
-- Brand accent orange is `#ff5b24` exactly (confirmed from the real Figma
-  file, not eyeballed from a screenshot).
-- Fonts are loaded from Fontshare (Satoshi) and Google Fonts (JetBrains
-  Mono) via `<link>` tags — no local font files yet.
-- Any texture/photo asset pulled from Figma gets downloaded and committed
-  as a local file (`/assets/...`) — never a hardcoded `figma.com/api/mcp/asset/...`
-  URL, since those expire in ~7 days.
+- Deck figures are used as-is — don't invent new stats or soften specific
+  ones (the rubric percentages, the Hack & Hire pilot numbers, S$250/S$500).
+- Placeholder content is always **labelled** as placeholder rather than
+  dressed up as real. No invented customer names presented as customers, no
+  fake named people attached to invented quotes.
+- Keep pages dependency-free static HTML/CSS/JS unless asked for a framework
+  — nothing here uses React/Vue/build tooling.
+- Brand accent orange is `#ff5b24` exactly (from the real Figma file, not
+  eyeballed from a screenshot).
+- Fonts load from Fontshare (Satoshi) and Google Fonts (JetBrains Mono) via
+  `<link>` — no local font files.
+- Any texture/photo asset pulled from Figma gets downloaded and committed as
+  a local file (`assets/...`) — never a hardcoded
+  `figma.com/api/mcp/asset/...` URL, since those expire in ~7 days.
+- Every animation degrades to its end state under `prefers-reduced-motion`
+  and with JS off. Nothing is ever gated behind a scroll effect that might
+  not run.
