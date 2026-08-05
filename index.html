@@ -11,19 +11,19 @@
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/landing.css">
-<meta name="description" content="Companies post real briefs. Builders submit work anonymously and defend it live in 15 minutes. Hire on proof, not paper.">
+<meta name="description" content="Companies post real challenges. Builders submit their best work and get evaluated on what they actually built. Hire on proof, not paper.">
 <link rel="canonical" href="https://myprojet.co/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Projet">
 <meta property="og:url" content="https://myprojet.co/">
 <meta property="og:title" content="Projet — Hire on proof, not paper.">
-<meta property="og:description" content="Companies post real briefs. Builders submit work anonymously and defend it live in 15 minutes.">
+<meta property="og:description" content="Companies post real challenges. Builders submit their best work and get evaluated on what they actually built.">
 <meta property="og:image" content="https://myprojet.co/assets/og-cover.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Projet — Hire on proof, not paper.">
-<meta name="twitter:description" content="Companies post real briefs. Builders submit work anonymously and defend it live in 15 minutes.">
+<meta name="twitter:description" content="Companies post real challenges. Builders submit their best work and get evaluated on what they actually built.">
 <meta name="twitter:image" content="https://myprojet.co/assets/og-cover.jpg">
 <meta name="theme-color" content="#14130f">
 <script>document.documentElement.classList.remove("no-js");</script>
@@ -35,9 +35,18 @@
 <!-- ============================ NAV (universal) ============================ -->
 <header class="nav">
   <div class="nav-inner">
-    <a href="#top" class="logo" aria-label="Projet — home">
-      <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
-    </a>
+    <div class="nav-left">
+      <a href="#top" class="logo" aria-label="Projet — home">
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+      </a>
+      <!-- Audience mode toggle — re-tints --accent (orange<->blue) across the
+           page and remembers the choice; doesn't navigate anywhere, since this
+           is one shared page, not two separate audience pages. -->
+      <div class="mode-switch" id="modeSwitch" role="group" aria-label="Switch audience">
+        <button class="mode-opt" data-audience="business" aria-current="true">For companies</button>
+        <button class="mode-opt" data-audience="builder" aria-current="false">For builders</button>
+      </div>
+    </div>
     <nav class="links">
       <a href="#challenges">Challenges</a>
       <a href="#stories">Success stories</a>
@@ -53,6 +62,10 @@
     </button>
   </div>
   <div class="mobile-menu" id="mobileMenu">
+    <div class="mode-switch mode-switch--mobile" role="group" aria-label="Switch audience">
+      <button class="mode-opt" data-audience="business" aria-current="true">For companies</button>
+      <button class="mode-opt" data-audience="builder" aria-current="false">For builders</button>
+    </div>
     <a class="m-link" href="#challenges">Challenges</a>
     <a class="m-link" href="#stories">Success stories</a>
     <a class="m-link" href="#how-it-works">How it works</a>
@@ -70,11 +83,13 @@
   <section class="hero wrap">
     <div class="hero-grid">
       <div>
-        <span class="eyebrow">Hiring on proof</span>
+        <!-- no leading bullet dot here specifically (kept on other section
+             eyebrows) — asked and confirmed -->
+        <span class="eyebrow eyebrow--plain">Where real work is the strongest hiring signal</span>
         <h1>Hire on proof,<br><span class="accent">not paper.</span></h1>
         <p class="hero-sub">
-          Companies post a real brief from their backlog. Builders submit work anonymously —
-          then defend it live, in 15 minutes, under questioning.
+          Companies post real challenges from their backlog. Builders submit their best
+          work — and get evaluated on what they actually built, not a resume.
         </p>
 
         <!-- the two calls to action: one per side of the marketplace -->
@@ -91,27 +106,28 @@
           <div class="hero-stat-row">
             <span><b><span class="count-up" data-count-to="120">120</span>+</b> builders</span>
             <span><b class="count-up" data-count-to="7">7</b> companies</span>
-            <span><b><span class="count-up" data-count-to="10">10</span>+</b> live defenses</span>
             <span><b class="count-up" data-count-to="2">2</b> hires</span>
           </div>
           <p class="hero-stat-cap">Hack &amp; Hire pilot — Block71 @ NUS</p>
         </div>
       </div>
 
-      <!-- Spectrum-to-Waveform handoff: spectrum at rest, waveform once scrolled -->
+      <!-- Static gradient visual — deliberately no photo/video texture here.
+           The fluid/spectrum imagery is used elsewhere (final CTA, testimonials
+           parallax, the how-it-works flow); the hero stays plain so that
+           imagery doesn't feel overused, and the card doesn't change on
+           scroll. -->
       <div class="hero-visual">
-        <div class="hero-layer hero-layer--spectrum" aria-hidden="true"></div>
-        <div class="hero-layer hero-layer--wave" aria-hidden="true"></div>
         <div class="hero-card">
           <div class="hero-card-top">
-            <span class="tag">DEFENSE IN PROGRESS</span>
+            <span class="tag">YOUR CHALLENGE</span>
             <span class="tag hero-card-live">LIVE</span>
           </div>
           <div class="hero-card-title">Rebuild the pricing page conversion flow</div>
-          <div class="hc-row"><span class="hc-rank">01</span><span>Brief posted &middot; 6 days open</span></div>
-          <div class="hc-row"><span class="hc-rank">02</span><span><span class="count-up" data-count-to="42">42</span> anonymous submissions</span></div>
-          <div class="hc-row"><span class="hc-rank">03</span><span>15-min defense &middot; scoring live</span></div>
-          <div class="hc-row"><span class="hc-rank">04</span><span>Hire decision with evidence</span></div>
+          <div class="hc-row"><span class="hc-rank">01</span><span>Challenge live &middot; 6 days open</span></div>
+          <div class="hc-row"><span class="hc-rank">02</span><span><span class="count-up" data-count-to="42">42</span> submissions</span></div>
+          <div class="hc-row"><span class="hc-rank">03</span><span>Top 5 shortlisted</span></div>
+          <div class="hc-row"><span class="hc-rank">04</span><span>Invite to interview</span></div>
         </div>
       </div>
     </div>
@@ -158,8 +174,8 @@
           <span class="ss-eyebrow">Featured challenges</span>
           <h2>Real briefs, straight from the backlog.</h2>
           <p class="ss-lede">
-            Not take-home busywork — actual problems teams need solved. Pick one,
-            build it on your own time, then defend it.
+            Not take-home busywork — actual problems teams need solved. Pick one
+            and show what you can build.
           </p>
           <!-- Live countdown to the top featured challenge's close — a real
                ticking clock, but tied to a PLACEHOLDER deadline (6h from page
@@ -211,17 +227,16 @@
           <span class="ss-eyebrow">Success stories</span>
           <h2>Proof that outlasts the resume.</h2>
           <p class="ss-lede">
-            AI can write a CV and finish a take-home. It can't sit in the room and
-            defend the decisions behind the work.
+            AI can write a CV and finish a take-home. It can't ship the actual
+            work a real team needs done.
           </p>
-          <div class="ss-stats">
+          <div class="ss-stats ss-stats--three">
             <div class="ss-stat"><b>120+</b><span>student builders took part</span></div>
             <div class="ss-stat"><b>7</b><span>companies posted real briefs</span></div>
-            <div class="ss-stat"><b>10+</b><span>live defenses run end to end</span></div>
             <div class="ss-stat"><b>2</b><span>hires made off the back of it</span></div>
           </div>
           <p class="ss-note">Hack &amp; Hire pilot &middot; Block71 @ NUS</p>
-          <a href="signup.html?role=business" class="btn btn-outline-white">Post a challenge</a>
+          <a href="signup.html?role=business" class="btn btn-white">Post a challenge</a>
         </div>
       </section>
 
@@ -234,72 +249,57 @@
   </div>
 
   <!-- ======================== 5. HOW IT WORKS ========================
-       Fluid Flow Steps: one continuous move through fluid-full.png while the
-       five stages advance. Collapses to a static list under 900px/no-js. -->
-  <div class="flow" id="flow">
-    <div class="flow-inner">
-      <div class="flow-fluid" aria-hidden="true"></div>
-      <div class="flow-scrim" aria-hidden="true"></div>
-      <div class="flow-stage">
-        <div class="flow-head" id="how-it-works">
-          <span class="eyebrow">How it works</span>
-          <h2>Five steps from brief to hire.</h2>
+       Static 4-card grid — no live defense/rubric step (dropped on the
+       user's explicit call; see CLAUDE.md). Bare step numbers, no "STEP"
+       prefix, per feedback on an earlier design. -->
+  <section class="section wrap" id="how-it-works">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>One pipeline. Two sides. Real outcomes.</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-top">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <span class="step-num">01</span>
         </div>
-
-        <div class="flow-steps">
-          <div class="flow-step">
-            <span class="flow-num">STEP 01</span>
-            <h3>Post &amp; apply</h3>
-            <p>A company publishes a real brief from its own backlog. Builders apply to take it on.</p>
-          </div>
-
-          <div class="flow-step">
-            <span class="flow-num">STEP 02</span>
-            <h3>Async submission</h3>
-            <p>Builders do the work on their own time and submit it anonymously — no name, no school, no CV attached.</p>
-          </div>
-
-          <div class="flow-step">
-            <span class="flow-num">STEP 03</span>
-            <h3>Live 15-min defense</h3>
-            <p>The part AI can't sit in for. Candidates walk through their decisions live and answer for them under questioning.</p>
-          </div>
-
-          <div class="flow-step">
-            <span class="flow-num">STEP 04</span>
-            <h3>Rubric scoring</h3>
-            <p>Scored against a fixed rubric, so every candidate is judged on the same four things. Pass mark is 3.5 out of 5.</p>
-            <!-- Rubric Spectrum Bar — segments draw in when the step activates -->
-            <div class="rubric">
-              <div class="rubric-bar" role="img" aria-label="Rubric weighting: Ownership 40%, Technical depth 25%, Live navigation 20%, Communication 15%">
-                <span class="rubric-seg" style="--w:40%; --d:0ms;   background:#ff5b24;"></span>
-                <span class="rubric-seg" style="--w:25%; --d:120ms; background:#ff9a5a;"></span>
-                <span class="rubric-seg" style="--w:20%; --d:240ms; background:#7a3f8f;"></span>
-                <span class="rubric-seg" style="--w:15%; --d:360ms; background:#2f6bff;"></span>
-              </div>
-              <div class="rubric-legend" aria-hidden="true">
-                <span><i style="background:#ff5b24"></i>Ownership 40%</span>
-                <span><i style="background:#ff9a5a"></i>Technical depth 25%</span>
-                <span><i style="background:#7a3f8f"></i>Live navigation 20%</span>
-                <span><i style="background:#2f6bff"></i>Communication 15%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="flow-step">
-            <span class="flow-num">STEP 05</span>
-            <h3>Hire decision</h3>
-            <p>The company decides with evidence in hand — work it can see, reasoning it heard defended live.</p>
-          </div>
+        <h3>Business posts a challenge</h3>
+        <p>Companies publish real business or technical problems for builders to solve.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-top">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M6 4h12v3a6 6 0 0 1-12 0V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 6H3v1a4 4 0 0 0 4 4M18 6h3v1a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="step-num">02</span>
         </div>
-
-        <div class="flow-dots" aria-hidden="true">
-          <span class="flow-dot"></span><span class="flow-dot"></span><span class="flow-dot"></span>
-          <span class="flow-dot"></span><span class="flow-dot"></span>
+        <h3>Builders compete</h3>
+        <p>Builders tackle the challenge and submit their best work.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-top">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="step-num">03</span>
         </div>
+        <h3>Top performers get evaluated</h3>
+        <p>Businesses review real output — not resumes — and shortlist standouts.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-top">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6-4.3-4.2 6-.9L12 3.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="step-num">04</span>
+        </div>
+        <h3>Interviews, internships &amp; recognition</h3>
+        <p>Top talent advances to opportunities; builders earn rankings and visibility.</p>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- ========================= 6. TESTIMONIALS =========================
        PLACEHOLDER CONTENT — quotes, names and avatars are all stand-ins so
@@ -319,7 +319,7 @@
         <div class="t-track">
 
           <article class="t-card">
-            <p class="t-quote">&ldquo;The defense is where it clicked. Fifteen minutes told us more than three rounds of interviews ever did.&rdquo;</p>
+            <p class="t-quote">&ldquo;Seeing the actual submissions told us more than three rounds of interviews ever did.&rdquo;</p>
             <div class="t-person">
               <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><defs><linearGradient id="av1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#ff5b24"/></linearGradient><clipPath id="avc1"><circle cx="23" cy="23" r="23"/></clipPath></defs><circle cx="23" cy="23" r="23" fill="url(#av1)"/><g clip-path="url(#avc1)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
               <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
@@ -383,7 +383,7 @@
         <source src="assets/fluid-loop.mp4" type="video/mp4">
       </video>
       <div class="final-inner">
-        <h2>Stop reading about the work. Watch it get defended.</h2>
+        <h2>Stop reading resumes. Start seeing real work.</h2>
         <p>Hire on proof, not paper.</p>
         <div class="final-btns">
           <a href="signup.html?role=business" class="btn btn-white">Post a challenge</a>
@@ -401,7 +401,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
-        <p>Proof-based hiring. Companies post real briefs, builders defend real work.</p>
+        <p>Proof-based hiring. Companies post real challenges, builders ship real work.</p>
       </div>
       <div class="footer-col">
         <h6>Product</h6>

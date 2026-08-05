@@ -85,17 +85,38 @@
     window.addEventListener("resize", function () { if (window.innerWidth > 900) set(false); });
   })();
 
-  /* ---------------- 1. Spectrum-to-Waveform hero handoff ----------------
-     Hero opens on the spectrum (transparency / full range) and crossfades to
-     the dotted waveform (live signal) once the page starts moving. Threshold
-     stays low so the handoff reads as immediate rather than laggy. */
+  /* ---------------- Audience mode toggle ----------------
+     Re-tints --accent (orange for companies, blue for builders) via
+     html[data-audience] rather than navigating anywhere — this is one shared
+     page, not two separate audience pages, so the toggle is a product-level
+     control, not a router. Persists the choice and carries it into the
+     nav's Sign up link as ?role=, same convention the old audience chooser
+     used. */
   (function () {
-    var hero = document.querySelector(".hero");
-    if (!hero) return;
-    if (reducedMotion) return; // stays on the spectrum layer; nothing is hidden
-    scrollUpdaters.push(function () {
-      hero.classList.toggle("handed-off", window.pageYOffset > 90);
+    var opts = document.querySelectorAll(".mode-opt");
+    if (!opts.length) return;
+    var signupLinks = document.querySelectorAll(
+      '.nav-cta a[href^="signup.html"], .mobile-menu-ctas a[href^="signup.html"]'
+    );
+
+    function apply(mode, persist) {
+      document.documentElement.setAttribute("data-audience", mode);
+      opts.forEach(function (o) {
+        o.setAttribute("aria-current", o.getAttribute("data-audience") === mode ? "true" : "false");
+      });
+      signupLinks.forEach(function (a) { a.href = "signup.html?role=" + mode; });
+      if (persist) {
+        try { localStorage.setItem("projet:audience", mode); } catch (e) {}
+      }
+    }
+
+    opts.forEach(function (o) {
+      o.addEventListener("click", function () { apply(o.getAttribute("data-audience"), true); });
     });
+
+    var stored = null;
+    try { stored = localStorage.getItem("projet:audience"); } catch (e) {}
+    apply(stored === "builder" ? "builder" : "business", false);
   })();
 
   /* ---------------- hero count-up ----------------
@@ -195,6 +216,22 @@
 
     /* --- build the bars --- */
     var BAR_COUNT = 14;
+    // spectrum.webp is mostly black margin either side of its diagonal
+    // colour band, and — being diagonal — the band's centre drifts by most
+    // of the image's width between the top bar and the bottom one. Squeezing
+    // the whole image into each bar (the original approach) therefore showed
+    // mostly flat black. [zoom, offsetK] per bar below was precomputed by
+    // sampling assets/spectrum.webp at each bar's row and solving for the
+    // scale + horizontal shift that re-centres that row's own band inside
+    // the bar — see the CSS comment on .ss-bar for how they're consumed.
+    // Regenerate this table (a small Python/Pillow script) if spectrum.webp
+    // is ever re-exported.
+    var BAND_ZOOM = [
+      [2.527, -1.262], [2.604, -1.232], [2.505, -1.144], [2.409, -1.023],
+      [2.292, -0.868], [2.087, -0.68], [1.979, -0.558], [1.841, -0.363],
+      [1.687, -0.212], [1.602, -0.11], [1.73, -0.11], [1.916, -0.11],
+      [1.977, -0.11], [2.276, -0.11]
+    ];
     if (barsBox) {
       barsBox.style.setProperty("--n", BAR_COUNT);
       var frag = document.createDocumentFragment();
@@ -204,9 +241,12 @@
         // amplitude bulges toward the middle bars so the shear reads as a
         // wave rather than a flat block sliding sideways
         var amp = 14 + Math.round(30 * Math.sin((i / (BAR_COUNT - 1)) * Math.PI));
+        var zoomPair = BAND_ZOOM[Math.min(i, BAND_ZOOM.length - 1)];
         bar.style.setProperty("--i", i);
         bar.style.setProperty("--amp", amp + "px");
         bar.style.setProperty("--delay", i * 16 + "ms");
+        bar.style.setProperty("--zx", zoomPair[0]);
+        bar.style.setProperty("--ox", zoomPair[1]);
         frag.appendChild(bar);
       }
       barsBox.appendChild(frag);
@@ -260,50 +300,8 @@
     }
   })();
 
-  /* ---------------- 5. How it works — fluid flow scrub ----------------
-     One continuous journey through fluid-full.png: background-position tracks
-     scroll progress across the whole pinned block while the active step steps
-     through in five discrete stages. Collapses to a static stacked list under
-     900px / reduced motion / no-js (see landing.css) — a scroll-gated step
-     that never activates would hide its content outright. */
-  (function () {
-    var wrap = document.getElementById("flow");
-    if (!wrap) return;
-    var fluid = wrap.querySelector(".flow-fluid");
-    var steps = wrap.querySelectorAll(".flow-step");
-    var dots = wrap.querySelectorAll(".flow-dot");
-    if (!steps.length) return;
-
-    function collapsed() { return reducedMotion || window.innerWidth <= 900; }
-
-    function paint(idx) {
-      steps.forEach(function (s, i) { s.classList.toggle("is-active", i === idx); });
-      dots.forEach(function (d, i) { d.classList.toggle("is-active", i === idx); });
-    }
-
-    // static fallback: every step shown, nothing gated behind scroll
-    if (collapsed()) {
-      steps.forEach(function (s) { s.classList.add("is-active"); });
-      return;
-    }
-    paint(0);
-
-    scrollUpdaters.push(function () {
-      if (collapsed()) {
-        steps.forEach(function (s) { s.classList.add("is-active"); });
-        return;
-      }
-      var r = wrap.getBoundingClientRect();
-      var total = wrap.offsetHeight - window.innerHeight;
-      if (total <= 0) return;
-      var p = clamp(-r.top / total, 0, 1);
-
-      if (fluid) fluid.style.backgroundPosition = (p * 100).toFixed(2) + "% " + (100 - p * 100).toFixed(2) + "%";
-
-      // 0.999 so the very last pixel of scroll doesn't index past the array
-      paint(Math.min(Math.floor(p * steps.length * 0.999), steps.length - 1));
-    });
-  })();
+  /* 5. How it works is now a static 4-card grid (see landing.css) — no
+     scroll-linked behaviour needed, so there's nothing to wire up here. */
 
   /* ---------------- Testimonials parallax ---------------- */
   (function () {
@@ -338,6 +336,25 @@
     var AUTO_MS = 4000;
     var timer = null;
 
+    // Padding the track itself (not the viewport) by half a card's worth of
+    // empty space on each side means even the FIRST and LAST card have room
+    // to reach dead centre — without it, centring the last card would
+    // require scrolling past the end of the track, so the old end-clamp
+    // silently left it pinned at the edge instead of centred.
+    function updateEdgePadding() {
+      if (!cards.length) return;
+      // offsetWidth, not getBoundingClientRect() — the inactive-card
+      // transform:scale(.9) shrinks the *rendered* rect but not the layout
+      // box, and render() below centres cards using offsetLeft/offsetWidth
+      // (also transform-independent). Measuring the two ends with different
+      // yardsticks was exactly why only the always-scale(1)-at-measurement-
+      // time first card centred correctly and the rest didn't.
+      var cardW = cards[0].offsetWidth;
+      var pad = Math.max(0, (viewport.clientWidth - cardW) / 2);
+      track.style.paddingLeft = pad + "px";
+      track.style.paddingRight = pad + "px";
+    }
+
     function render() {
       cards.forEach(function (c, i) { c.classList.toggle("is-active", i === index); });
       dots.forEach(function (d, i) {
@@ -347,7 +364,9 @@
       // centre the active card within the viewport
       var card = cards[index];
       var shift = card.offsetLeft + card.offsetWidth / 2 - viewport.clientWidth / 2;
-      // don't scroll past either end — a half-empty rail reads as broken
+      // don't scroll past either end — a half-empty rail reads as broken.
+      // With the edge padding above, this clamp should no longer engage for
+      // the first/last card; kept as a safety net.
       var maxShift = track.scrollWidth - viewport.clientWidth;
       track.style.transform = "translateX(" + -clamp(shift, 0, Math.max(maxShift, 0)) + "px)";
     }
@@ -377,7 +396,8 @@
       else if (e.key === "ArrowRight") { stop(); go(index + 1); }
     });
 
-    window.addEventListener("resize", render);
+    window.addEventListener("resize", function () { updateEdgePadding(); render(); });
+    updateEdgePadding();
     render();
     start();
   })();
