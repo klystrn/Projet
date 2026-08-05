@@ -199,10 +199,35 @@ companies" (right)** — a deliberate, narrow exception to "Builder, never
 Students" (see "Copy framing" above): only this one button's own visible
 label says "students"; the internal value is still `data-audience="builder"`
 and every other mention of the audience anywhere else on the page still
-says "Builder". Re-tints `--accent` site-wide (orange ↔ blue) via
-`html[data-audience]` and updates the nav's Sign-up link to
-`signup.html?role=…`, matching the convention the old audience chooser
-used. Choice persists via `localStorage["projet:audience"]`.
+says "Builder". Re-tints `--accent` site-wide via `html[data-audience]`
+and updates the nav's Sign-up link to `signup.html?role=…`, matching the
+convention the old audience chooser used. Choice persists via
+`localStorage["projet:audience"]`.
+
+**Builder/student is now the DEFAULT mode, not business** — asked
+explicitly. `landing.js`'s audience-toggle IIFE resolves to `"builder"`
+unless `localStorage["projet:audience"]` says otherwise (was the reverse).
+This flows through to every no-js/pre-JS-paint default too, not just the
+JS-resolved state: the `:root` `--accent` default, `.mode-indicator`'s
+resting position/colour, and the inline HTML fallback content on the H1/
+hero-sub/hero-ctas/`.hero-card`/`.flow-steps` were all swapped so a no-js
+visitor and a JS visitor see the same thing on first paint.
+
+**Colour mapping reversed: students/builders are ORANGE, companies are
+BLUE** — asked explicitly, opposite of the original pairing. `--accent`
+now defaults to `var(--orange)` with `html[data-audience="business"]`
+overriding to `var(--blue)`; `.mode-indicator`'s resting colour/position
+flipped to match. The same pairing was extended to every other place the
+two audiences are colour-coded, for consistency: the testimonial
+`.t-badge`/top-bar accent (Builder=orange, Company=blue) and the
+spectrum-split's two CTA buttons (`.btn-solid-orange` "Sign up to
+compete", `.btn-solid-blue` "Post a challenge" — fixed to the literal
+colour, not `--accent`, since these tag which SIDE of the split a button
+belongs to, not the current toggle state). **Not** extended to
+`.hero-card`'s own accents (`.hero-card-live`, `.hc-rank`) — those stayed
+fixed orange on purpose, since that card sits on `hero-visual.webp`'s
+fixed warm/fire palette and would clash if they turned blue in company
+mode.
 
 **It now DOES rewrite copy per mode, reversing the original "re-theme,
 not a router" design.** A generic system drives this: any element carrying
@@ -218,6 +243,22 @@ by the How-it-works scroll effect, which caches its own `NodeList` of
 holding references to detached nodes, so `#flow` exposes a
 `wrap.refreshFlow()` hook that `applyModeCopy()` calls after every swap to
 force a re-query + repaint.
+
+**The switch now animates, both the toggle and the page content — asked
+explicitly, this used to be an instant snap.** `.mode-indicator`'s slide
+already had its own transition; new is a content crossfade on every
+`[data-mode-copy]` element (`.mode-swap` class, opacity 0 with `!important`
+since `[data-reveal].revealed`'s own higher-specificity rule would
+otherwise keep it pinned at opacity 1) — `applyModeCopy()` adds the class,
+waits `SWAP_MS` (160ms), swaps `.innerHTML`, then removes it. Skipped
+entirely (`animate=false`) on the very first page-load call, where the
+inline HTML already matches the resolved default mode, so there's nothing
+to visibly swap. One easy-to-miss gotcha it had to work around: the
+entrance stagger leaves an inline `transition-delay` (e.g. `.16s`) sitting
+on these same elements forever after load, and since inline
+`transition-delay` outranks a stylesheet's implicit `0s`, it was also
+silently delaying this fade by the same amount — `applyModeCopy()` zeroes
+`el.style.transitionDelay` right before adding `.mode-swap` to kill that.
 
 **Footer** got an accent-gradient top edge (`footer::before`, orange →
 purple → blue — the same gradient identity as the hero headline and the
@@ -272,7 +313,21 @@ specifically) still don't apply. A gentle cursor-tilt (`#heroVisual` in
 `landing.js`, desktop pointer only — gated on `(hover:hover) and
 (pointer:fine)`, max 7deg, no permanent CSS `transition` on the element
 itself to avoid fighting `[data-reveal]`'s own transform transition) is
-the one interaction it keeps.
+the one interaction it keeps. **`hero-visual.webp` is reused a second time**
+as the Testimonials scroll-scrub background — see "6. Testimonials" below.
+
+**The hero was also resized down to get the logo carousel above the
+fold** — asked explicitly ("it is currently just below the end of the
+screen"). Two changes together, both scoped to desktop: the H1's clamp max
+dropped from 86px to 72px (the builder/student headline is longer than the
+business one and was wrapping to 4 lines instead of 2 at the old max,
+adding ~170px of height — 72px is the largest size that still fits both
+headlines in one line per `<br>` segment within the ~605px text column at
+1280–1920px widths), and `.hero-visual`'s aspect ratio went from `1/1.04`
+to `1/0.86` (it had become the taller of the two grid columns and was the
+height bottleneck once the text column shrank). Together these bring the
+logo carousel comfortably on-screen at 1366×768, 1440×900, and 1920×1080
+without touching any copy.
 
 ### 2. Logo carousel
 **A true recycling marquee, not a duplicate-and-reset loop** — the user was
@@ -362,11 +417,16 @@ return to the white page is a transition rather than a cut.
   "10+ live defenses" was dropped along with the defense concept; see
   "Copy framing" above.
 - A `.ss-view-all` link ("View all challenges →", pointing at
-  `challenges.html`) sits after the 3 sample cards and before "Sign up to
-  compete" — a reminder in the HTML that this split is **a brief overview
-  of a few featured challenges, not a full listing**; the complete,
-  filterable list belongs on `challenges.html`, a separate page that
-  doesn't exist yet (see "Known issues" #4). A one-line `.ss-story` note
+  `challenges.html`) sits after the 3 sample cards, **below** "Sign up to
+  compete" — asked twice: first to reorder it under the button, then
+  explicitly to make sure the two actually stack vertically rather than
+  sitting side by side (`.ss-view-all` is `display:block; width:fit-content`
+  now, not `inline-block` — a block-level sibling always starts its own
+  line regardless of what precedes it, which is what forces the button
+  above it onto its own line too). A reminder in the HTML that this split is
+  **a brief overview of a few featured challenges, not a full listing**;
+  the complete, filterable list belongs on `challenges.html`, a separate
+  page that doesn't exist yet (see "Known issues" #4). A one-line `.ss-story` note
   ("Two of those companies hired directly off the back of a challenge
   submission.") was added under Success stories' `.ss-note` — grounded
   strictly in the existing "2 hires" fact, nothing further invented (an
@@ -432,103 +492,122 @@ never activates would hide content outright, the site's hard rule).
 `fluid-full.png` **is loaded again** as `.flow-fluid`'s background — see
 "Known issues" below, this reverses what was previously documented there.
 
-### 6. Testimonials
-Carousel with statement + person + photo per card, **highlighted main card,
-arrow buttons, and a 4s auto-advance**, all as specified. The active card is
-centred in the viewport (clamped at both ends so the rail never shows a
-half-empty gap). Auto-advance pauses on hover/focus and stops permanently
-once the user touches a control; arrow-key support on the rail.
+### 6. Testimonials — pinned scroll-scrub (REBUILT — was a carousel)
+**This section's whole interaction model changed again — read carefully
+before touching it.** It used to be a carousel: highlighted centre card,
+arrow buttons, 4s auto-advance, a true infinite loop (clone-before-first/
+clone-after-last with a silent snap so it never visibly jumped back), and
+real touch-swipe. All of that — `.t-viewport`, `.t-track`, `.t-controls`,
+`.t-btn`, the clone/slot logic, the swipe handlers — is **gone**. The user
+asked explicitly to revamp it: *"Use the logo background 2 asset and zoom
+in (similar concept as the how it works using fluid background). As the
+user scrolls, the direction will be from right to left and there will be
+testimonials along different points on the main line in the asset."*
 
-**True infinite loop, not a jump-back — rewritten on explicit request.**
-The user reported auto-advance had stopped firing and asked for the
-carousel to wrap like an "infinity carousel" (last card's "next" is the
-first card, without visibly jumping back across the rail). Both are fixed
-by the same rewrite: a clone of the last card sits before the first and a
-clone of the first sits after the last; `slot` indexes into this extended
-array (`0` and `length-1` are the two clone positions); advancing onto a
-clone animates in the same direction as normal, then a `transitionend`
-listener silently snaps (`transition:none`) to the pixel-identical real
-card, so the loop reads as continuous with no visible reset. (The
-auto-advance stall itself traced to a runtime error thrown by code added
-earlier in the same top-level IIFE halting all script below it — the
-carousel rewrite incidentally fixed this too, since it now runs cleanly.)
+Current implementation is the same mechanic family as How It Works' Fluid
+Flow Steps: `.t-scrub` is a **420vh** wrapper, `.t-scrub-inner` sticks for
+the duration. `.t-scrub-bg` is `hero-visual.webp` (the same "Logo
+Background 2" derivative used in the hero) zoomed in
+(`background-size:260% auto`) with **`background-position-x` panning
+100% → 0% (right to left)** as the reader scrolls — the opposite axis from
+How It Works' diagonal pan, per the explicit ask. `.t-scrub-scrim` is a
+center-heavy radial + linear gradient, same reasoning as `.flow-scrim`
+(the stops sit near the stage's middle, which is where the artwork's
+brightest passages run).
 
-**Speaker badges**: each `.t-card` gets a `data-side="business"` /
-`"builder"` attribute and a `.t-badge` ("Company" / "Builder") absolutely
-positioned top-right — tags who's speaking, and is deliberately **not**
-tied to `var(--accent)` (fixed orange/blue tints instead), since it must
-stay correct regardless of which audience mode the reader has toggled.
+**Testimonials sit at different points along the wave, not all
+dead-centre.** Each of the 5 `.t-stop` cards carries its own `--ty` inline
+custom property (a hand-picked vertical pixel offset, not sampled from the
+image the way `spectrum.webp`'s `BAND_ZOOM` table was) so they read as
+riding different points of the glowing curve as the background pans
+underneath them. `landing.js`'s scrub `tick()` buckets scroll progress into
+5 segments (same `Math.floor(p * stops.length * 0.999)` pattern as flow)
+and toggles `.is-active` accordingly; `.t-dots` are decorative progress
+dots only, not click targets, same as `.flow-dots`.
 
-**Real swipe on mobile, not just a hint.** `#tSwipeHint` ("Swipe to browse
-→") used to just fade out on first touch without anything actually
-responding to the gesture — the promised affordance didn't exist. Fixed
-with real `touchstart`/`touchmove`/`touchend` tracking on `.t-viewport`: a
-horizontal drag past 40px (and more horizontal than vertical, so it
-doesn't hijack an incidental vertical page-scroll) advances/retreats a
-slot exactly like the arrow buttons, through the same clone-snap loop.
+**Two non-obvious bugs found while building this, both from equal-
+specificity cascade conflicts — worth remembering for any future compound-
+class component:**
+- Every stop also carries `.t-card` for its visual chrome (background,
+  border-radius, badge, colour bar — reused unchanged from the old
+  carousel design). `.t-card{position:relative}` and `.t-stop{position:
+  absolute}` are both single-class selectors of equal specificity, and
+  `.t-card`'s rule happened to sit later in the file — it silently won,
+  turning every stop back into a normal in-flow block instead of the
+  overlapping, absolutely-positioned one the scrub needs. Fixed by using
+  the compound selector `.t-card.t-stop` (higher specificity, order no
+  longer matters) for all of the scrub-specific position/opacity/transform
+  rules.
+- The mobile/reduced-motion/no-js fallback (below) sets `.t-card.t-stop
+  {position:static; transform:none}` to collapse the pin into a plain
+  stacked list — but `collapsed()` in `landing.js` still marks every stop
+  `.is-active` (so nothing stays hidden), and `.t-card.t-stop.is-active`
+  (3 classes) outranks the fallback's 2-class selector regardless of media
+  query or source order, so the desktop centring transform kept winning and
+  every card rendered off-position, overflowing the viewport horizontally.
+  Fixed with `!important` on the fallback's `position`/`transform`.
+
+Below 900px / reduced motion / no-js: `.t-stops` becomes a plain vertical
+stack (no pin, no pan, no absolute positioning) — same rule as How It
+Works, since a scroll-gated stop that never activates would hide its
+content outright.
 
 - Quotes, names and avatars are **placeholders** — see "Known issues" #1.
   Avatars are illustrated silhouettes: an inline SVG, a gradient-filled
   circle with a clipped head-and-shoulders shape drawn on top (`clipPath`
   keeps the silhouette inside the circle), deliberately not photographs of
-  real people. An earlier pass used gradient circles with text initials
-  instead — swapped to silhouettes on the user's explicit choice between
-  the two.
-- Inactive dots use `rgba(20,19,15,.22)`, **not** `var(--line)` — that beige
-  is invisible against the near-white parallax backdrop and left the row
-  looking like one stray pill.
-- **Only the first/last card would centre correctly at first — fixed by
-  giving `.t-track` `width:max-content`.** Without it, this flex box (whose
-  cards are `flex:0 0 <fixed-width>` and don't shrink) stayed clamped to
-  `.t-viewport`'s width instead of growing to fit its overflowing children,
-  so `track.scrollWidth`/`offsetWidth` silently under-reported the real
-  content extent — the centring math in `landing.js` (which needs the true
-  total width to clamp correctly at both ends) was wrong as a result. Same
-  reason `.logo-track` already needed this for the marquee. Separately,
-  `updateEdgePadding()` must measure card width via `offsetWidth`, not
-  `getBoundingClientRect()` — the inactive-card `transform:scale(.9)`
-  shrinks the *rendered* rect but not the layout box, so measuring via the
-  rect silently used a different yardstick than the `offsetLeft`-based
-  centring math and only looked right for whichever card happened to be
-  `.is-active` (scale 1) at measurement time.
+  real people.
+- **Speaker badges**: each `.t-card` gets a `data-side="business"` /
+  `"builder"` attribute and a `.t-badge` ("Company" / "Builder") — tags who's
+  speaking, fixed orange/blue regardless of which audience mode the reader
+  has toggled (see "Nav / footer" above for the colour pairing itself,
+  which reversed this round).
 
 ### Final CTA
-Above the headline, `.final-quote` reuses the same already-placeholder-
-marked testimonial quote ("Seeing the actual submissions told us more than
-three rounds of interviews ever did." — Hiring lead, early pilot) rather
-than inventing a new claim just for this section. Below the buttons,
-`.final-fineprint` ("Free for builders — no card required.") is grounded
-in the existing builder-model fact, not a new one. Both buttons are
-`.btn-arrow`: a `→` glyph hidden at `max-width:0; opacity:0` slides/fades
-in on hover/focus-visible. A slow gradient pulse (`.final::before`, two
-radial gradients, `9s ease-in-out infinite`) sits between the fluid video
-layer and the readability scrim (`.final::after`) — explicit z-index
-stack (video → pulse `z-index:1` → scrim `z-index:2` → content
-`z-index:3`) so the pulse never washes out text contrast. Reduced motion
-collapses the animation's duration to near-zero via the page's existing
-global guard; since the pulse's `0%`/`100%` keyframes share the same
-values, it settles cleanly on the resting frame rather than freezing
+`.final-fineprint` ("Free for builders — no card required.") under the
+buttons is grounded in the existing builder-model fact, not a new one.
+Both buttons are `.btn-white` (**asked explicitly to match** — one was
+`.btn-white`/filled, the other `.btn-outline-white`/ghost, the same
+mismatch already flagged and fixed once for the spectrum-split panel CTAs)
+and both carry `.btn-arrow`: a `→` glyph hidden at `max-width:0; opacity:0`
+slides/fades in on hover/focus-visible. A slow gradient pulse
+(`.final::before`, two radial gradients, `9s ease-in-out infinite`) sits
+between the fluid video layer and the readability scrim (`.final::after`)
+— explicit z-index stack (video → pulse `z-index:1` → scrim `z-index:2` →
+content `z-index:3`) so the pulse never washes out text contrast. Reduced
+motion collapses the animation's duration to near-zero via the page's
+existing global guard; since the pulse's `0%`/`100%` keyframes share the
+same values, it settles cleanly on the resting frame rather than freezing
 mid-cycle.
+
+**`.final-quote` was removed** — asked explicitly. It briefly reused the
+same testimonial quote above the headline; gone now, along with its CSS.
 
 ## Animation reference library
 
 `Projet — Scroll Animation Library` (the user's markdown doc, supplied in
 chat) is the source for the named effects. Implemented and **still live**:
-Section Reveal on Scroll (#2), Testimonials Fluid Parallax (#8), and
-**Fluid Flow Steps (#3), which came back** after being removed — see "5.
-How it works" above, restored with 4 steps and no rubric content. **Removed
-and staying removed**: Spectrum-to-Waveform Hero Handoff (#1, see "1. Hero
-& call to action" above — the hero's new background image is a still
-frame, not this effect) and Rubric Spectrum Bar (#7, moot with the rubric
-gone). Not used: Waveform Proof Ticker (#4), Defense Spotlight (#9, moot
-now the defense concept itself is gone — see "Copy framing"). **Audience
-Spectrum Toggle (#5)** — the nav's `.mode-switch` (see "Nav / footer"
-above) started as a lighter-weight version of it (re-tint only) and has
-since grown into the full thing: it now also rewrites hero and
-How-it-works copy per mode. **CTA Waveform Pulse (#6) is now partly
-used** — a slow gradient pulse on the final CTA's background (see "Final
-CTA" above), simpler than the library's original waveform concept but the
-same "slow pulse" idea.
+Section Reveal on Scroll (#2), and **Fluid Flow Steps (#3), now used
+twice** — the original in How It Works (restored with 4 steps, no rubric
+content — see "5. How it works" above) and a second, differently-tuned
+instance now driving Testimonials too (right-to-left pan instead of
+diagonal, per-stop vertical offsets instead of one shared crossfade
+position — see "6. Testimonials" above). **Testimonials Fluid Parallax
+(#8) is gone** — it was the old carousel's `.t-bg` layer, removed along
+with the rest of the carousel in the testimonials rebuild; the section's
+motion now comes entirely from the Fluid-Flow-Steps-style scrub instead.
+**Removed and staying removed**: Spectrum-to-Waveform Hero Handoff (#1, see
+"1. Hero & call to action" above — the hero's new background image is a
+still frame, not this effect) and Rubric Spectrum Bar (#7, moot with the
+rubric gone). Not used: Waveform Proof Ticker (#4), Defense Spotlight (#9,
+moot now the defense concept itself is gone — see "Copy framing").
+**Audience Spectrum Toggle (#5)** — the nav's `.mode-switch` (see "Nav /
+footer" above) started as a lighter-weight version of it (re-tint only)
+and has since grown into the full thing: it now also rewrites hero and
+How-it-works copy per mode, with its own crossfade transition. **CTA
+Waveform Pulse (#6) is now partly used** — a slow gradient pulse on the
+final CTA's background (see "Final CTA" above), simpler than the
+library's original waveform concept but the same "slow pulse" idea.
 
 **Every scroll-linked effect runs off one shared rAF-gated ticker** in
 `landing.js` (`scrollUpdaters`), not its own listener. Enter/exit-only
@@ -605,11 +684,14 @@ vestigial now that the chooser is gone — harmless, just never populated.
    note used to say.** The hero background is `hero-visual.webp`, a
    compressed derivative of `assets/Logo Background 2.png` (see "1. Hero &
    call to action" above) — a still frame, not the removed scroll-linked
-   handoff. How it works loads `fluid-full.png` again as `.flow-fluid`'s
-   scrubbed background, since the pinned Fluid Flow Steps mechanic came
-   back (see "5. How it works" above). If either master is ever
-   re-exported, regenerate its derivative the same way (`ffmpeg -q:v 82`
-   for the hero webp; `fluid-full.png` is used directly, no derivative).
+   handoff. **The same `hero-visual.webp` is also the Testimonials
+   scroll-scrub background** now (see "6. Testimonials" above) — if
+   `Logo Background 2.png` is ever re-exported, regenerating
+   `hero-visual.webp` (`ffmpeg -q:v 82`) updates both sections at once.
+   How it works loads `fluid-full.png` again as `.flow-fluid`'s scrubbed
+   background, since the pinned Fluid Flow Steps mechanic came back (see
+   "5. How it works" above); `fluid-full.png` is used directly, no
+   derivative.
 4. **No real backend/routing.** Static HTML/CSS/JS, no framework, no build
    step. `challenges.html` doesn't exist yet, so "Browse challenges" CTAs
    point at `#challenges` (the in-page section) or `signup.html`. The one
@@ -660,3 +742,14 @@ vestigial now that the chooser is gone — harmless, just never populated.
   rather than folded into a desktop mechanic — see the spectrum-split
   card reveal (`landing.js`) as the reference pattern. This keeps them from
   ever touching the desktop behaviour they're not meant to affect.
+- **When a component uses two co-applied classes (e.g. `class="t-card
+  t-stop"`), give the class that must win a compound selector
+  (`.t-card.t-stop`), not a plain single-class one.** Two single-class
+  rules of equal specificity fall back to source order, which is easy to
+  get backwards by accident as a file grows — the Testimonials rebuild hit
+  this twice in one component (see "6. Testimonials" above) before landing
+  on this pattern. Fallback overrides (mobile/no-js/reduced-motion) need
+  the same treatment, and if a JS-added state class (like `.is-active`) can
+  still apply underneath a fallback, the fallback needs `!important` too,
+  since a 3-class `.is-active` combination outranks a 2-class fallback
+  selector regardless of where either is declared.

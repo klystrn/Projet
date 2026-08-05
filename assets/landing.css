@@ -27,13 +27,13 @@
   --maxw:1240px;
   --ease:cubic-bezier(.16,.84,.44,1);
 
-  /* mode accent — orange for companies, blue for builders. Components that
-     should tint per-mode read this instead of --orange directly; the nav
-     toggle flips it via html[data-audience]. */
+  /* mode accent — orange for builders/students (the default mode), blue for
+     companies. Components that should tint per-mode read this instead of
+     --orange directly; the nav toggle flips it via html[data-audience]. */
   --accent:var(--orange);
   --accent-deep:var(--orange-deep);
 }
-html[data-audience="builder"]{ --accent:var(--blue); --accent-deep:#1d4fd6; }
+html[data-audience="business"]{ --accent:var(--blue); --accent-deep:#1d4fd6; }
 
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -75,6 +75,7 @@ button{font:inherit;}
   font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
   letter-spacing:.14em; text-transform:uppercase; color:var(--accent);
   display:inline-flex; align-items:center; gap:9px;
+  transition:color .3s var(--ease);
 }
 .eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none;}
 .eyebrow--plain::before{content:none;}
@@ -98,6 +99,14 @@ button{font:inherit;}
 .btn-white:hover{background:var(--orange); color:#fff;}
 .btn-outline-white{background:transparent; color:#fff; border-color:rgba(255,255,255,.4);}
 .btn-outline-white:hover{border-color:#fff; background:rgba(255,255,255,.1);}
+/* Fixed to the literal colour, not var(--accent) — these two tag which SIDE
+   of the spectrum split a CTA belongs to (challenges/orange vs stories/blue),
+   which must stay put regardless of which audience mode the nav toggle is
+   in, unlike .btn-orange elsewhere which intentionally follows --accent. */
+.btn-solid-orange{background:var(--orange); color:#fff;}
+.btn-solid-orange:hover{background:var(--orange-deep);}
+.btn-solid-blue{background:var(--blue); color:#fff;}
+.btn-solid-blue:hover{background:#1d4fd6;}
 .btn-sm{padding:9px 17px; font-size:13px;}
 
 /* ---------- SECTION REVEAL (animation library #2) ----------
@@ -107,6 +116,15 @@ button{font:inherit;}
 [data-reveal].revealed{opacity:1; transform:none;}
 .no-js [data-reveal]{opacity:1; transform:none;}
 @media (prefers-reduced-motion: reduce){ [data-reveal]{opacity:1; transform:none;} }
+
+/* Mode-switch content crossfade — applyModeCopy() in landing.js toggles this
+   class immediately before/after swapping .innerHTML, so hero H1/sub/CTAs/
+   card and the How It Works steps fade out, swap, and fade back in instead
+   of the text just popping to the other mode's copy mid-frame. !important:
+   [data-reveal].revealed already sets opacity:1 with higher specificity
+   (attribute + class) than a plain .mode-swap class alone could beat. */
+[data-mode-copy]{transition:opacity .16s var(--ease);}
+[data-mode-copy].mode-swap{opacity:0 !important;}
 
 /* ---------- SCROLL PROGRESS ---------- */
 .scroll-progress{
@@ -165,13 +183,15 @@ nav.links a.is-current::after{width:100%;}
    independent toggles */
 .mode-indicator{
   position:absolute; top:3px; left:3px; width:calc(50% - 3px); height:calc(100% - 6px);
-  border-radius:999px; background:var(--ink); z-index:0;
-  /* students/builders is the first (left) button, companies the second
-     (right) — default/no-attribute state is "business", so it sits right */
-  transform:translateX(100%);
+  border-radius:999px; background:var(--orange); z-index:0;
+  /* students/builders is the first (left) button and the default mode, so
+     the pill starts left; default/no-attribute state is "builder". Students
+     are orange, companies are blue — maintained everywhere this pairing
+     shows up on the page (testimonial badges, spectrum-split CTAs, etc). */
+  transform:translateX(0);
   transition:transform .32s var(--ease), background .32s var(--ease);
 }
-html[data-audience="builder"] .mode-indicator{transform:translateX(0); background:var(--blue);}
+html[data-audience="business"] .mode-indicator{transform:translateX(100%); background:var(--blue);}
 .mode-opt{
   position:relative; z-index:1;
   padding:7px 15px; border-radius:999px; white-space:nowrap;
@@ -222,17 +242,23 @@ html[data-audience="builder"] .mode-indicator{transform:translateX(0); backgroun
 /* ==========================================================================
    1. HERO
    ========================================================================== */
-.hero{position:relative; padding-top:76px; padding-bottom:88px; overflow:hidden;}
+.hero{position:relative; padding-top:64px; padding-bottom:56px; overflow:hidden;}
 .hero-grid{display:grid; grid-template-columns:1.08fr .92fr; gap:56px; align-items:center;}
 @media (max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
 
-.hero h1{font-size:clamp(42px,6.4vw,86px); margin:20px 0 22px; line-height:1;}
+/* Capped at 72px, not 86px — the builder/student headline ("Prove your
+   skills," / "not your resume.") is longer than the business one and wrapped
+   into 4 lines instead of 2 at the old max, adding ~170px of height that
+   pushed the logo carousel below the fold on most desktop viewports. 72px is
+   the largest size that still fits both headlines in one line per <br>
+   segment within the ~605px text column at 1280-1920px widths. */
+.hero h1{font-size:clamp(42px,6.4vw,72px); margin:18px 0 20px; line-height:1.05;}
 .hero h1 .accent{
   background:linear-gradient(100deg, var(--orange) 0%, #ff9a5a 32%, #7a3f8f 66%, var(--blue) 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
-.hero-sub{font-size:18.5px; line-height:1.55; color:var(--ink-soft); max-width:34ch; margin-bottom:32px;}
-.hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:34px;}
+.hero-sub{font-size:18.5px; line-height:1.55; color:var(--ink-soft); max-width:34ch; margin-bottom:26px;}
+.hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;}
 
 /* the statistic under the CTAs — real Hack & Hire pilot figures */
 .hero-stat{
@@ -256,7 +282,10 @@ html[data-audience="builder"] .mode-indicator{transform:translateX(0); backgroun
    so it keeps the "doesn't move on scroll" rule the earlier hero handoff broke;
    the gradient layer underneath is a fallback fill only. */
 .hero-visual{
-  position:relative; border-radius:26px; overflow:hidden; aspect-ratio:1/1.04;
+  /* 1/0.86, not 1/1.04 — the taller ratio made this column the height
+     bottleneck for the whole hero (taller than the text column), which was
+     the other big contributor pushing the logo carousel below the fold */
+  position:relative; border-radius:26px; overflow:hidden; aspect-ratio:1/0.86;
   background:linear-gradient(180deg, rgba(20,19,15,0) 45%, rgba(20,19,15,.6) 100%),
     url("hero-visual.webp") center/cover no-repeat,
     linear-gradient(155deg,#ff9a5a 0%, var(--orange) 22%, #7a3f8f 48%, #1c3d8f 74%, #0c1638 100%);
@@ -272,6 +301,9 @@ html[data-audience="builder"] .mode-indicator{transform:translateX(0); backgroun
 }
 .hero-card-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:11px;}
 .hero-card-top .tag{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.09em; color:rgba(255,255,255,.55);}
+/* fixed, not --accent — this card sits on hero-visual.webp's warm/fire
+   palette, which doesn't change with the audience toggle, so its own accents
+   stay put too rather than clashing (e.g. blue-on-fire in company mode) */
 .hero-card-live{display:inline-flex; align-items:center; gap:7px; color:var(--orange);}
 .hero-card-live::before{content:''; width:7px; height:7px; border-radius:50%; background:var(--orange); animation:livePulse 1.7s ease-in-out infinite;}
 @keyframes livePulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.3; transform:scale(.8);}}
@@ -404,7 +436,9 @@ html[data-audience="builder"] .mode-indicator{transform:translateX(0); backgroun
   box-shadow:0 14px 30px -16px rgba(0,0,0,.55);
 }
 .ss-view-all{
-  display:inline-block; margin-bottom:18px;
+  /* block, not inline-block — needs to sit on its own line below the
+     "Sign up to compete" button, not beside it */
+  display:block; width:fit-content; margin-top:14px;
   font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:700;
   color:#fff; text-decoration:underline; text-underline-offset:4px;
   transition:color .2s var(--ease);
@@ -652,88 +686,120 @@ html[data-audience="builder"] .mode-indicator{transform:translateX(0); backgroun
 .no-js .flow-dots, .reduced-motion .flow-dots{display:none;}
 
 /* ==========================================================================
-   6. TESTIMONIALS — highlighted centre card, arrows, 4s auto-advance
+   6. TESTIMONIALS — pinned scroll-scrub along the wave background
+   Same mechanic family as How It Works' Fluid Flow Steps: hero-visual.webp
+   (the "Logo Background 2" derivative) zoomed in behind a sticky stage,
+   background-position panning RIGHT TO LEFT as the reader scrolls — the
+   opposite axis from the diagonal How It Works pan, per explicit ask. Each
+   testimonial fades in at its own point in the scroll and its own --ty
+   vertical offset (set inline per stop in index.html) so the five read as
+   sitting at different points along the image's glowing wave line rather
+   than all stacked dead-centre.
    ========================================================================== */
-.testimonials{position:relative; padding:104px 0 110px; overflow:hidden;}
-/* faded at top and bottom so the section reads as a soft wash rather than a
-   band with two hard horizontal seams where the artwork stops */
-.t-bg{
-  position:absolute; inset:-10% 0; z-index:0; pointer-events:none;
-  background-image:url('fluid-foreground.png'); background-size:150%; background-position:center;
-  opacity:.14; will-change:transform;
-  -webkit-mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
-  mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+.t-scrub{position:relative; height:420vh;}
+.t-scrub-inner{position:sticky; top:0; height:100vh; overflow:hidden; background:#0a0a0c;}
+.t-scrub-bg{
+  position:absolute; inset:-12%;
+  background-image:url('hero-visual.webp'); background-repeat:no-repeat;
+  background-size:260% auto; background-position:100% 40%;
+  will-change:background-position;
 }
-.testimonials > .wrap{position:relative; z-index:1;}
-.t-head{text-align:center; margin-bottom:46px;}
-.t-head h2{font-size:clamp(30px,4vw,46px); margin-top:12px;}
+/* center-heavy scrim, same reasoning as .flow-scrim: the stops sit near the
+   middle of the stage, which is where the artwork's brightest passages run */
+.t-scrub-scrim{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 70% 65% at center, rgba(8,8,10,.42) 0%, rgba(8,8,10,.2) 55%, rgba(8,8,10,.5) 100%),
+    linear-gradient(180deg, rgba(8,8,10,.4), rgba(8,8,10,.12) 40%, rgba(8,8,10,.46));
+}
+.t-scrub-stage{
+  position:relative; z-index:2; height:100%; width:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:0 24px; text-align:center;
+}
+.t-scrub .t-head{margin-bottom:0;}
+.t-scrub .t-head .eyebrow{color:#ffb191;}
+.t-scrub .t-head h2{color:#fff; font-size:clamp(28px,3.6vw,42px); margin-top:10px;}
 
-.t-viewport{overflow:hidden; padding:14px 0 6px;}
-/* width:max-content is load-bearing: without it this flex box (whose
-   flex:0-0-basis cards don't shrink) stays clamped to .t-viewport's width
-   instead of growing to fit its overflowing children, so its own
-   offsetWidth/scrollWidth silently under-report the real content extent —
-   landing.js's centering math (which needs the true total width to clamp
-   correctly) was wrong at both ends because of this. Same reason
-   .logo-track needs it for the marquee. */
-.t-track{display:flex; gap:22px; width:max-content; will-change:transform; transition:transform .6s var(--ease);}
+.t-stops{position:relative; width:100%; max-width:460px; height:280px; margin-top:44px;}
+/* centred on .t-stops' own middle, THEN offset by --ty — anchoring from the
+   top edge instead pushed the more negative --ty stops up out of .t-stops
+   entirely and into the heading above it.
+   .t-card.t-stop (not .t-stop alone): every stop also carries .t-card for its
+   visual chrome, and .t-card's own `position:relative` (below) is defined
+   later in the file — with equal specificity, source order would let that
+   win and silently turn every stop back into a normal in-flow block instead
+   of the absolutely-positioned, overlapping one this scrub needs. The
+   compound selector's higher specificity makes this rule win regardless of
+   where either class is declared. */
+.t-card.t-stop{
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%) translateY(var(--ty,0px)) scale(.95);
+  width:100%; opacity:0; pointer-events:none;
+  transition:opacity .5s var(--ease), transform .6s var(--ease);
+}
+.t-card.t-stop.is-active{
+  opacity:1; transform:translate(-50%,-50%) translateY(var(--ty,0px)) scale(1);
+  pointer-events:auto;
+}
+.t-dots{display:flex; justify-content:center; gap:9px; margin-top:26px;}
+.t-dot{width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.26); transition:background .4s var(--ease), width .4s var(--ease);}
+.t-dot.is-active{background:#fff; width:26px;}
+
+/* shared card chrome — reused as-is from the previous carousel design.
+   fixed business/builder hues, independent of the audience-toggle --accent —
+   this tags who's speaking, not which mode you're browsing in. Students/
+   builders are orange, companies are blue — same pairing as the nav toggle
+   and the spectrum-split CTAs, kept consistent throughout the page. */
 .t-card{
-  position:relative; overflow:hidden;
-  flex:0 0 clamp(260px,32vw,360px);
-  background:#fff; border:1px solid var(--line); border-radius:20px; padding:28px 26px;
-  box-shadow:0 6px 20px -14px rgba(20,19,15,.3);
-  opacity:.42; transform:scale(.9);
-  transition:opacity .55s var(--ease), transform .55s var(--ease), box-shadow .55s var(--ease), border-color .55s var(--ease);
+  position:relative; overflow:hidden; text-align:left;
+  background:#fff; border-radius:20px; padding:26px 26px;
+  box-shadow:0 26px 60px -26px rgba(0,0,0,.5);
 }
-/* fixed business/builder hues, independent of the audience-toggle --accent —
-   this tags who's speaking, not which mode you're browsing in */
-.t-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--orange);}
-.t-card[data-side="builder"]::before{background:var(--blue);}
-.t-card.is-active{
-  opacity:1; transform:scale(1);
-  border-color:transparent;
-  box-shadow:0 26px 60px -26px rgba(20,19,15,.5), 0 0 0 2px var(--orange);
-}
+.t-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue);}
+.t-card[data-side="builder"]::before{background:var(--orange);}
+.t-stop.is-active.t-card{box-shadow:0 26px 60px -26px rgba(0,0,0,.5), 0 0 0 2px var(--blue);}
+.t-stop.is-active.t-card[data-side="builder"]{box-shadow:0 26px 60px -26px rgba(0,0,0,.5), 0 0 0 2px var(--orange);}
 .t-badge{
   position:absolute; top:18px; right:18px;
   font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
   letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
-  background:rgba(255,91,36,.12); color:var(--orange-deep);
+  background:rgba(47,107,255,.12); color:#1d4fd6;
 }
-.t-card[data-side="builder"] .t-badge{background:rgba(47,107,255,.12); color:#1d4fd6;}
-.t-quote{font-size:16.5px; line-height:1.6; margin-bottom:24px; margin-right:64px; font-weight:500;}
+.t-card[data-side="builder"] .t-badge{background:rgba(255,91,36,.12); color:var(--orange-deep);}
+.t-quote{font-size:16px; line-height:1.55; margin-bottom:22px; margin-right:60px; font-weight:500;}
 .t-person{display:flex; align-items:center; gap:13px;}
-.t-avatar{width:46px; height:46px; border-radius:50%; flex:none; object-fit:cover;}
-.t-name{font-weight:700; font-size:14.5px;}
-.t-role{font-family:'JetBrains Mono', monospace; font-size:11px; color:#9c988c; margin-top:2px;}
+.t-avatar{width:44px; height:44px; border-radius:50%; flex:none; object-fit:cover;}
+.t-name{font-weight:700; font-size:14px;}
+.t-role{font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#9c988c; margin-top:2px;}
 
-.t-controls{display:flex; align-items:center; justify-content:center; gap:16px; margin-top:38px;}
-.t-btn{
-  width:46px; height:46px; border-radius:50%; border:1px solid var(--line); background:#fff;
-  cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px;
-  transition:border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+/* Below 900px / reduced motion / no-js: plain stacked list, no pin, no pan —
+   same rule as How It Works, since a scroll-gated stop that never activates
+   would hide its content outright. */
+@media (max-width:900px){
+  .t-scrub{height:auto;}
+  .t-scrub-inner{position:relative; height:auto; padding:64px 0;}
+  .t-scrub-bg{background-position:50% 40%;}
+  .t-stops{position:static; height:auto; max-width:520px; margin:32px auto 0; display:flex; flex-direction:column; gap:20px;}
+  /* .t-card.t-stop, not .t-stop alone — same specificity reasoning as the
+     compound rule above: a plain .t-stop selector here has lower specificity
+     than .t-card.t-stop and would silently lose to it even inside this
+     media query, leaving the section pinned/absolute on mobile too.
+     !important on transform/position: collapsed() in landing.js adds
+     .is-active to every stop on mobile/reduced-motion so none of them stay
+     hidden, but .t-card.t-stop.is-active (3 classes) still outranks this (2
+     classes) and carries its own translate/scale transform for the desktop
+     layout — without !important that transform kept winning here and the
+     "static" stack still rendered every card off-position with the
+     desktop centring transform applied on top of it. */
+  .t-card.t-stop{position:static !important; opacity:1; transform:none !important; pointer-events:auto;}
+  .t-dots{display:none;}
 }
-.t-btn:hover{border-color:var(--ink); background:var(--paper-warm); transform:translateY(-2px);}
-.t-dots{display:flex; gap:7px;}
-/* not var(--line) — that beige is invisible against the near-white parallax
-   backdrop, which left the row looking like a single stray pill */
-.t-dot{
-  width:7px; height:7px; border-radius:999px; background:rgba(20,19,15,.22); border:none; padding:0; cursor:pointer;
-  transition:background .3s var(--ease), width .3s var(--ease);
-}
-.t-dot:hover{background:rgba(20,19,15,.42);}
-.t-dot.is-active{background:var(--orange); width:24px;}
-.t-swipe-hint{display:none;}
-@media (max-width:640px){
-  .testimonials{padding:70px 0 76px;}
-  .t-card{flex:0 0 82vw; padding:24px 22px;}
-  .t-swipe-hint{
-    display:block; text-align:center; margin-top:14px;
-    font-family:'JetBrains Mono', monospace; font-size:11.5px; color:#9c988c;
-    opacity:1; transition:opacity .5s var(--ease);
-  }
-  .t-swipe-hint.is-hidden{opacity:0;}
-}
+.no-js .t-scrub, .reduced-motion .t-scrub{height:auto;}
+.no-js .t-scrub-inner, .reduced-motion .t-scrub-inner{position:relative; height:auto; padding:64px 0;}
+.no-js .t-stops, .reduced-motion .t-stops{position:static; height:auto; max-width:520px; margin:32px auto 0; display:flex; flex-direction:column; gap:20px;}
+.no-js .t-card.t-stop, .reduced-motion .t-card.t-stop{position:static !important; opacity:1; transform:none !important; pointer-events:auto;}
+.no-js .t-dots, .reduced-motion .t-dots{display:none;}
 
 /* ==========================================================================
    FINAL CTA
@@ -765,10 +831,6 @@ html[data-audience="builder"] .mode-indicator{transform:translateX(0); backgroun
   50%{opacity:1; transform:scale(1.08);}
 }
 .final-inner{position:relative; z-index:3;}
-.final-quote{
-  font-size:15px; font-style:italic; color:rgba(255,255,255,.68);
-  max-width:44ch; margin:0 auto 22px; line-height:1.55;
-}
 .final h2{font-size:clamp(28px,4.4vw,52px); margin-bottom:16px; max-width:19ch; margin-inline:auto;}
 .final p{font-size:16.5px; color:rgba(255,255,255,.82); margin-bottom:32px;}
 .final-btns{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}

@@ -144,22 +144,47 @@
     // re-query after its content is replaced out from under it.
     var modeCopyEls = document.querySelectorAll("[data-mode-copy]");
 
-    function applyModeCopy(mode) {
-      modeCopyEls.forEach(function (el) {
-        var html = el.getAttribute("data-" + mode);
-        if (html != null) el.innerHTML = html;
-      });
+    // animate=false is for the initial page-load call only, where the inline
+    // HTML already matches the resolved default mode — fading elements out
+    // and back in to swap in identical content would just be a pointless
+    // flash on first paint. Every later, user-triggered toggle animates.
+    var SWAP_MS = 160;
+    function applyModeCopy(mode, animate) {
       var flowEl = document.getElementById("flow");
-      if (flowEl && flowEl.refreshFlow) flowEl.refreshFlow();
+      if (!animate || reducedMotion) {
+        modeCopyEls.forEach(function (el) {
+          var html = el.getAttribute("data-" + mode);
+          if (html != null) el.innerHTML = html;
+        });
+        if (flowEl && flowEl.refreshFlow) flowEl.refreshFlow();
+        return;
+      }
+      modeCopyEls.forEach(function (el) {
+        // the entrance stagger's inline transition-delay (e.g. ".16s") is
+        // still sitting on these elements from page load and would otherwise
+        // also postpone THIS transition by the same amount, since inline
+        // transition-delay outranks the stylesheet's implicit 0s — it has no
+        // purpose after the one-time entrance cascade, so clear it here.
+        el.style.transitionDelay = "0s";
+        el.classList.add("mode-swap");
+      });
+      setTimeout(function () {
+        modeCopyEls.forEach(function (el) {
+          var html = el.getAttribute("data-" + mode);
+          if (html != null) el.innerHTML = html;
+          el.classList.remove("mode-swap");
+        });
+        if (flowEl && flowEl.refreshFlow) flowEl.refreshFlow();
+      }, SWAP_MS);
     }
 
-    function apply(mode, persist) {
+    function apply(mode, persist, animate) {
       document.documentElement.setAttribute("data-audience", mode);
       opts.forEach(function (o) {
         o.setAttribute("aria-current", o.getAttribute("data-audience") === mode ? "true" : "false");
       });
       signupLinks.forEach(function (a) { a.href = "signup.html?role=" + mode; });
-      applyModeCopy(mode);
+      applyModeCopy(mode, animate !== false);
       if (persist) {
         try { localStorage.setItem("projet:audience", mode); } catch (e) {}
       }
@@ -171,7 +196,7 @@
 
     var stored = null;
     try { stored = localStorage.getItem("projet:audience"); } catch (e) {}
-    apply(stored === "builder" ? "builder" : "business", false);
+    apply(stored === "business" ? "business" : "builder", false, false);
   })();
 
   /* ---------------- Hero cursor tilt ----------------
@@ -479,188 +504,51 @@
     scrollUpdaters.push(tick);
   })();
 
-  /* ---------------- Testimonials parallax ---------------- */
+  /* ---------------- 6. Testimonials scroll-scrub ----------------
+     Same shape as the How It Works flow-scrub: a tall pinned wrapper, one
+     continuous journey across hero-visual.webp's background-position, and a
+     `paint(idx)` that toggles which stop is on screen. Two differences: the
+     pan direction is a straight right-to-left sweep (background-position-x
+     100% -> 0%, y held constant) rather than flow's diagonal one, and each
+     stop carries its own --ty (read from inline style, set per stop in
+     index.html) so the five testimonials sit at different points along the
+     image's wave line instead of one shared dead-centre spot. Collapses to a
+     plain stacked list under 900px / reduced motion / no-js (see
+     landing.css) — a scroll-gated stop that never activates would hide its
+     content outright. */
   (function () {
-    var bg = document.querySelector(".t-bg");
-    var section = document.querySelector(".testimonials");
-    if (!bg || !section || reducedMotion) return;
-    scrollUpdaters.push(function () {
-      var r = section.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > window.innerHeight) return;
-      // drift relative to how far the section has travelled through the viewport
-      var p = (window.innerHeight - r.top) / (window.innerHeight + r.height);
-      bg.style.transform = "translateY(" + (p * 60 - 30).toFixed(1) + "px)";
-    });
-  })();
+    var wrap = document.getElementById("testimonials");
+    if (!wrap) return;
+    var bg = wrap.querySelector(".t-scrub-bg");
+    var stops = wrap.querySelectorAll(".t-stop");
+    var dots = wrap.querySelectorAll(".t-dot");
+    if (!stops.length) return;
 
-  /* ---------------- 6. Testimonials carousel ----------------
-     True infinite loop: a clone of the last card sits before the first, and
-     a clone of the first sits after the last, so advancing past either end
-     keeps sliding in the same direction instead of jumping back across the
-     rail. `slot` indexes into the cloned DOM order (0 and slides.length-1
-     are the two clone positions); landing on a clone after an animated move
-     triggers a silent, transition-less snap to the pixel-identical real
-     card, so the loop reads as continuous with no visible jump. The
-     highlighted card is the one centred in the viewport; arrows/dots/
-     keyboard move the selection, and it auto-advances every 4s until the
-     reader engages (hover, focus, or an explicit control). */
-  (function () {
-    var root = document.getElementById("testimonials");
-    if (!root) return;
-    var viewport = root.querySelector(".t-viewport");
-    var track = root.querySelector(".t-track");
-    var originalCards = Array.prototype.slice.call(root.querySelectorAll(".t-card"));
-    var dots = root.querySelectorAll(".t-dot");
-    var prevBtn = root.querySelector(".t-prev");
-    var nextBtn = root.querySelector(".t-next");
-    if (!track || !originalCards.length) return;
+    function collapsed() { return reducedMotion || window.innerWidth <= 900; }
 
-    var N = originalCards.length;
-    var lastClone = originalCards[N - 1].cloneNode(true);
-    var firstClone = originalCards[0].cloneNode(true);
-    lastClone.setAttribute("aria-hidden", "true");
-    firstClone.setAttribute("aria-hidden", "true");
-    lastClone.classList.remove("is-active");
-    firstClone.classList.remove("is-active");
-    track.insertBefore(lastClone, originalCards[0]);
-    track.appendChild(firstClone);
-    var slides = [lastClone].concat(originalCards, [firstClone]);
-
-    var slot = 1; // 1..N are real cards; 0 and slides.length-1 are clones
-    var AUTO_MS = 4000;
-    var timer = null;
-    var moving = false;
-
-    function realIndexOf(s) {
-      if (s === 0) return N - 1;
-      if (s === slides.length - 1) return 0;
-      return s - 1;
+    function paint(idx) {
+      stops.forEach(function (s, i) { s.classList.toggle("is-active", i === idx); });
+      dots.forEach(function (d, i) { d.classList.toggle("is-active", i === idx); });
     }
 
-    // Padding the track itself (not the viewport) by half a card's worth of
-    // empty space on each side means even the first and last real card have
-    // room to reach dead centre — without it, centring one of them would
-    // require scrolling past the end of the track, so an end-clamp would
-    // silently leave it pinned at the edge instead of centred.
-    function updateEdgePadding() {
-      // offsetWidth, not getBoundingClientRect() — the inactive-card
-      // transform:scale(.9) shrinks the *rendered* rect but not the layout
-      // box, and centring below uses offsetLeft/offsetWidth (also
-      // transform-independent). Measuring the two with different yardsticks
-      // was exactly why only the always-scale(1)-at-measurement-time card
-      // centred correctly and the rest didn't.
-      var cardW = originalCards[0].offsetWidth;
-      var pad = Math.max(0, (viewport.clientWidth - cardW) / 2);
-      track.style.paddingLeft = pad + "px";
-      track.style.paddingRight = pad + "px";
-    }
-
-    function paint() {
-      var realIdx = realIndexOf(slot);
-      originalCards.forEach(function (c, i) { c.classList.toggle("is-active", i === realIdx); });
-      dots.forEach(function (d, i) {
-        d.classList.toggle("is-active", i === realIdx);
-        d.setAttribute("aria-current", i === realIdx ? "true" : "false");
-      });
-    }
-
-    function center(s, animate) {
-      var card = slides[s];
-      var shift = card.offsetLeft + card.offsetWidth / 2 - viewport.clientWidth / 2;
-      if (!animate) track.style.transition = "none";
-      track.style.transform = "translateX(" + -shift + "px)";
-      if (!animate) {
-        void track.offsetHeight; // force reflow so the jump is instantaneous
-        track.style.transition = "";
+    function tick() {
+      if (collapsed()) {
+        stops.forEach(function (s) { s.classList.add("is-active"); });
+        return;
       }
+      var r = wrap.getBoundingClientRect();
+      var total = wrap.offsetHeight - window.innerHeight;
+      if (total <= 0) return;
+      var p = clamp(-r.top / total, 0, 1);
+
+      // right to left: 100% (rightmost crop) at p=0, down to 0% (leftmost) at p=1
+      if (bg) bg.style.backgroundPosition = (100 - p * 100).toFixed(2) + "% 40%";
+
+      paint(Math.min(Math.floor(p * stops.length * 0.999), stops.length - 1));
     }
 
-    function goToSlot(s, animate) {
-      slot = s;
-      paint();
-      center(slot, animate !== false);
-    }
-
-    // after animating onto a clone, snap invisibly to the matching real card
-    track.addEventListener("transitionend", function (e) {
-      if (e.propertyName !== "transform") return;
-      if (slot === 0) { slot = slides.length - 2; goToSlot(slot, false); }
-      else if (slot === slides.length - 1) { slot = 1; goToSlot(slot, false); }
-      moving = false;
-    });
-
-    function go(dir) {
-      if (moving) return;
-      moving = true;
-      goToSlot(slot + dir, true);
-    }
-    function goToReal(realIdx) {
-      if (moving) return;
-      moving = true;
-      goToSlot(realIdx + 1, true);
-    }
-
-    function start() {
-      if (reducedMotion || timer) return;
-      timer = setInterval(function () { go(1); }, AUTO_MS);
-    }
-    function stop() { clearInterval(timer); timer = null; }
-
-    if (prevBtn) prevBtn.addEventListener("click", function () { stop(); go(-1); });
-    if (nextBtn) nextBtn.addEventListener("click", function () { stop(); go(1); });
-    dots.forEach(function (d, i) {
-      d.addEventListener("click", function () { stop(); goToReal(i); });
-    });
-
-    // pause while the reader is engaged, resume when they leave
-    root.addEventListener("mouseenter", stop);
-    root.addEventListener("mouseleave", start);
-    root.addEventListener("focusin", stop);
-
-    // keyboard support on the rail itself
-    root.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowLeft") { stop(); go(-1); }
-      else if (e.key === "ArrowRight") { stop(); go(1); }
-    });
-
-    // mobile swipe hint — fades permanently after the first touch, so it
-    // doesn't linger once the gesture's been discovered
-    var swipeHint = document.getElementById("tSwipeHint");
-
-    // real swipe navigation — the hint promises "swipe to browse", so touch
-    // needs to actually move the rail, not just tap the arrows/dots. Tracks
-    // one finger; a mostly-horizontal drag past SWIPE_THRESHOLD advances/
-    // retreats a slot exactly like the arrow buttons (same clone-snap loop).
-    var SWIPE_THRESHOLD = 40;
-    var touchStartX = 0, touchStartY = 0, touchDX = 0, touchDY = 0, touching = false;
-    viewport.addEventListener("touchstart", function (e) {
-      if (swipeHint) swipeHint.classList.add("is-hidden");
-      if (e.touches.length !== 1) return;
-      touching = true;
-      touchDX = 0; touchDY = 0;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      stop();
-    }, { passive: true });
-    viewport.addEventListener("touchmove", function (e) {
-      if (!touching || e.touches.length !== 1) return;
-      touchDX = e.touches[0].clientX - touchStartX;
-      touchDY = e.touches[0].clientY - touchStartY;
-    }, { passive: true });
-    viewport.addEventListener("touchend", function () {
-      if (!touching) return;
-      touching = false;
-      // require a mostly-horizontal drag so a vertical page-scroll gesture
-      // that happens to start over the rail never gets mistaken for a swipe
-      if (Math.abs(touchDX) > SWIPE_THRESHOLD && Math.abs(touchDX) > Math.abs(touchDY)) {
-        go(touchDX < 0 ? 1 : -1);
-      }
-    });
-
-    window.addEventListener("resize", function () { updateEdgePadding(); goToSlot(slot, false); });
-    updateEdgePadding();
-    goToSlot(1, false);
-    start();
+    tick();
+    scrollUpdaters.push(tick);
   })();
 
   /* ---------------- Featured-challenge countdown ----------------
