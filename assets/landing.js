@@ -85,19 +85,73 @@
     window.addEventListener("resize", function () { if (window.innerWidth > 900) set(false); });
   })();
 
+  /* ---------------- Active-section nav highlight ----------------
+     Whichever in-page section is actually in view keeps its nav link
+     underlined without needing a hover — a quiet wayfinding cue on top of
+     the plain anchor list. */
+  (function () {
+    var links = document.querySelectorAll("[data-nav-link]");
+    if (!links.length || !("IntersectionObserver" in window)) return;
+    var sections = [];
+    links.forEach(function (a) {
+      var id = a.getAttribute("href").slice(1);
+      var el = document.getElementById(id);
+      if (el) sections.push({ el: el, link: a });
+    });
+    if (!sections.length) return;
+
+    function setCurrent(id) {
+      links.forEach(function (a) {
+        a.classList.toggle("is-current", a.getAttribute("href") === "#" + id);
+      });
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      // pick the entry closest to the vertical centre of the viewport among
+      // those currently intersecting, rather than just "first seen"
+      var visible = entries.filter(function (e) { return e.isIntersecting; });
+      if (!visible.length) return;
+      var mid = window.innerHeight / 2;
+      visible.sort(function (a, b) {
+        return Math.abs(a.boundingClientRect.top + a.boundingClientRect.height / 2 - mid) -
+               Math.abs(b.boundingClientRect.top + b.boundingClientRect.height / 2 - mid);
+      });
+      setCurrent(visible[0].target.id);
+    }, { threshold: 0.2, rootMargin: "-88px 0px -40% 0px" });
+
+    sections.forEach(function (s) { io.observe(s.el); });
+  })();
+
   /* ---------------- Audience mode toggle ----------------
-     Re-tints --accent (orange for companies, blue for builders) via
+     Re-tints --accent (orange for companies, blue for builders/students) via
      html[data-audience] rather than navigating anywhere — this is one shared
      page, not two separate audience pages, so the toggle is a product-level
      control, not a router. Persists the choice and carries it into the
      nav's Sign up link as ?role=, same convention the old audience chooser
-     used. */
+     used. Internal value stays "builder" (matches ?role=builder elsewhere)
+     even though the visible label reads "For students" — only the label
+     text changed, not the plumbing. */
   (function () {
     var opts = document.querySelectorAll(".mode-opt");
     if (!opts.length) return;
     var signupLinks = document.querySelectorAll(
       '.nav-cta a[href^="signup.html"], .mobile-menu-ctas a[href^="signup.html"]'
     );
+    // Elements whose whole content differs per mode — data-business/
+    // data-builder hold each mode's full markup, swapped in via innerHTML.
+    // Some (.flow-steps) get rebuilt entirely by a scroll-scrub that caches
+    // its own references to the .flow-step nodes, so it needs a nudge to
+    // re-query after its content is replaced out from under it.
+    var modeCopyEls = document.querySelectorAll("[data-mode-copy]");
+
+    function applyModeCopy(mode) {
+      modeCopyEls.forEach(function (el) {
+        var html = el.getAttribute("data-" + mode);
+        if (html != null) el.innerHTML = html;
+      });
+      var flowEl = document.getElementById("flow");
+      if (flowEl && flowEl.refreshFlow) flowEl.refreshFlow();
+    }
 
     function apply(mode, persist) {
       document.documentElement.setAttribute("data-audience", mode);
@@ -105,6 +159,7 @@
         o.setAttribute("aria-current", o.getAttribute("data-audience") === mode ? "true" : "false");
       });
       signupLinks.forEach(function (a) { a.href = "signup.html?role=" + mode; });
+      applyModeCopy(mode);
       if (persist) {
         try { localStorage.setItem("projet:audience", mode); } catch (e) {}
       }
@@ -117,6 +172,34 @@
     var stored = null;
     try { stored = localStorage.getItem("projet:audience"); } catch (e) {}
     apply(stored === "builder" ? "builder" : "business", false);
+  })();
+
+  /* ---------------- Hero cursor tilt ----------------
+     Desktop pointer only — the one interaction the otherwise-static hero
+     visual keeps. Transition is set inline only on mouseleave (the snap-back)
+     rather than in the stylesheet: .hero-visual also carries [data-reveal]'s
+     entrance transition, and a permanent CSS transition on the same
+     `transform` property here would win the cascade (equal specificity, later
+     in the file) and silently shorten the load-in stagger from .7s to
+     whatever this used. */
+  (function () {
+    var visual = document.getElementById("heroVisual");
+    if (!visual || reducedMotion) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    var MAX_DEG = 7;
+    visual.addEventListener("mousemove", function (e) {
+      visual.style.transition = "";
+      var r = visual.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      visual.style.transform =
+        "perspective(900px) rotateX(" + (-py * MAX_DEG).toFixed(2) + "deg) rotateY(" +
+        (px * MAX_DEG).toFixed(2) + "deg)";
+    });
+    visual.addEventListener("mouseleave", function () {
+      visual.style.transition = "transform .5s cubic-bezier(.16,.84,.44,1)";
+      visual.style.transform = "";
+    });
   })();
 
   /* ---------------- hero count-up ----------------
@@ -168,18 +251,33 @@
 
     if (reducedMotion) return; // static strip; all logos still visible
 
-    var offset = 0, last = null, running = true;
+    var offset = 0, last = null;
+    var onscreen = true, hovered = false;
+    function running() { return onscreen && !hovered; }
 
     // pause while off-screen so we aren't animating in a background tab
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
-        running = entries[0].isIntersecting;
-        if (running) { last = null; requestAnimationFrame(tick); }
+        onscreen = entries[0].isIntersecting;
+        if (running()) { last = null; requestAnimationFrame(tick); }
       }, { threshold: 0 }).observe(track.parentNode);
     }
 
+    // pause on hover/focus so a curious visitor can actually read a name —
+    // it only paused off-screen before, with no way to stop it in view
+    track.parentNode.addEventListener("mouseenter", function () { hovered = true; });
+    track.parentNode.addEventListener("mouseleave", function () {
+      hovered = false;
+      if (running()) { last = null; requestAnimationFrame(tick); }
+    });
+    track.addEventListener("focusin", function () { hovered = true; });
+    track.addEventListener("focusout", function () {
+      hovered = false;
+      if (running()) { last = null; requestAnimationFrame(tick); }
+    });
+
     function tick(now) {
-      if (!running) return;
+      if (!running()) return;
       if (last === null) last = now;
       var dt = Math.min((now - last) / 1000, 0.05); // clamp: tab-switch jumps
       last = now;
@@ -254,6 +352,8 @@
 
     /* --- which side is active --- */
     var tabs = stage.querySelectorAll(".ss-tab");
+    var hint = document.getElementById("ssHint");
+    function dismissHint() { if (hint) hint.classList.add("is-hidden"); }
     function setSide(side, remember) {
       stage.setAttribute("data-active", side);
       if (remember) pinned = side;
@@ -264,7 +364,7 @@
     setSide(DEFAULT_SIDE, true);
 
     tabs.forEach(function (t) {
-      t.addEventListener("click", function () { setSide(t.getAttribute("data-side"), true); });
+      t.addEventListener("click", function () { dismissHint(); setSide(t.getAttribute("data-side"), true); });
     });
 
     // Hover previews the other side; leaving returns to whichever side is
@@ -273,8 +373,8 @@
     if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
       stage.querySelectorAll(".ss-panel").forEach(function (panel) {
         var side = panel.getAttribute("data-side");
-        panel.addEventListener("mouseenter", function () { setSide(side, false); });
-        panel.addEventListener("focusin", function () { setSide(side, false); });
+        panel.addEventListener("mouseenter", function () { dismissHint(); setSide(side, false); });
+        panel.addEventListener("focusin", function () { dismissHint(); setSide(side, false); });
       });
       stage.addEventListener("mouseleave", function () { setSide(pinned, false); });
     }
@@ -300,8 +400,84 @@
     }
   })();
 
-  /* 5. How it works is now a static 4-card grid (see landing.css) — no
-     scroll-linked behaviour needed, so there's nothing to wire up here. */
+  /* ---------------- Spectrum split mobile card reveal ----------------
+     Below 900px the hover/veil mechanic is dropped entirely (see landing.css)
+     and both panels render as plain stacked content, so without this the
+     challenge/stat cards would just appear flat with zero motion. Scoped to
+     mobile only via matchMedia so it never touches the desktop pin. */
+  (function () {
+    if (reducedMotion || !window.matchMedia("(max-width:900px)").matches) return;
+    var els = document.querySelectorAll(".ss-card, .ss-stat");
+    if (!els.length || !("IntersectionObserver" in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("revealed");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+    els.forEach(function (el, i) {
+      el.style.transitionDelay = (i % 3) * 0.08 + "s";
+      io.observe(el);
+    });
+  })();
+
+  /* ---------------- 5. How it works — fluid flow scrub ----------------
+     Restored after briefly being a static grid — the user asked specifically
+     to bring this back for the current 4 steps. One continuous journey
+     through fluid-full.png: background-position tracks scroll progress
+     across the whole pinned block while the active step steps through in
+     four discrete stages. Collapses to a static stacked list under 900px /
+     reduced motion / no-js (see landing.css) — a scroll-gated step that
+     never activates would hide its content outright. */
+  (function () {
+    var wrap = document.getElementById("flow");
+    if (!wrap) return;
+    var fluid = wrap.querySelector(".flow-fluid");
+    var steps = [], dots = [];
+
+    function collapsed() { return reducedMotion || window.innerWidth <= 900; }
+
+    function queryEls() {
+      steps = wrap.querySelectorAll(".flow-step");
+      dots = wrap.querySelectorAll(".flow-dot");
+    }
+
+    function paint(idx) {
+      steps.forEach(function (s, i) { s.classList.toggle("is-active", i === idx); });
+      dots.forEach(function (d, i) { d.classList.toggle("is-active", i === idx); });
+    }
+
+    function tick() {
+      if (!steps.length) return;
+      if (collapsed()) {
+        steps.forEach(function (s) { s.classList.add("is-active"); });
+        return;
+      }
+      var r = wrap.getBoundingClientRect();
+      var total = wrap.offsetHeight - window.innerHeight;
+      if (total <= 0) return;
+      var p = clamp(-r.top / total, 0, 1);
+
+      if (fluid) fluid.style.backgroundPosition = (p * 100).toFixed(2) + "% " + (100 - p * 100).toFixed(2) + "%";
+
+      // 0.999 so the very last pixel of scroll doesn't index past the array
+      paint(Math.min(Math.floor(p * steps.length * 0.999), steps.length - 1));
+    }
+
+    queryEls();
+    if (!steps.length) return;
+
+    // A mode-copy swap (see the audience-toggle IIFE) replaces the whole
+    // .flow-steps subtree with the other mode's markup — the `steps`/`dots`
+    // NodeLists captured above would otherwise keep pointing at now-detached
+    // nodes. Exposed so that swap can force a re-query + repaint.
+    wrap.refreshFlow = function () { queryEls(); tick(); };
+
+    tick();
+    scrollUpdaters.push(tick);
+  })();
 
   /* ---------------- Testimonials parallax ---------------- */
   (function () {
@@ -318,71 +494,122 @@
   })();
 
   /* ---------------- 6. Testimonials carousel ----------------
-     The highlighted card is the one centred in the viewport; arrows and dots
-     move the selection, and it advances on its own every 4s until the user
-     interacts (hover, focus, or an explicit control). */
+     True infinite loop: a clone of the last card sits before the first, and
+     a clone of the first sits after the last, so advancing past either end
+     keeps sliding in the same direction instead of jumping back across the
+     rail. `slot` indexes into the cloned DOM order (0 and slides.length-1
+     are the two clone positions); landing on a clone after an animated move
+     triggers a silent, transition-less snap to the pixel-identical real
+     card, so the loop reads as continuous with no visible jump. The
+     highlighted card is the one centred in the viewport; arrows/dots/
+     keyboard move the selection, and it auto-advances every 4s until the
+     reader engages (hover, focus, or an explicit control). */
   (function () {
     var root = document.getElementById("testimonials");
     if (!root) return;
     var viewport = root.querySelector(".t-viewport");
     var track = root.querySelector(".t-track");
-    var cards = root.querySelectorAll(".t-card");
+    var originalCards = Array.prototype.slice.call(root.querySelectorAll(".t-card"));
     var dots = root.querySelectorAll(".t-dot");
-    var prev = root.querySelector(".t-prev");
-    var next = root.querySelector(".t-next");
-    if (!track || !cards.length) return;
+    var prevBtn = root.querySelector(".t-prev");
+    var nextBtn = root.querySelector(".t-next");
+    if (!track || !originalCards.length) return;
 
-    var index = 0;
+    var N = originalCards.length;
+    var lastClone = originalCards[N - 1].cloneNode(true);
+    var firstClone = originalCards[0].cloneNode(true);
+    lastClone.setAttribute("aria-hidden", "true");
+    firstClone.setAttribute("aria-hidden", "true");
+    lastClone.classList.remove("is-active");
+    firstClone.classList.remove("is-active");
+    track.insertBefore(lastClone, originalCards[0]);
+    track.appendChild(firstClone);
+    var slides = [lastClone].concat(originalCards, [firstClone]);
+
+    var slot = 1; // 1..N are real cards; 0 and slides.length-1 are clones
     var AUTO_MS = 4000;
     var timer = null;
+    var moving = false;
+
+    function realIndexOf(s) {
+      if (s === 0) return N - 1;
+      if (s === slides.length - 1) return 0;
+      return s - 1;
+    }
 
     // Padding the track itself (not the viewport) by half a card's worth of
-    // empty space on each side means even the FIRST and LAST card have room
-    // to reach dead centre — without it, centring the last card would
-    // require scrolling past the end of the track, so the old end-clamp
-    // silently left it pinned at the edge instead of centred.
+    // empty space on each side means even the first and last real card have
+    // room to reach dead centre — without it, centring one of them would
+    // require scrolling past the end of the track, so an end-clamp would
+    // silently leave it pinned at the edge instead of centred.
     function updateEdgePadding() {
-      if (!cards.length) return;
       // offsetWidth, not getBoundingClientRect() — the inactive-card
       // transform:scale(.9) shrinks the *rendered* rect but not the layout
-      // box, and render() below centres cards using offsetLeft/offsetWidth
-      // (also transform-independent). Measuring the two ends with different
-      // yardsticks was exactly why only the always-scale(1)-at-measurement-
-      // time first card centred correctly and the rest didn't.
-      var cardW = cards[0].offsetWidth;
+      // box, and centring below uses offsetLeft/offsetWidth (also
+      // transform-independent). Measuring the two with different yardsticks
+      // was exactly why only the always-scale(1)-at-measurement-time card
+      // centred correctly and the rest didn't.
+      var cardW = originalCards[0].offsetWidth;
       var pad = Math.max(0, (viewport.clientWidth - cardW) / 2);
       track.style.paddingLeft = pad + "px";
       track.style.paddingRight = pad + "px";
     }
 
-    function render() {
-      cards.forEach(function (c, i) { c.classList.toggle("is-active", i === index); });
+    function paint() {
+      var realIdx = realIndexOf(slot);
+      originalCards.forEach(function (c, i) { c.classList.toggle("is-active", i === realIdx); });
       dots.forEach(function (d, i) {
-        d.classList.toggle("is-active", i === index);
-        d.setAttribute("aria-current", i === index ? "true" : "false");
+        d.classList.toggle("is-active", i === realIdx);
+        d.setAttribute("aria-current", i === realIdx ? "true" : "false");
       });
-      // centre the active card within the viewport
-      var card = cards[index];
-      var shift = card.offsetLeft + card.offsetWidth / 2 - viewport.clientWidth / 2;
-      // don't scroll past either end — a half-empty rail reads as broken.
-      // With the edge padding above, this clamp should no longer engage for
-      // the first/last card; kept as a safety net.
-      var maxShift = track.scrollWidth - viewport.clientWidth;
-      track.style.transform = "translateX(" + -clamp(shift, 0, Math.max(maxShift, 0)) + "px)";
     }
 
-    function go(i) { index = (i + cards.length) % cards.length; render(); }
+    function center(s, animate) {
+      var card = slides[s];
+      var shift = card.offsetLeft + card.offsetWidth / 2 - viewport.clientWidth / 2;
+      if (!animate) track.style.transition = "none";
+      track.style.transform = "translateX(" + -shift + "px)";
+      if (!animate) {
+        void track.offsetHeight; // force reflow so the jump is instantaneous
+        track.style.transition = "";
+      }
+    }
+
+    function goToSlot(s, animate) {
+      slot = s;
+      paint();
+      center(slot, animate !== false);
+    }
+
+    // after animating onto a clone, snap invisibly to the matching real card
+    track.addEventListener("transitionend", function (e) {
+      if (e.propertyName !== "transform") return;
+      if (slot === 0) { slot = slides.length - 2; goToSlot(slot, false); }
+      else if (slot === slides.length - 1) { slot = 1; goToSlot(slot, false); }
+      moving = false;
+    });
+
+    function go(dir) {
+      if (moving) return;
+      moving = true;
+      goToSlot(slot + dir, true);
+    }
+    function goToReal(realIdx) {
+      if (moving) return;
+      moving = true;
+      goToSlot(realIdx + 1, true);
+    }
 
     function start() {
       if (reducedMotion || timer) return;
-      timer = setInterval(function () { go(index + 1); }, AUTO_MS);
+      timer = setInterval(function () { go(1); }, AUTO_MS);
     }
     function stop() { clearInterval(timer); timer = null; }
 
-    if (prev) prev.addEventListener("click", function () { stop(); go(index - 1); });
-    if (next) next.addEventListener("click", function () { stop(); go(index + 1); });
+    if (prevBtn) prevBtn.addEventListener("click", function () { stop(); go(-1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { stop(); go(1); });
     dots.forEach(function (d, i) {
-      d.addEventListener("click", function () { stop(); go(i); });
+      d.addEventListener("click", function () { stop(); goToReal(i); });
     });
 
     // pause while the reader is engaged, resume when they leave
@@ -392,13 +619,47 @@
 
     // keyboard support on the rail itself
     root.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowLeft") { stop(); go(index - 1); }
-      else if (e.key === "ArrowRight") { stop(); go(index + 1); }
+      if (e.key === "ArrowLeft") { stop(); go(-1); }
+      else if (e.key === "ArrowRight") { stop(); go(1); }
     });
 
-    window.addEventListener("resize", function () { updateEdgePadding(); render(); });
+    // mobile swipe hint — fades permanently after the first touch, so it
+    // doesn't linger once the gesture's been discovered
+    var swipeHint = document.getElementById("tSwipeHint");
+
+    // real swipe navigation — the hint promises "swipe to browse", so touch
+    // needs to actually move the rail, not just tap the arrows/dots. Tracks
+    // one finger; a mostly-horizontal drag past SWIPE_THRESHOLD advances/
+    // retreats a slot exactly like the arrow buttons (same clone-snap loop).
+    var SWIPE_THRESHOLD = 40;
+    var touchStartX = 0, touchStartY = 0, touchDX = 0, touchDY = 0, touching = false;
+    viewport.addEventListener("touchstart", function (e) {
+      if (swipeHint) swipeHint.classList.add("is-hidden");
+      if (e.touches.length !== 1) return;
+      touching = true;
+      touchDX = 0; touchDY = 0;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      stop();
+    }, { passive: true });
+    viewport.addEventListener("touchmove", function (e) {
+      if (!touching || e.touches.length !== 1) return;
+      touchDX = e.touches[0].clientX - touchStartX;
+      touchDY = e.touches[0].clientY - touchStartY;
+    }, { passive: true });
+    viewport.addEventListener("touchend", function () {
+      if (!touching) return;
+      touching = false;
+      // require a mostly-horizontal drag so a vertical page-scroll gesture
+      // that happens to start over the rail never gets mistaken for a swipe
+      if (Math.abs(touchDX) > SWIPE_THRESHOLD && Math.abs(touchDX) > Math.abs(touchDY)) {
+        go(touchDX < 0 ? 1 : -1);
+      }
+    });
+
+    window.addEventListener("resize", function () { updateEdgePadding(); goToSlot(slot, false); });
     updateEdgePadding();
-    render();
+    goToSlot(1, false);
     start();
   })();
 
@@ -429,6 +690,25 @@
     }
     tick();
     setInterval(tick, 1000);
+  })();
+
+  /* Footer "get notified" capture — front end only, same honesty rule as
+     login.html/signup.html (see assets/site.js): an empty data-endpoint
+     means it says the wiring is pending instead of faking a success. */
+  (function () {
+    var form = document.getElementById("footerNotify");
+    if (!form) return;
+    var msg = form.querySelector(".footer-notify-msg");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var endpoint = form.getAttribute("data-endpoint");
+      msg.classList.add("is-pending");
+      if (!endpoint) {
+        msg.textContent = "Not connected yet — this form is the finished front end, waiting on the API.";
+        return;
+      }
+      msg.textContent = "Thanks — you’re on the list.";
+    });
   })();
 
   onScroll(); // paint every scroll-linked effect at its correct initial value

@@ -152,12 +152,16 @@ Current state of `index.html`, as a result:
   narrative is "post a challenge → builders submit real work → evaluated
   on real output → hire," full stop.
 - **How it works dropped the 5-step pinned-scrub design** (Post/Apply →
-  Async submission → Live defense → Rubric scoring → Hire decision) and
-  reverted to the **4-step static grid** the user pointed to directly (a
-  screenshot of the archived `business.html`'s own How-it-works section):
-  Business posts a challenge → Builders compete → Top performers get
-  evaluated → Interviews, internships & recognition. See "The landing
-  page, section by section" below for the rebuilt implementation.
+  Async submission → Live defense → Rubric scoring → Hire decision) for a
+  **4-step static grid** the user pointed to directly (a screenshot of the
+  archived `business.html`'s own How-it-works section): Business posts a
+  challenge → Builders compete → Top performers get evaluated →
+  Interviews, internships & recognition. **The pinned-scrub mechanic itself
+  was later brought back** (the user liked the old zoomed-background-scroll
+  animation and asked for it applied to these same 4 steps) — the content
+  stayed defense/rubric-free throughout; only the delivery mechanism
+  flip-flopped. See "5. How it works" under "The landing page, section by
+  section" below for the current (restored-scrub) implementation.
 - The **Hack & Hire pilot numbers that were defense-specific are gone**:
   "10+ live defenses" is dropped from both the hero stat row and the
   Success-stories stat grid (each now shows 3 stats, not 4) since the
@@ -183,17 +187,47 @@ footer are the two universal components.
 Sticky nav, compacts past 48px of scroll. Anchor links to the four
 in-page destinations + Log in / Sign up. Collapses to a hamburger below
 900px (`#navToggle` / `#mobileMenu`, closes on link tap, Escape, and on
-resize past the breakpoint).
+resize past the breakpoint). `nav.links a` now gets an active-section
+highlight (`.is-current`) driven by a single `IntersectionObserver` over
+the four in-page targets, picking whichever section is closest to
+viewport centre — no scroll listener of its own.
 
 **Audience mode toggle** (`.mode-switch`, next to the logo — added after
-the initial build; the user asked for it explicitly). "For companies" /
-"For builders" re-tints `--accent` site-wide (orange ↔ blue) via
+the initial build; the user asked for it explicitly). **Order and labels
+changed once more since**: it now reads **"For students" (left) / "For
+companies" (right)** — a deliberate, narrow exception to "Builder, never
+Students" (see "Copy framing" above): only this one button's own visible
+label says "students"; the internal value is still `data-audience="builder"`
+and every other mention of the audience anywhere else on the page still
+says "Builder". Re-tints `--accent` site-wide (orange ↔ blue) via
 `html[data-audience]` and updates the nav's Sign-up link to
 `signup.html?role=…`, matching the convention the old audience chooser
-used. It does **not** navigate anywhere or rewrite copy per mode — this is
-one shared page, not two audience-specific ones, so the toggle is a
-lightweight re-theme, not a router. Choice persists via
-`localStorage["projet:audience"]`.
+used. Choice persists via `localStorage["projet:audience"]`.
+
+**It now DOES rewrite copy per mode, reversing the original "re-theme,
+not a router" design.** A generic system drives this: any element carrying
+`data-mode-copy` plus `data-business="<html>"` / `data-builder="<html>"`
+attributes gets its `.innerHTML` swapped by `applyModeCopy()` in
+`landing.js` on every toggle. Currently wired to the hero H1, hero
+sub-copy, the hero CTAs, the `.hero-card` mock, and all four How-it-works
+step cards (see their sections below) — still one shared page, not two
+routed ones, just one that relabels its own copy in place. One piece of
+plumbing this requires: `.flow-steps` is also re-scanned and re-scrubbed
+by the How-it-works scroll effect, which caches its own `NodeList` of
+`.flow-step`/`.flow-dot` — a raw `innerHTML` swap would leave that code
+holding references to detached nodes, so `#flow` exposes a
+`wrap.refreshFlow()` hook that `applyModeCopy()` calls after every swap to
+force a re-query + repaint.
+
+**Footer** got an accent-gradient top edge (`footer::before`, orange →
+purple → blue — the same gradient identity as the hero headline and the
+mode toggle it tracks) and a "get notified about new challenges" email
+capture in the brand column (`#footerNotify`). The capture is **front end
+only, same honesty rule as `login.html`/`signup.html`**: its
+`data-endpoint` attribute is empty, and submitting says so — "Not
+connected yet — this form is the finished front end, waiting on the
+API." — rather than faking a success. Point `data-endpoint` at a real
+route to wire it up.
 
 ### 1. Hero & call to action
 Headline "Hire on proof, not paper." (second line carries a spectrum
@@ -211,16 +245,34 @@ above for why "10+ live defenses" is gone).
   otherwise land between the number and the plus and render "120 + builders".
   (Same class of bug as the old `.cand-left` one — worth remembering: a flex
   `gap` applies between *anonymous* text-node flex items too.)
+- H1, hero sub-copy, hero CTAs, and the `.hero-card` mock are all
+  **mode-aware** (`data-mode-copy`, see "Nav / footer" above): business
+  mode keeps the copy above; builder/student mode swaps the H1 to "Prove
+  your skills, not your resume.", the sub-copy to the builder framing, the
+  primary CTA to "Participate" (`signup.html?role=builder`, "Browse
+  challenges" is unchanged either mode), and the `.hero-card` mock from a
+  "YOUR CHALLENGE" progress readout (challenge live → submissions →
+  shortlist → interview) to a "YOUR SUBMISSION" one (challenge joined →
+  submitted → ranked → noticed). The count-up numbers inside the card are
+  static in the swapped HTML — they don't re-run their count animation on
+  a mode switch, an accepted tradeoff.
 
-**The hero visual is a static gradient card — no photo/video texture, no
-scroll-linked change.** An earlier pass ran a "Spectrum-to-Waveform Hero
-Handoff" here (two image layers crossfading on scroll); the user removed
-it on two separate, related complaints: the visual shouldn't change on
-scroll at all, and the fluid/spectrum imagery is overused elsewhere on the
-page (final CTA, testimonials parallax) so it shouldn't also be in the
-hero. `.hero-visual` is now just its own CSS gradient background plus the
-`.hero-card` mock — no `<video>`, no `<img>`, no scroll listener. Don't
-reintroduce either without being asked again.
+**The hero visual now has a real background image again — a still frame,
+not a photo/video texture that changes on scroll.** `hero-visual.webp`
+(92KB, converted+compressed from the existing `assets/Logo Background
+2.png` master via `ffmpeg -q:v 82`) sits behind `.hero-card` as a plain
+CSS `background-image`; a dark linear-gradient wash on top keeps the card
+text legible, and the old flat gradient is still there as a fallback fill
+underneath. This is **not** a reintroduction of the earlier
+"Spectrum-to-Waveform Hero Handoff" (two images crossfading on scroll) —
+there's still no `<video>`, no `<img>`, no scroll listener, and the image
+never changes once painted, so the two complaints that got the old
+handoff removed (changes on scroll; overuse of the fluid/spectrum texture
+specifically) still don't apply. A gentle cursor-tilt (`#heroVisual` in
+`landing.js`, desktop pointer only — gated on `(hover:hover) and
+(pointer:fine)`, max 7deg, no permanent CSS `transition` on the element
+itself to avoid fighting `[data-reveal]`'s own transform transition) is
+the one interaction it keeps.
 
 ### 2. Logo carousel
 **A true recycling marquee, not a duplicate-and-reset loop** — the user was
@@ -234,6 +286,14 @@ so something is always entering on the right, and pauses via
 
 **The logos are PLACEHOLDERS and are not customers.** See "Known issues" #1
 — this is the one thing on the page that must not ship as-is.
+
+Chips are now `<a href="#stories">` (real anchors, not bare `<span>`s), so
+the carousel is clickable — each should point at that partner's own real
+case study/site once real partners exist; `#stories` is a placeholder
+target, not a final one. The marquee also now pauses on hover and on
+keyboard focus (`mouseenter`/`focusin` on the track), not just when
+scrolled off-screen — needed once the chips became focusable links, so a
+keyboard user tabbing through them isn't fighting a moving target.
 
 ### 3 + 4. Featured challenges | Success stories
 One "light spectrum wave" stage, split down the middle, exactly as
@@ -301,32 +361,76 @@ return to the white page is a transition rather than a cut.
 - Success-stories stats are a **3-item** grid (`.ss-stats--three`), not 4 —
   "10+ live defenses" was dropped along with the defense concept; see
   "Copy framing" above.
+- A `.ss-view-all` link ("View all challenges →", pointing at
+  `challenges.html`) sits after the 3 sample cards and before "Sign up to
+  compete" — a reminder in the HTML that this split is **a brief overview
+  of a few featured challenges, not a full listing**; the complete,
+  filterable list belongs on `challenges.html`, a separate page that
+  doesn't exist yet (see "Known issues" #4). A one-line `.ss-story` note
+  ("Two of those companies hired directly off the back of a challenge
+  submission.") was added under Success stories' `.ss-note` — grounded
+  strictly in the existing "2 hires" fact, nothing further invented (an
+  earlier draft added "no separate interview loop required," which wasn't
+  an established fact, and was cut).
+- `#ssHint` ("Hover to explore • tap to switch") sits above `.ss-tabs` and
+  dismisses permanently on first tab click or panel hover/focus — hidden
+  outright on mobile (`.ss-tabs` itself is gone below 900px).
+- **Below 900px, the challenge/stat cards (`.ss-card`, `.ss-stat`) now get
+  their own scroll-reveal**, separate from the generic `[data-reveal]`
+  system: a dedicated `IntersectionObserver` in `landing.js`, gated by
+  `matchMedia("(max-width:900px)")` so it never touches the desktop pin,
+  fades/slides each card in with a small per-card stagger. Without this the
+  whole split rendered as flat, motionless text on mobile the instant it
+  scrolled on screen, since the hover/veil mechanic (the desktop entrance
+  motion) is dropped entirely at that width. Reduced-motion and no-js both
+  render the end state (`opacity:1`) directly, same rule as everywhere
+  else on the page.
 
-### 5. How it works — static 4-card grid (rebuilt; was a pinned fluid-scrub)
-**This section has been rebuilt from scratch and no longer matches its
-original design.** The first build ran a 5-step "Fluid Flow Steps" pinned
-scroll-scrub (Post/Apply → Async submission → Live defense → Rubric
-scoring → Hire decision) through `fluid-full.png`, with a Rubric Spectrum
-Bar drawn on the scoring step. All of that — `.flow`, `.flow-inner`,
-`.flow-fluid`, `.flow-scrim`, `.flow-stage`, `.flow-steps`, `.flow-step`,
-`.flow-dots`, `.rubric*`, and the matching `landing.js` scrub IIFE — is
-gone. Two independent reasons converged on removing it: the live-defense/
-rubric content itself was dropped (see "Copy framing" above), and
-separately the user pointed to a screenshot of the *archived*
-`business.html`'s own How-it-works section — a plain static 4-card
-grid — and asked for that instead, along with "remove the step (just keep
-the number)" (drop the "STEP" word, bare numbers only: "01" not "STEP 01").
+### 5. How it works — Fluid Flow Steps pinned scrub (RESTORED, 4 steps)
+**This flipped a third time — read carefully before touching it again.**
+The first build ran a 5-step pinned scroll-scrub (Post/Apply → Async
+submission → Live defense → Rubric scoring → Hire decision) through
+`fluid-full.png`, with a Rubric Spectrum Bar on the scoring step. When the
+live-defense/rubric content was dropped (see "Copy framing" above) this
+was replaced with a plain static 4-card grid matching a screenshot of the
+archived `business.html`'s own How-it-works section. **The user then
+explicitly asked for the scrub mechanic back** — *"I like the old
+animation for the how it works, where it was zoomed in on the fluid
+background and moved as the user scrolled. Use that but with the 4
+steps"* — so the static grid is gone again and the pinned scrub is back,
+restored from git history (`git show <pre-static-grid commit>:assets/
+landing.css`/`landing.js`) and adapted from 5 steps to the current 4, with
+no rubric content re-added.
 
-Current implementation: `.steps-grid` is a static CSS grid (4 cols desktop,
-2 tablet, 1 mobile — plain `@media` breakpoints, no scroll JS at all).
-Each `.step-card` has an icon in a rounded square (`.step-icon`, inline SVG
-— plus/trophy/checkmark/star, matching the reference screenshot), a bare
-`.step-num`, a heading, and a description. Content is the same 4 steps the
-old `business.html`/`builders.html` generator used (`HOW` list in the
-archived `tools-build-pages.py`): Business posts a challenge → Builders
+Current implementation: `.flow` is a **368vh** wrapper (scaled down
+proportionally from the old 460vh for 5 steps); `.flow-stage` pins for the
+duration. `.flow-fluid` tracks `background-position` on `fluid-full.png`
+as the reader scrolls (opacity `.58`, own `landing.js` scrub tied into the
+shared `scrollUpdaters` ticker, not its own listener); `.flow-scrim` is a
+center-heavy radial gradient (not just edge vignette) since the step copy
+sits dead centre, which is exactly where the artwork's brightest passages
+run — an edge-only vignette left the text unreadable. The 4 steps
+crossfade with **asymmetric timing** (outgoing fades in `.24s`, incoming
+waits `.14s` then fades in over `.5s`) since all four are stacked at the
+same absolute position and a symmetric crossfade briefly rendered two
+headlines on top of each other. Numbers are bare (`.flow-num`, "01" not
+"STEP 01") per the earlier explicit ask, kept through this restoration.
+
+**Mode-aware, same as the hero**: `.flow-steps` carries `data-mode-copy` +
+full `data-business`/`data-builder` HTML strings for all 4 steps. Business:
+Business posts a challenge (+ "Post a challenge →" link) → Builders
 compete → Top performers get evaluated → Interviews, internships &
-recognition — translated to "Builders," never the reference image's own
-"Students" wording (see "Copy framing" above).
+recognition. Builder/student: Find a challenge (+ "Browse challenges →"
+link) → Submit your best work → Get evaluated on merit → Earn interviews &
+recognition. See "Nav / footer" above for the `wrap.refreshFlow()` hook
+this requires so the scrub doesn't animate stale, detached nodes after a
+mode swap.
+
+Below 900px / reduced motion / no-js, the pin collapses to a plain stacked
+list (`.flow-step{position:static; opacity:1}` — a scroll-gated step that
+never activates would hide content outright, the site's hard rule).
+`fluid-full.png` **is loaded again** as `.flow-fluid`'s background — see
+"Known issues" below, this reverses what was previously documented there.
 
 ### 6. Testimonials
 Carousel with statement + person + photo per card, **highlighted main card,
@@ -334,6 +438,34 @@ arrow buttons, and a 4s auto-advance**, all as specified. The active card is
 centred in the viewport (clamped at both ends so the rail never shows a
 half-empty gap). Auto-advance pauses on hover/focus and stops permanently
 once the user touches a control; arrow-key support on the rail.
+
+**True infinite loop, not a jump-back — rewritten on explicit request.**
+The user reported auto-advance had stopped firing and asked for the
+carousel to wrap like an "infinity carousel" (last card's "next" is the
+first card, without visibly jumping back across the rail). Both are fixed
+by the same rewrite: a clone of the last card sits before the first and a
+clone of the first sits after the last; `slot` indexes into this extended
+array (`0` and `length-1` are the two clone positions); advancing onto a
+clone animates in the same direction as normal, then a `transitionend`
+listener silently snaps (`transition:none`) to the pixel-identical real
+card, so the loop reads as continuous with no visible reset. (The
+auto-advance stall itself traced to a runtime error thrown by code added
+earlier in the same top-level IIFE halting all script below it — the
+carousel rewrite incidentally fixed this too, since it now runs cleanly.)
+
+**Speaker badges**: each `.t-card` gets a `data-side="business"` /
+`"builder"` attribute and a `.t-badge` ("Company" / "Builder") absolutely
+positioned top-right — tags who's speaking, and is deliberately **not**
+tied to `var(--accent)` (fixed orange/blue tints instead), since it must
+stay correct regardless of which audience mode the reader has toggled.
+
+**Real swipe on mobile, not just a hint.** `#tSwipeHint` ("Swipe to browse
+→") used to just fade out on first touch without anything actually
+responding to the gesture — the promised affordance didn't exist. Fixed
+with real `touchstart`/`touchmove`/`touchend` tracking on `.t-viewport`: a
+horizontal drag past 40px (and more horizontal than vertical, so it
+doesn't hijack an incidental vertical page-scroll) advances/retreats a
+slot exactly like the arrow buttons, through the same clone-snap loop.
 
 - Quotes, names and avatars are **placeholders** — see "Known issues" #1.
   Avatars are illustrated silhouettes: an inline SVG, a gradient-filled
@@ -360,19 +492,43 @@ once the user touches a control; arrow-key support on the rail.
   centring math and only looked right for whichever card happened to be
   `.is-active` (scale 1) at measurement time.
 
+### Final CTA
+Above the headline, `.final-quote` reuses the same already-placeholder-
+marked testimonial quote ("Seeing the actual submissions told us more than
+three rounds of interviews ever did." — Hiring lead, early pilot) rather
+than inventing a new claim just for this section. Below the buttons,
+`.final-fineprint` ("Free for builders — no card required.") is grounded
+in the existing builder-model fact, not a new one. Both buttons are
+`.btn-arrow`: a `→` glyph hidden at `max-width:0; opacity:0` slides/fades
+in on hover/focus-visible. A slow gradient pulse (`.final::before`, two
+radial gradients, `9s ease-in-out infinite`) sits between the fluid video
+layer and the readability scrim (`.final::after`) — explicit z-index
+stack (video → pulse `z-index:1` → scrim `z-index:2` → content
+`z-index:3`) so the pulse never washes out text contrast. Reduced motion
+collapses the animation's duration to near-zero via the page's existing
+global guard; since the pulse's `0%`/`100%` keyframes share the same
+values, it settles cleanly on the resting frame rather than freezing
+mid-cycle.
+
 ## Animation reference library
 
 `Projet — Scroll Animation Library` (the user's markdown doc, supplied in
 chat) is the source for the named effects. Implemented and **still live**:
-Section Reveal on Scroll (#2), Testimonials Fluid Parallax (#8). **Removed
-after initially being built** — Spectrum-to-Waveform Hero Handoff (#1, see
-"1. Hero & call to action" above) and Fluid Flow Steps (#3) / Rubric
-Spectrum Bar (#7) (see "5. How it works" above, now a static grid). Not
-used: Waveform Proof Ticker (#4), CTA Waveform Pulse (#6), Defense
-Spotlight (#9, moot now the defense concept itself is gone — see "Copy
-framing"). **Audience Spectrum Toggle (#5) came back** — the nav's
-`.mode-switch` (see "Nav / footer" above) is a lighter-weight version of
-it (re-tints `--accent`, doesn't rewrite per-mode copy).
+Section Reveal on Scroll (#2), Testimonials Fluid Parallax (#8), and
+**Fluid Flow Steps (#3), which came back** after being removed — see "5.
+How it works" above, restored with 4 steps and no rubric content. **Removed
+and staying removed**: Spectrum-to-Waveform Hero Handoff (#1, see "1. Hero
+& call to action" above — the hero's new background image is a still
+frame, not this effect) and Rubric Spectrum Bar (#7, moot with the rubric
+gone). Not used: Waveform Proof Ticker (#4), Defense Spotlight (#9, moot
+now the defense concept itself is gone — see "Copy framing"). **Audience
+Spectrum Toggle (#5)** — the nav's `.mode-switch` (see "Nav / footer"
+above) started as a lighter-weight version of it (re-tint only) and has
+since grown into the full thing: it now also rewrites hero and
+How-it-works copy per mode. **CTA Waveform Pulse (#6) is now partly
+used** — a slow gradient pulse on the final CTA's background (see "Final
+CTA" above), simpler than the library's original waveform concept but the
+same "slow pulse" idea.
 
 **Every scroll-linked effect runs off one shared rAF-gated ticker** in
 `landing.js` (`scrollUpdaters`), not its own listener. Enter/exit-only
@@ -382,8 +538,9 @@ continuous progress value.
 **The non-negotiable rule on this page: every effect renders its END STATE
 when motion is off or JS never runs — it never just skips.** Verified: under
 both `prefers-reduced-motion` and JS-disabled, all reveals, all five
-testimonials, all counters, and the (now static, so trivially always
-visible) How-it-works cards render at their final values.
+testimonials, all counters, the How-it-works steps (collapsed to a plain
+stacked list, all visible), and the mobile-only spectrum-split card reveal
+all render at their final values.
 
 ## Auth / accounts (front end only)
 
@@ -444,15 +601,23 @@ vestigial now that the chooser is gone — harmless, just never populated.
    "clock counting down to the next event" idea floated for the hero — that
    one is still not built, since there's still no real *event* date, only a
    per-challenge deadline concept.
-3. **Resolved by removal, not optimisation.** The hero no longer has a
-   waveform/`Logo Background 2.png` layer at all (see "1. Hero & call to
-   action" above), and How it works no longer loads `fluid-full.png` as a
-   CSS background (it's a static grid now — see "5. How it works" above).
-   Neither file is referenced from `index.html` any more; no `.webp`
-   derivative is needed for either.
+3. **Superseded — both assets are back in use, the opposite of what this
+   note used to say.** The hero background is `hero-visual.webp`, a
+   compressed derivative of `assets/Logo Background 2.png` (see "1. Hero &
+   call to action" above) — a still frame, not the removed scroll-linked
+   handoff. How it works loads `fluid-full.png` again as `.flow-fluid`'s
+   scrubbed background, since the pinned Fluid Flow Steps mechanic came
+   back (see "5. How it works" above). If either master is ever
+   re-exported, regenerate its derivative the same way (`ffmpeg -q:v 82`
+   for the hero webp; `fluid-full.png` is used directly, no derivative).
 4. **No real backend/routing.** Static HTML/CSS/JS, no framework, no build
-   step. `challenges.html` no longer exists, so "Browse challenges" CTAs
-   point at `#challenges` (the in-page section) or `signup.html`.
+   step. `challenges.html` doesn't exist yet, so "Browse challenges" CTAs
+   point at `#challenges` (the in-page section) or `signup.html`. The one
+   exception is deliberate: `.ss-view-all` ("View all challenges →" under
+   Featured challenges — see "3 + 4." above) links straight to
+   `challenges.html`, since that's meant to become the real full-listing
+   page the user described ("a separate page for all challenges") — it
+   will 404 until that page is built.
 5. **`assets/fluid_animation_3500ms.mp4` (18.7MB) is the raw master export**
    and is not referenced by any page. `assets/fluid-loop.mp4` (~1.1MB,
    `ffmpeg -vf scale=1280:-2 -an -crf 23`) is what ships (final CTA and
@@ -486,3 +651,12 @@ vestigial now that the chooser is gone — harmless, just never populated.
 - Every animation degrades to its end state under `prefers-reduced-motion`
   and with JS off. Nothing is ever gated behind a scroll effect that might
   not run.
+- **Any front-end-only form** (auth forms, the footer's "get notified"
+  capture) follows the same honesty rule: an empty `data-endpoint` makes it
+  say the wiring is pending, never a faked success. Reuse this convention
+  rather than inventing a new one for the next such form.
+- **Mobile-only JS effects gate on `matchMedia`, not just CSS breakpoints**,
+  and are kept in their own dedicated `IntersectionObserver`/listener
+  rather than folded into a desktop mechanic — see the spectrum-split
+  card reveal (`landing.js`) as the reference pattern. This keeps them from
+  ever touching the desktop behaviour they're not meant to affect.
