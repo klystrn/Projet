@@ -1,8 +1,45 @@
-# Projet — website work: handoff from Claude.ai chat
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Projet — website work: handoff from Claude.ai chat
 
 This file exists so Claude Code has full context on a website project that
 started in a Claude.ai conversation. Read this before doing anything else
 in this folder.
+
+## Commands
+
+There is no build step, bundler, package manager, linter, or test suite in
+this repo — it's dependency-free static HTML/CSS/JS (see "Working
+conventions" below; this is a deliberate, repeatedly-confirmed choice, not
+an oversight). The only "command" you need:
+
+```
+python3 -m http.server 8000    # from the repo root, then open http://localhost:8000/
+```
+
+`index.html` is both the entry point and the whole public site. There's
+nothing to compile — edit `index.html` / `assets/landing.css` /
+`assets/landing.js` directly and refresh the browser.
+
+## Impeccable design skill (installed)
+
+`.claude/skills/impeccable/` (vendored from
+[github.com/pbakaus/impeccable](https://github.com/pbakaus/impeccable),
+Apache-2.0) is installed in this repo — invoke it via `/impeccable <command>`
+(e.g. `shape`, `critique`, `audit`, `polish`; see its `SKILL.md` for the
+full command list). `.claude/settings.json` also wires its `PostToolUse`/
+`Stop` hooks, which run its anti-pattern detector automatically after
+Edit/Write/MultiEdit on UI files and again as a deeper pass when a turn
+ends — expect its findings to show up unprompted. It runs entirely on
+local Node scripts with no external dependencies, **except** `npx
+impeccable update`/`check`, which reach `impeccable.style` — that host is
+blocked by this environment's own egress policy (confirmed via the agent
+proxy's status endpoint, not something to route around), so update/check
+won't work from inside a sandboxed session; do the install/update from
+outside such a sandbox (or fetch straight from the GitHub repo, as was
+done for the initial install) if that's ever needed again.
 
 ## Who/what Projet is
 
@@ -313,8 +350,9 @@ specifically) still don't apply. A gentle cursor-tilt (`#heroVisual` in
 `landing.js`, desktop pointer only — gated on `(hover:hover) and
 (pointer:fine)`, max 7deg, no permanent CSS `transition` on the element
 itself to avoid fighting `[data-reveal]`'s own transform transition) is
-the one interaction it keeps. **`hero-visual.webp` is reused a second time**
-as the Testimonials scroll-scrub background — see "6. Testimonials" below.
+the one interaction it keeps. Testimonials briefly reused this same file
+as its own background too, but that design didn't stick — see "6.
+Testimonials" below; `hero-visual.webp` is hero-only now.
 
 **The hero was also resized down to get the logo carousel above the
 fold** — asked explicitly ("it is currently just below the end of the
