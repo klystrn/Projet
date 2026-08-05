@@ -60,7 +60,7 @@
     scrollUpdaters.push(function () {
       var max = document.documentElement.scrollHeight - window.innerHeight;
       var y = window.pageYOffset;
-      if (bar) bar.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
+      if (bar) bar.style.transform = "scaleX(" + (max > 0 ? y / max : 0) + ")";
       if (nav) nav.classList.toggle("is-compact", y > 48);
     });
   })();

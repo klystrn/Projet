@@ -153,10 +153,14 @@ button{font:inherit;}
 [data-mode-copy].mode-swap{opacity:0 !important;}
 
 /* ---------- SCROLL PROGRESS ---------- */
+/* transform:scaleX, not width — this updates every scroll frame via the
+   shared rAF ticker, so animating a layout property (width) here would
+   force a reflow on every frame; scaleX is a compositor-only change */
 .scroll-progress{
-  position:fixed; top:0; left:0; height:2px; width:0;
+  position:fixed; top:0; left:0; height:2px; width:100%;
+  transform:scaleX(0); transform-origin:left;
   background:var(--orange); z-index:300; pointer-events:none;
-  transition:width .1s linear;
+  transition:transform .1s linear;
 }
 
 /* ---------- NAV ---------- */
@@ -184,18 +188,21 @@ header.nav.is-compact .nav-inner{padding-top:10px; padding-bottom:10px;}
 @media (max-width:480px){ .logo-img{height:22px;} .logo{padding:11px 0;} }
 nav.links{display:flex; align-items:center; gap:30px; font-size:14px; font-weight:500; color:var(--ink-soft);}
 nav.links a{position:relative; padding:4px 0;}
+/* transform:scaleX, not width — same reasoning as .scroll-progress: a
+   compositor-only change instead of a layout-triggering one */
 nav.links a::after{
-  content:''; position:absolute; left:0; bottom:0; height:1.5px; width:0;
-  background:var(--accent); transition:width .28s var(--ease);
+  content:''; position:absolute; left:0; bottom:0; height:1.5px; width:100%;
+  transform:scaleX(0); transform-origin:left;
+  background:var(--accent); transition:transform .28s var(--ease);
 }
 nav.links a:hover{color:var(--ink);}
-nav.links a:hover::after{width:100%;}
+nav.links a:hover::after{transform:scaleX(1);}
 nav.links a:focus-visible{color:var(--ink); outline:2px solid var(--ink); outline-offset:4px; border-radius:4px;}
-nav.links a:focus-visible::after{width:100%;}
+nav.links a:focus-visible::after{transform:scaleX(1);}
 /* whichever section is actually in view keeps its underline without a
    hover — a quiet wayfinding cue, not just a link list */
 nav.links a.is-current{color:var(--ink); font-weight:700;}
-nav.links a.is-current::after{width:100%;}
+nav.links a.is-current::after{transform:scaleX(1);}
 .nav-cta{display:flex; align-items:center; gap:14px;}
 .nav-auth{font-size:14px; font-weight:600; color:var(--ink-soft); white-space:nowrap; transition:color .2s var(--ease);}
 .nav-auth:hover{color:var(--ink);}
