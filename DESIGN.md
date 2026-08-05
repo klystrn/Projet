@@ -202,7 +202,7 @@ Every interactive component is pill-shaped and always visibly in motion — butt
 - **Shape:** Full pill (`border-radius: 999px`), `13px 24px` padding, `14.5px` / 700-weight label text.
 - **Primary** (`.btn-primary`): Ink (`#14130f`) background, white text; hovers to Signal orange.
 - **Accent** (`.btn-orange` / `.btn-solid-orange` / `.btn-solid-blue`): Filled with the current accent (Signal or Current, or a side-fixed color on the light-spectrum split's two panel CTAs); hovers to that accent's deep variant.
-- **Ghost / White / Outline-White:** Transparent-on-light, white-on-dark, or white-fill variants used on dark backgrounds (hero, final CTA) — same pill shape and hover-lift, differing only in fill.
+- **Ghost / White:** Transparent-on-light or white-fill variants used on dark backgrounds (final CTA, footer notify) — same pill shape and hover-lift, differing only in fill.
 - **Hover / Focus:** All variants share a `translateY(-2px)` lift (never a shadow change). Keyboard focus adds a universal two-tone ring (`box-shadow: 0 0 0 2px paper, 0 0 0 4px ink`) instead of the browser default outline — a light-then-dark pair so at least one ring is visible whether the button sits on a light or dark section, without needing per-variant color-matching. `.btn-arrow` variants additionally reveal a `→` glyph that slides in from zero width — used on the final CTA and footer links.
 
 ### Cards / Containers
