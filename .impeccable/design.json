@@ -59,10 +59,17 @@
         "displayName": "Hairline",
         "canonical": "#e6e3da"
       },
-      "muted-label": {
+      "muted": {
         "role": "neutral-muted",
         "displayName": "Muted Label",
-        "canonical": "#9c988c"
+        "canonical": "#726d5f",
+        "tonalRamp": ["#2a2823", "#4a463d", "#696558", "#898372", "#a49f92", "#bebbb2", "#d9d7d1", "#f3f3f1"]
+      },
+      "muted-large": {
+        "role": "neutral-muted-large",
+        "displayName": "Muted Label Large",
+        "canonical": "#8f8874",
+        "tonalRamp": ["#2a2822", "#4b473c", "#6b6656", "#8b8470", "#a6a090", "#c0bcb0", "#dad7d1", "#f4f3f1"]
       }
     },
     "typographyMeta": {
@@ -98,7 +105,7 @@
       "refersTo": "button-primary",
       "description": "Ink-filled pill button, the default CTA style; hovers to Signal orange.",
       "html": "<button class=\"ds-btn-primary\">Post a challenge</button>",
-      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid transparent; background:#14130f; color:#fff; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:background .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { background:#ff5b24; transform:translateY(-2px); } .ds-btn-primary:focus-visible { outline:2px solid #ff5b24; outline-offset:3px; }"
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid transparent; background:#14130f; color:#fff; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:background .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-primary:hover { background:#ff5b24; transform:translateY(-2px); } .ds-btn-primary:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #14130f; }"
     },
     {
       "name": "Accent Button",
@@ -106,7 +113,7 @@
       "refersTo": "button-accent",
       "description": "Filled with the active audience accent (Signal or Current); hovers to that accent's deep variant.",
       "html": "<button class=\"ds-btn-accent\">Participate</button>",
-      "css": ".ds-btn-accent { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid transparent; background:#ff5b24; color:#fff; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:background .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-accent:hover, .ds-btn-accent:focus-visible { background:#c73e10; transform:translateY(-2px); } .ds-btn-accent:focus-visible { outline:2px solid #c73e10; outline-offset:3px; }"
+      "css": ".ds-btn-accent { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid transparent; background:#ff5b24; color:#fff; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:background .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-accent:hover { background:#c73e10; transform:translateY(-2px); } .ds-btn-accent:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #14130f; }"
     },
     {
       "name": "Ghost Button",
@@ -114,7 +121,7 @@
       "refersTo": "button-ghost",
       "description": "Transparent outline button for secondary actions on light backgrounds.",
       "html": "<button class=\"ds-btn-ghost\">Browse challenges</button>",
-      "css": ".ds-btn-ghost { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid #e6e3da; background:transparent; color:#14130f; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:border-color .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-ghost:hover, .ds-btn-ghost:focus-visible { border-color:#14130f; transform:translateY(-2px); } .ds-btn-ghost:focus-visible { outline:2px solid #14130f; outline-offset:3px; }"
+      "css": ".ds-btn-ghost { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid #e6e3da; background:transparent; color:#14130f; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:border-color .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-ghost:hover { border-color:#14130f; transform:translateY(-2px); } .ds-btn-ghost:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #14130f; }"
     },
     {
       "name": "Testimonial Card",
@@ -175,7 +182,8 @@
     "donts": [
       "Don't run Signal and Current as two live, competing CTAs on the same surface outside the light-spectrum split's side-fixed panel buttons.",
       "Don't apply a shadow change as a button's hover feedback — use the translateY(-2px) lift instead.",
-      "Don't reuse Muted Label (#9c988c) for body copy or anything below ~13px without checking contrast first — it sits close to the WCAG AA text threshold against white and is easy to under-size into a failure.",
+      "Don't revert Muted Label to a lighter value than #726d5f (or Muted Label Large below #8f8874) — both were darkened specifically to clear WCAG AA at the small sizes they're used at.",
+      "Don't apply the base Signal or Current hue directly to small text (eyebrows, labels) — use Signal Deep / Current Deep instead; the base hues fail WCAG AA at those sizes.",
       "Don't introduce a third accent hue. Spectrum Violet exists only as a gradient midpoint, never as a control fill."
     ]
   }

@@ -502,7 +502,8 @@ no rubric content re-added.
 
 Current implementation: `.flow` is a **368vh** wrapper (scaled down
 proportionally from the old 460vh for 5 steps); `.flow-stage` pins for the
-duration. `.flow-fluid` tracks `background-position` on `fluid-full.png`
+duration. `.flow-fluid` tracks `background-position` on `fluid-full.webp`
+(converted from `fluid-full.png` in a later perf pass — see "Known issues" #3)
 as the reader scrolls (opacity `.58`, own `landing.js` scrub tied into the
 shared `scrollUpdaters` ticker, not its own listener); `.flow-scrim` is a
 center-heavy radial gradient (not just edge vignette) since the step copy
@@ -730,10 +731,16 @@ vestigial now that the chooser is gone — harmless, just never populated.
    `hero-visual.webp` at all. If `Logo Background 2.png` is ever
    re-exported, regenerate `hero-visual.webp` (`ffmpeg -q:v 82`) — only the
    hero uses it now.
-   How it works loads `fluid-full.png` again as `.flow-fluid`'s scrubbed
+   How it works loads `fluid-full.webp` as `.flow-fluid`'s scrubbed
    background, since the pinned Fluid Flow Steps mechanic came back (see
-   "5. How it works" above); `fluid-full.png` is used directly, no
-   derivative.
+   "5. How it works" above). **Updated**: this was `fluid-full.png` used
+   directly with no derivative; a perf pass converted it to
+   `fluid-full.webp` (78KB vs. the 1.19MB PNG, `ffmpeg -q:v 82` — the same
+   convention as `hero-visual.webp`) since it's an opaque RGBA source with
+   no real transparency to lose. `fluid-full.png` stays on disk as the
+   master for future re-exports, same pattern as `fluid_animation_3500ms.mp4`
+   → `fluid-loop.mp4`; regenerate the webp from it if the master is ever
+   re-exported.
 4. **No real backend/routing.** Static HTML/CSS/JS, no framework, no build
    step. `challenges.html` doesn't exist yet, so "Browse challenges" CTAs
    point at `#challenges` (the in-page section) or `signup.html`. The one
@@ -753,6 +760,57 @@ vestigial now that the chooser is gone — harmless, just never populated.
    above — if this asset is ever re-exported or replaced, the 14
    `[zoom, offsetK]` pairs in `landing.js` need regenerating from the new
    file, or the wave will show black/misaligned bars again.
+7. **Accessibility/perf pass (resolved, Aug 2026)** — an `/impeccable audit`
+   flagged several real issues, all now fixed:
+   - **WCAG AA contrast failures**: the base `.eyebrow` color (signal/current
+     orange or blue at 12px on paper) only hit ~3.1:1; switched to
+     `var(--accent-deep)` (5.09-6.68:1) in both `landing.css` and `site.css`.
+     The recurring muted-gray captions (`#9c988c`, `#a8a496`, decorative
+     placeholder `#c2beb2`) failed at 2.5-2.9:1; darkened into two new
+     tokens, `--muted` (#726d5f, 5.16:1 on paper / 4.69:1 on paper-warm) and
+     `--muted-large` (#8f8874, 3.53:1 — meets the large-text 3:1 threshold
+     the 23px/900-weight logo chips qualify for).
+   - **Hardcoded colors consolidated into tokens** (matching DESIGN.md's
+     palette): `--blue-deep` (#1d4fd6), `--violet` (#7a3f8f, the gradient
+     midpoint DESIGN.md calls Spectrum Violet), `--amber-light` (#ff9a5a),
+     `--navy-mid`/`--navy-deep` (#1c3d8f/#0c1638, the hero-visual gradient's
+     dark stops) — added to both `landing.css` and `site.css`'s `:root` and
+     substituted everywhere the raw hex previously appeared in live-rendered
+     CSS. Left untouched: the large amount of dead CSS in `site.css`
+     (`.pain-item`, `.compare-card`, `.evidence-side`, `.quote-card`,
+     `.hero-visual`, `.final-cta`, etc.) inherited from the archived
+     business/builders pages — `login.html`/`signup.html` don't reference
+     any of those classes (confirmed by grepping their actual `class=`
+     attributes), so reconciling that dead code against DESIGN.md's tokens
+     was out of scope.
+   - **Sub-44px touch targets** (measured live via Playwright on a 390px
+     mobile viewport, not guessed): `.logo` (67×22), `.btn-sm` (84×35),
+     the mobile `.mode-opt` (170×36), and `#footerNotifyEmail` (303×37) all
+     padded up to clear 44px without changing their visual size/type scale.
+     `.logo-chip`, `.ss-view-all`, and `.flow-step-link` were below even the
+     24×24 AA minimum (as low as 15px tall); padded to clear 24-30px —
+     deliberately not pushed to the full 44px AAA bar, since forcing that on
+     a scrolling decorative marquee chip or a secondary in-flow "read more"
+     link would visibly bloat them for a stricter target this project isn't
+     otherwise holding itself to. `.footer-col a` and the mobile `.m-link`s
+     already cleared 24×24 and were left as-is.
+   - **Missing `:focus-visible` styling**: added a universal two-tone ring
+     (`box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink)`) to the base
+     `.btn` class in both `landing.css` and `site.css` — since every button
+     variant on the page carries the base `.btn` class, this one rule covers
+     all of them without per-variant color-matching, and the light+dark pair
+     means at least one ring is always visible regardless of whether the
+     button sits on a light or dark section. Also added to `nav.links a`,
+     `.mode-opt`, `.ss-tab`, `.footer-col a`, and `.mobile-menu a.m-link`
+     (only `.logo-chip` and the auth-form `.field input` already had their
+     own). Strengthened `.footer-notify-row input`'s focus state from a bare
+     border-color swap to the same box-shadow ring pattern already used on
+     `site.css`'s auth inputs.
+   - **Font preconnects**: `fonts.googleapis.com` had one already;
+     `fonts.gstatic.com` (the actual Google Fonts file host, not just the
+     CSS host), `api.fontshare.com`, and `cdn.fontshare.com` (Fontshare's
+     font-file CDN) did not.
+   - **`fluid-full.png` → `fluid-full.webp`**: see item 3 above.
 
 ## Working conventions established so far
 

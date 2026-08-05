@@ -22,7 +22,19 @@
   --orange:#ff5b24;
   --orange-deep:#c73e10;
   --navy:#161c3f;
+  --navy-mid:#1c3d8f;
+  --navy-deep:#0c1638;
   --blue:#2f6bff;
+  --blue-deep:#1d4fd6;
+  --violet:#7a3f8f;
+  --amber-light:#ff9a5a;
+  /* darkened from the #9c988c/#a8a496 grays this replaces — those failed
+     WCAG AA (2.5-2.9:1) at the 10-12.5px sizes they're used at; this passes
+     5.16:1 on paper / 4.69:1 on paper-warm */
+  --muted:#726d5f;
+  /* darkened from #c2beb2 for the same reason; only meets the 3:1 large-text
+     threshold, so it's reserved for the 23px/900-weight logo chips */
+  --muted-large:#8f8874;
   --radius:14px;
   --maxw:1240px;
   --ease:cubic-bezier(.16,.84,.44,1);
@@ -33,7 +45,7 @@
   --accent:var(--orange);
   --accent-deep:var(--orange-deep);
 }
-html[data-audience="business"]{ --accent:var(--blue); --accent-deep:#1d4fd6; }
+html[data-audience="business"]{ --accent:var(--blue); --accent-deep:var(--blue-deep); }
 
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -73,7 +85,10 @@ button{font:inherit;}
 
 .eyebrow{
   font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--accent);
+  /* accent-deep, not accent — the base accent (Signal orange at 3.1:1, Current
+     blue is fine but kept symmetric) fails WCAG AA at this 12px mono size on
+     paper; the deep/hover shade of each accent passes (5.09:1 / 6.68:1) */
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep);
   display:inline-flex; align-items:center; gap:9px;
   transition:color .3s var(--ease);
 }
@@ -89,6 +104,15 @@ button{font:inherit;}
              border-color .22s var(--ease), color .22s var(--ease);
 }
 .btn:hover{transform:translateY(-2px);}
+/* Universal two-tone ring: a light inner ring + a dark outer ring means at
+   least one is always visible, regardless of whether the button sits on a
+   light section (paper) or a dark one (final CTA, the light-spectrum wave,
+   how-it-works) — no per-variant color-matching needed. Every .btn variant
+   shares this since every button in index.html carries the base .btn class. */
+.btn:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+}
 .btn-primary{background:var(--ink); color:#fff;}
 .btn-primary:hover{background:var(--orange);}
 .btn-orange{background:var(--accent); color:#fff;}
@@ -106,8 +130,10 @@ button{font:inherit;}
 .btn-solid-orange{background:var(--orange); color:#fff;}
 .btn-solid-orange:hover{background:var(--orange-deep);}
 .btn-solid-blue{background:var(--blue); color:#fff;}
-.btn-solid-blue:hover{background:#1d4fd6;}
-.btn-sm{padding:9px 17px; font-size:13px;}
+.btn-solid-blue:hover{background:var(--blue-deep);}
+/* 14px, not 9px, vertical padding — 9px rendered a 35px-tall tap target,
+   under the 44px touch-target minimum */
+.btn-sm{padding:14px 17px; font-size:13px;}
 
 /* ---------- SECTION REVEAL (animation library #2) ----------
    Connective-tissue fade/slide applied at section level. .no-js and reduced
@@ -151,8 +177,11 @@ header.nav.is-compact{
 }
 header.nav.is-compact .nav-inner{padding-top:10px; padding-bottom:10px;}
 @media (max-width:640px){ .nav-inner{padding:13px 20px;} }
+/* padding, not a taller logo-img — pads the tap target to the 44px touch
+   target minimum without changing the logo's visual size */
+.logo{display:inline-flex; align-items:center; padding:9px 0;}
 .logo-img{height:26px; width:auto;}
-@media (max-width:480px){ .logo-img{height:22px;} }
+@media (max-width:480px){ .logo-img{height:22px;} .logo{padding:11px 0;} }
 nav.links{display:flex; align-items:center; gap:30px; font-size:14px; font-weight:500; color:var(--ink-soft);}
 nav.links a{position:relative; padding:4px 0;}
 nav.links a::after{
@@ -161,6 +190,8 @@ nav.links a::after{
 }
 nav.links a:hover{color:var(--ink);}
 nav.links a:hover::after{width:100%;}
+nav.links a:focus-visible{color:var(--ink); outline:2px solid var(--ink); outline-offset:4px; border-radius:4px;}
+nav.links a:focus-visible::after{width:100%;}
 /* whichever section is actually in view keeps its underline without a
    hover — a quiet wayfinding cue, not just a link list */
 nav.links a.is-current{color:var(--ink); font-weight:700;}
@@ -201,10 +232,13 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   transition:color .22s var(--ease);
 }
 .mode-opt:hover{color:var(--ink);}
+.mode-opt:focus-visible{color:var(--ink); outline:2px solid var(--ink); outline-offset:2px;}
 .mode-opt[aria-current="true"]{color:#fff;}
 @media (max-width:900px){ .nav-left .mode-switch{display:none;} }
 .mode-switch--mobile{display:flex; width:100%; margin-bottom:6px;}
-.mode-switch--mobile .mode-opt{flex:1; text-align:center; padding:11px 10px; font-size:12px;}
+/* 15px, not 11px, vertical padding — 11px rendered a 36px-tall tap target,
+   under the 44px touch-target minimum */
+.mode-switch--mobile .mode-opt{flex:1; text-align:center; padding:15px 10px; font-size:12px;}
 
 .nav-toggle{
   display:none; width:44px; height:44px; flex:none;
@@ -224,6 +258,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 
 .mobile-menu{display:none;}
 .mobile-menu a.m-link{display:block; padding:15px 0; font-size:17px; font-weight:700; border-bottom:1px solid var(--line);}
+.mobile-menu a.m-link:focus-visible{outline:2px solid var(--ink); outline-offset:-2px;}
 .mobile-menu-ctas{display:flex; flex-direction:column; gap:10px; padding-top:16px;}
 .mobile-menu-ctas .btn{width:100%; padding:14px 22px;}
 @media (max-width:900px){
@@ -254,7 +289,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
    segment within the ~605px text column at 1280-1920px widths. */
 .hero h1{font-size:clamp(42px,6.4vw,72px); margin:18px 0 20px; line-height:1.05;}
 .hero h1 .accent{
-  background:linear-gradient(100deg, var(--orange) 0%, #ff9a5a 32%, #7a3f8f 66%, var(--blue) 100%);
+  background:linear-gradient(100deg, var(--orange) 0%, var(--amber-light) 32%, var(--violet) 66%, var(--blue) 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .hero-sub{font-size:18.5px; line-height:1.55; color:var(--ink-soft); max-width:34ch; margin-bottom:26px;}
@@ -268,7 +303,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .hero-stat-row{display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--ink-soft);}
 .hero-stat-row b{color:var(--ink); font-weight:700; font-size:15px;}
 .hero-stat-row span{display:inline-flex; align-items:baseline; gap:6px;}
-.hero-stat-cap{font-size:12px; color:#9c988c; letter-spacing:.02em;}
+.hero-stat-cap{font-size:12px; color:var(--muted); letter-spacing:.02em;}
 
 @media (max-width:640px){
   .hero{padding-top:44px; padding-bottom:56px;}
@@ -288,7 +323,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   position:relative; border-radius:26px; overflow:hidden; aspect-ratio:1/0.86;
   background:linear-gradient(180deg, rgba(20,19,15,0) 45%, rgba(20,19,15,.6) 100%),
     url("hero-visual.webp") center/cover no-repeat,
-    linear-gradient(155deg,#ff9a5a 0%, var(--orange) 22%, #7a3f8f 48%, #1c3d8f 74%, #0c1638 100%);
+    linear-gradient(155deg,var(--amber-light) 0%, var(--orange) 22%, var(--violet) 48%, var(--navy-mid) 74%, var(--navy-deep) 100%);
   box-shadow:0 34px 80px -34px rgba(20,19,15,.55);
 }
 
@@ -326,7 +361,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .logos{padding:14px 0 70px;}
 .logos-label{
   text-align:center; font-family:'JetBrains Mono', monospace; font-size:11px;
-  letter-spacing:.16em; text-transform:uppercase; color:#a8a496; margin-bottom:26px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:26px;
 }
 .logo-marquee{
   overflow:hidden;
@@ -335,7 +370,10 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 }
 .logo-track{display:flex; align-items:center; gap:64px; width:max-content; will-change:transform;}
 .logo-chip{
-  display:inline-block; font-size:23px; font-weight:900; letter-spacing:-.02em; color:#c2beb2;
+  /* padding:4px 0 clears the 24px touch-target minimum (the bare text line
+     rendered at 22px) without visibly changing the chip's size or the
+     marquee track's centered alignment */
+  display:inline-block; padding:4px 0; font-size:23px; font-weight:900; letter-spacing:-.02em; color:var(--muted-large);
   white-space:nowrap; flex:none; transition:color .3s var(--ease), transform .3s var(--ease);
   font-family:'Satoshi', sans-serif;
 }
@@ -437,8 +475,10 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 }
 .ss-view-all{
   /* block, not inline-block — needs to sit on its own line below the
-     "Sign up to compete" button, not beside it */
-  display:block; width:fit-content; margin-top:14px;
+     "Sign up to compete" button, not beside it. padding:6px 0 pads the tap
+     target past the 24px touch-target minimum (the bare text line rendered
+     at 15px) without visually enlarging the link itself. */
+  display:block; width:fit-content; margin-top:8px; padding:6px 0;
   font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:700;
   color:#fff; text-decoration:underline; text-underline-offset:4px;
   transition:color .2s var(--ease);
@@ -531,6 +571,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   color:rgba(255,255,255,.66); white-space:nowrap; transition:background .25s var(--ease), color .25s var(--ease);
 }
 .ss-tab:hover{color:#fff;}
+.ss-tab:focus-visible{color:#fff; outline:2px solid #fff; outline-offset:2px;}
 .ss-tab[aria-selected="true"]{background:#fff; color:var(--ink);}
 
 @media (max-width:900px){
@@ -589,9 +630,12 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
    for the current 4 steps — "STEP" is dropped from the badge (bare number
    only, per that earlier ask), and the Rubric Spectrum Bar stays gone (it
    was tied to content that's no longer here). One continuous journey
-   through fluid-full.png: background-position moves with scroll progress
+   through fluid-full.webp: background-position moves with scroll progress
    across the whole pinned section, so the four steps read as one flow
-   rather than four separate blocks.
+   rather than four separate blocks. Ships as fluid-full.webp (78KB,
+   ffmpeg -q:v 82 — the same convention already used for hero-visual.webp),
+   not the 1.19MB fluid-full.png master; visually identical since it's an
+   opaque RGBA source with no real transparency.
    ========================================================================== */
 .flow{position:relative; height:368vh;}
 .flow-inner{
@@ -601,7 +645,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 }
 .flow-fluid{
   position:absolute; inset:0;
-  background-image:url('fluid-full.png');
+  background-image:url('fluid-full.webp');
   background-size:220% 220%;
   background-position:0% 100%;
   opacity:.58; will-change:background-position;
@@ -649,7 +693,9 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .flow-step h3{color:#fff; font-size:clamp(30px,5vw,60px); line-height:1.04;}
 .flow-step p{color:rgba(255,255,255,.76); font-size:16.5px; line-height:1.6; max-width:52ch;}
 .flow-step-link{
-  margin-top:6px; font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:700;
+  /* padding:6px 0 pads the tap target past the 24px touch-target minimum
+     (the bare text line rendered at 15px) without enlarging the link visually */
+  margin-top:0; padding:6px 0; font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:700;
   color:#fff; text-decoration:underline; text-underline-offset:4px; text-shadow:none;
 }
 .flow-step-link:hover{color:#ffb191;}
@@ -724,14 +770,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   position:absolute; top:18px; right:18px;
   font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
   letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
-  background:rgba(47,107,255,.12); color:#1d4fd6;
+  background:rgba(47,107,255,.12); color:var(--blue-deep);
 }
 .t-card[data-side="builder"] .t-badge{background:rgba(255,91,36,.12); color:var(--orange-deep);}
 .t-quote{position:relative; z-index:1; margin-top:10px; font-size:16px; line-height:1.55; margin-bottom:22px; margin-right:12px; font-weight:500;}
 .t-person{display:flex; align-items:center; gap:13px;}
 .t-avatar{width:44px; height:44px; border-radius:50%; flex:none; object-fit:cover;}
 .t-name{font-weight:700; font-size:14px;}
-.t-role{font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#9c988c; margin-top:2px;}
+.t-role{font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:2px;}
 
 @media (max-width:640px){
   .t-wall{padding:70px 0 64px;}
@@ -818,7 +864,7 @@ footer{
    and the mode toggle it tracks (re-tints with --accent on the audience switch) */
 footer::before{
   content:''; position:absolute; top:-1px; left:0; right:0; height:3px;
-  background:linear-gradient(90deg, var(--accent), #7a3f8f 50%, var(--blue));
+  background:linear-gradient(90deg, var(--accent), var(--violet) 50%, var(--blue));
 }
 .footer-grid{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:44px;}
 @media (max-width:800px){ .footer-grid{grid-template-columns:1fr 1fr; gap:32px;} }
@@ -827,26 +873,32 @@ footer::before{
 .footer-notify{margin-top:22px; max-width:34ch;}
 .footer-notify-label{
   display:block; font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
-  letter-spacing:.1em; text-transform:uppercase; color:#9c988c; margin-bottom:9px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px;
 }
 .footer-notify-row{display:flex; gap:8px;}
 .footer-notify-row input{
-  flex:1; min-width:0; padding:10px 13px; border-radius:999px; border:1px solid var(--line);
+  /* 13px, not 10px, vertical padding — 10px rendered a 37px-tall tap target,
+     under the 44px touch-target minimum */
+  flex:1; min-width:0; padding:14px 13px; border-radius:999px; border:1px solid var(--line);
   background:#fff; font-size:13.5px; color:var(--ink); font-family:inherit;
   transition:border-color .2s var(--ease);
 }
-.footer-notify-row input:focus-visible{outline:none; border-color:var(--accent);}
+/* border-color alone was too weak a focus indicator (a 1px hue shift);
+   the box-shadow ring matches the same treatment already used on
+   site.css's auth-form inputs */
+.footer-notify-row input:focus-visible{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,91,36,.16);}
 .footer-notify-msg{font-size:12.5px; margin:9px 0 0; min-height:1.4em; color:var(--ink-soft);}
 .footer-notify-msg.is-pending{color:var(--accent-deep);}
 .footer-col h6{
   font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; letter-spacing:.12em;
-  text-transform:uppercase; color:#9c988c; margin:0 0 14px;
+  text-transform:uppercase; color:var(--muted); margin:0 0 14px;
 }
 .footer-col a{
   display:flex; align-items:center; gap:0; font-size:14px; color:var(--ink-soft); padding:6px 0;
   transition:color .2s var(--ease), gap .2s var(--ease);
 }
 .footer-col a:hover{color:var(--ink); gap:6px;}
+.footer-col a:focus-visible{color:var(--ink); gap:6px; outline:2px solid var(--ink); outline-offset:2px; border-radius:4px;}
 .footer-col a::after{
   content:'\2192'; opacity:0; max-width:0; overflow:hidden; display:inline-block;
   transition:opacity .2s var(--ease), max-width .2s var(--ease);
@@ -855,7 +907,7 @@ footer::before{
 .footer-bottom{
   display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
   padding-top:26px; border-top:1px solid var(--line);
-  font-size:12.5px; color:#9c988c;
+  font-size:12.5px; color:var(--muted);
 }
 @media (max-width:480px){
   .footer-notify-row{flex-direction:column; align-items:stretch;}

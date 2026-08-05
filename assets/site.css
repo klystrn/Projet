@@ -8,9 +8,19 @@
   --orange-deep:#c73e10;
   --navy:#161c3f;
   --navy-soft:#2a3266;
+  --navy-mid:#1c3d8f;
+  --navy-deep:#0c1638;
   --blue:#2f6bff;
+  --blue-deep:#1d4fd6;
+  --violet:#7a3f8f;
+  --amber-light:#ff9a5a;
   --green-ok:#1f7a4d;
   --red-fail:#c73e10;
+  /* darkened from the #9c988c gray this replaces — that failed WCAG AA
+     (2.6-2.9:1) at the 10-12.5px sizes it's used at; this passes 5.16:1 on
+     paper / 4.69:1 on paper-warm. Kept in sync with the same token in
+     landing.css. */
+  --muted:#726d5f;
   --radius:14px;
   --maxw:1240px;
   --ease:cubic-bezier(.16,.84,.44,1);
@@ -27,7 +37,7 @@
    individual elements with inline color styles, which is how pain-card,
    offer-num and the model-list checkmarks ended up staying orange on the
    builder page after everything else had already been switched to blue */
-html.mode-builder{ --accent:var(--blue); --accent-deep:#1d4fd6; }
+html.mode-builder{ --accent:var(--blue); --accent-deep:var(--blue-deep); }
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 @media (prefers-reduced-motion: reduce){
@@ -80,7 +90,9 @@ img{display:block; max-width:100%;}
   font-weight:600;
   letter-spacing:0.14em;
   text-transform:uppercase;
-  color:var(--accent);
+  /* accent-deep, not accent — matches the same WCAG AA fix in landing.css:
+     the base accent fails contrast at this 12px mono size on paper */
+  color:var(--accent-deep);
   display:inline-flex;
   align-items:center;
   gap:8px;
@@ -302,7 +314,7 @@ nav.links a:hover{color:var(--ink);}
 .auth-submit{width:100%; padding:15px 22px; font-size:15px; margin-top:6px;}
 .auth-alt{margin-top:20px; font-size:14px; color:var(--ink-soft); text-align:center;}
 .auth-alt a{font-weight:700; color:var(--ink); text-decoration:underline; text-underline-offset:3px;}
-.auth-fineprint{margin-top:18px; font-size:12px; color:#9c988c; line-height:1.5; text-align:center;}
+.auth-fineprint{margin-top:18px; font-size:12px; color:var(--muted); line-height:1.5; text-align:center;}
 
 /* form-level status message (also the seam where the API result surfaces) */
 .auth-status{
@@ -388,6 +400,10 @@ nav.links a:hover{color:var(--ink);}
   white-space:nowrap;
 }
 .btn:hover{transform:translateY(-2px);}
+/* same universal two-tone ring as landing.css's .btn:focus-visible — a light
+   inner ring + a dark outer ring so at least one is visible regardless of
+   which section background the button sits on */
+.btn:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
 .btn-primary{background:var(--ink); color:#fff;}
 .btn-primary:hover{background:var(--orange);}
 .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}

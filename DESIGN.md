@@ -12,7 +12,8 @@ colors:
   paper: "#ffffff"
   paper-warm: "#f5f4ef"
   hairline: "#e6e3da"
-  muted-label: "#9c988c"
+  muted: "#726d5f"
+  muted-large: "#8f8874"
 typography:
   display:
     fontFamily: "Satoshi, -apple-system, BlinkMacSystemFont, sans-serif"
@@ -128,11 +129,11 @@ The palette is two accents and a warm-neutral field: nothing else competes for t
 
 ### Primary
 - **Signal** (`#ff5b24`): The builder/student accent and the page's default accent color. Used on primary CTAs in builder mode, the live-pulse dot, the hero card's rank markers, the mode-switch pill, eyebrow dots, and the "For students" nav toggle. Reads as urgent and warm — the color of something happening right now.
-- **Signal Deep** (`#c73e10`): Hover/active state of Signal. Never used at rest — it only appears the instant a Signal-colored control is pressed or hovered.
+- **Signal Deep** (`#c73e10`): Hover/active state of Signal, and also the resting color of small mono eyebrow text/dots on paper — the base Signal hue only hits ~3.1:1 contrast at that size, which fails WCAG AA; Signal Deep hits 5.09:1.
 
 ### Secondary
 - **Current** (`#2f6bff`): The company accent. Overrides Signal site-wide the moment `data-audience="business"` is set — CTAs, the mode-switch pill, badges, and the "For companies" nav toggle all re-tint to Current. Cooler and steadier than Signal on purpose: it reads as trust and process rather than urgency.
-- **Current Deep** (`#1d4fd6`): Hover/active state of Current, mirroring Signal Deep's role on the other side of the toggle.
+- **Current Deep** (`#1d4fd6`): Hover/active state of Current, mirroring Signal Deep's role on the other side of the toggle — including the same eyebrow-text contrast fix (6.68:1 on paper).
 
 ### Tertiary
 - **Spectrum Violet** (`#7a3f8f`): Never a control color — it only ever appears as the midpoint in a Signal→Violet→Current gradient (the hero headline's gradient word, the footer's top accent edge, the light-spectrum wave's seam). It exists purely to make the bridge between the two accents read as one continuous spectrum rather than a hard cut.
@@ -143,7 +144,8 @@ The palette is two accents and a warm-neutral field: nothing else competes for t
 - **Paper** (`#ffffff`): The default page and card background.
 - **Paper Warm** (`#f5f4ef`): A warmer off-white reserved for sections that need to feel calmer than pure white — the testimonial wall, the mode-switch track, footer.
 - **Hairline** (`#e6e3da`): The only border color on light surfaces — dividers, card outlines, input borders at rest.
-- **Muted Label** (`#9c988c`): The color of every small mono caption — stat captions, footer labels, testimonial role lines. Reused constantly but never promoted to a CSS custom property; treat it as a real token when reusing it.
+- **Muted Label** (`#726d5f`): The color of every small mono caption — stat captions, footer labels, testimonial role lines. Now a real CSS custom property (`--muted`); darkened from an earlier `#9c988c` that failed WCAG AA (2.6-2.9:1) at the 10-12.5px sizes it's used at — this passes 5.16:1 on paper / 4.69:1 on paper-warm.
+- **Muted Label Large** (`#8f8874`): The placeholder-logo marquee's wordmark color (`--muted-large`) — 23px/900-weight text qualifies for the large-text 3:1 threshold rather than the 4.5:1 small-text one, so it's darkened less than Muted Label.
 
 ### Named Rules
 **The Two-Signal Rule.** Only Signal or Current is active as the page's accent at any moment — never both, and a surface never lets orange and blue compete as two live CTAs. The one deliberate exception is the light-spectrum wave's two panel buttons ("Sign up to compete" / "Post a challenge"), which are pinned to their literal side color regardless of audience mode, because their job is to label which half of the split they belong to, not to reflect who's currently browsing.
@@ -201,7 +203,7 @@ Every interactive component is pill-shaped and always visibly in motion — butt
 - **Primary** (`.btn-primary`): Ink (`#14130f`) background, white text; hovers to Signal orange.
 - **Accent** (`.btn-orange` / `.btn-solid-orange` / `.btn-solid-blue`): Filled with the current accent (Signal or Current, or a side-fixed color on the light-spectrum split's two panel CTAs); hovers to that accent's deep variant.
 - **Ghost / White / Outline-White:** Transparent-on-light, white-on-dark, or white-fill variants used on dark backgrounds (hero, final CTA) — same pill shape and hover-lift, differing only in fill.
-- **Hover / Focus:** All variants share a `translateY(-2px)` lift (never a shadow change). `.btn-arrow` variants additionally reveal a `→` glyph that slides in from zero width — used on the final CTA and footer links.
+- **Hover / Focus:** All variants share a `translateY(-2px)` lift (never a shadow change). Keyboard focus adds a universal two-tone ring (`box-shadow: 0 0 0 2px paper, 0 0 0 4px ink`) instead of the browser default outline — a light-then-dark pair so at least one ring is visible whether the button sits on a light or dark section, without needing per-variant color-matching. `.btn-arrow` variants additionally reveal a `→` glyph that slides in from zero width — used on the final CTA and footer links.
 
 ### Cards / Containers
 - **Corner Style:** `13px` (light-spectrum mini cards) to `20px` (testimonial cards) to `26–28px` (hero visual, final CTA).
@@ -233,5 +235,6 @@ A pill-track toggle beside the logo with a sliding indicator pill behind whichev
 ### Don't:
 - **Don't** run Signal and Current as two live, competing CTAs on the same surface outside the light-spectrum split's side-fixed panel buttons.
 - **Don't** apply a shadow change as a button's hover feedback — use the `translateY(-2px)` lift instead.
-- **Don't** reuse Muted Label (`#9c988c`) for body copy or anything below ~13px without checking contrast first — it sits close to the WCAG AA text threshold against white and is easy to under-size into a failure.
+- **Don't** revert Muted Label to a lighter value than `#726d5f` (or Muted Label Large below `#8f8874`) — both were darkened specifically to clear WCAG AA at the small sizes they're used at; a lighter shade reintroduces the contrast failure this fixed.
+- **Don't** apply the base Signal or Current hue directly to small text (eyebrows, labels) — use Signal Deep / Current Deep instead; the base hues fail WCAG AA at those sizes.
 - **Don't** introduce a third accent hue. Spectrum Violet exists only as a gradient midpoint, never as a control fill.

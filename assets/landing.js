@@ -451,7 +451,7 @@
   /* ---------------- 5. How it works — fluid flow scrub ----------------
      Restored after briefly being a static grid — the user asked specifically
      to bring this back for the current 4 steps. One continuous journey
-     through fluid-full.png: background-position tracks scroll progress
+     through fluid-full.webp: background-position tracks scroll progress
      across the whole pinned block while the active step steps through in
      four discrete stages. Collapses to a static stacked list under 900px /
      reduced motion / no-js (see landing.css) — a scroll-gated step that
