@@ -1,0 +1,15 @@
+# https://myprojet.co/robots.txt
+
+User-agent: *
+Allow: /
+
+# NOTE: challenges.html, login.html and signup.html are intentionally kept
+# crawlable here even though they should not be indexed. Each one carries
+# <meta name="robots" content="noindex"> instead.
+#
+# Disallowing them as well would be counterproductive: a Disallow stops the
+# crawler from fetching the page at all, so it never sees the noindex, and the
+# URL can still surface in results as a bare link. Allow the fetch, let the
+# meta tag do the work.
+
+Sitemap: https://myprojet.co/sitemap.xml

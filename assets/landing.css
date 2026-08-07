@@ -335,8 +335,30 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 /* ==========================================================================
    1. HERO
    ========================================================================== */
-.hero{position:relative; padding-top:64px; padding-bottom:56px; overflow:hidden;}
-.hero-grid{display:grid; grid-template-columns:1.08fr .92fr; gap:56px; align-items:center;}
+/* Hero + logo carousel together fill the window, so the Featured challenges /
+   Success stories split below them is never visible until the reader scrolls.
+   Before this the pair was a fixed ~813px tall, so the split peeked above the
+   fold on every window taller than ~810px (1440x900, 1536x864, 1920x1080).
+
+   min() rather than a fixed height, because this must only ever GROW the hero:
+   - Tall windows: 100svh minus the nav and the logo strip, so the pair lands
+     exactly on the fold.
+   - Short windows: the hero's natural content height is larger than that
+     figure, so it simply wins and nothing is squashed.
+   - The 900px ceiling is the "within reason" part. Past it the hero would
+     just be stretching whitespace, so on very tall windows the split is
+     allowed to peek instead.
+   --fold-reserve is the nav (76px) plus the logo strip (158px); update it if
+   either changes height. svh (not vh) so mobile browser chrome doesn't push
+   the fold off-screen; the vh line above it is the fallback. */
+.hero{
+  position:relative; padding-top:64px; padding-bottom:56px; overflow:hidden;
+  --fold-reserve:234px;
+  min-height:min(calc(100vh - var(--fold-reserve)), 900px);
+  min-height:min(calc(100svh - var(--fold-reserve)), 900px);
+  display:flex; align-items:center;
+}
+.hero-grid{display:grid; grid-template-columns:1.08fr .92fr; gap:56px; align-items:center; width:100%;}
 @media (max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
 
 /* Capped at 72px, not 86px — the builder/student headline ("Prove your
@@ -708,7 +730,13 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
    not the 1.19MB fluid-full.png master; visually identical since it's an
    opaque RGBA source with no real transparency.
    ========================================================================== */
-.flow{position:relative; height:368vh;}
+/* 540vh, was 368vh. At 368 each of the 4 steps got only ~92vh of scroll (one
+   screen-height), and the user reported a step finished "before I even
+   process" it. Now ~135vh per step, roughly 1.4 screens of scrolling each,
+   so there is real dwell time on a headline before it crossfades out.
+   Desktop only: below 900px .flow collapses to height:auto and a static
+   stacked list, so this never lengthens the mobile page. */
+.flow{position:relative; height:540vh;}
 .flow-inner{
   position:sticky; top:0; height:100vh; overflow:hidden;
   display:flex; align-items:center; justify-content:center;
@@ -730,7 +758,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
      cuts magnification to 1.8x/2.2x/3.0x at those same widths and removes
      the distortion entirely. Height is `auto` so aspect is never forced. */
   --fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
-  --fluid-zoom:1.25;
+  --fluid-zoom:1.4;
   background-size:calc(max(100vw, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
   background-position:0% 100%;
   opacity:.58; will-change:background-position;

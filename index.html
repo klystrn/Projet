@@ -28,7 +28,60 @@
 <meta name="twitter:title" content="Projet: Hire on proof, not paper.">
 <meta name="twitter:description" content="Companies post real challenges. Builders submit their best work and get evaluated on what they actually built.">
 <meta name="twitter:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta property="og:locale" content="en_SG">
 <meta name="theme-color" content="#14130f">
+
+<!--
+  Structured data. Deliberately limited to facts that are already stated
+  publicly on this page or in the footer: name, site URL, logo, what the
+  product does, and the country. No founder names, email, phone, funding or
+  founding date, none of which appear anywhere on the public site. Do not pad
+  this out with invented values just to fill more schema fields, since
+  structured data that contradicts the visible page is worse than none.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://myprojet.co/#organization",
+      "name": "Projet",
+      "url": "https://myprojet.co/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://myprojet.co/assets/logo-dark.png",
+        "width": 267,
+        "height": 88
+      },
+      "description": "Proof-based hiring. Companies post real challenges from their backlog, builders submit real work, and hiring decisions are made on what candidates actually built.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Singapore",
+        "addressCountry": "SG"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://myprojet.co/#website",
+      "url": "https://myprojet.co/",
+      "name": "Projet",
+      "publisher": { "@id": "https://myprojet.co/#organization" },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://myprojet.co/#webpage",
+      "url": "https://myprojet.co/",
+      "name": "Projet: Hire on proof, not paper.",
+      "isPartOf": { "@id": "https://myprojet.co/#website" },
+      "about": { "@id": "https://myprojet.co/#organization" },
+      "description": "Companies post real challenges. Builders submit their best work and get evaluated on what they actually built."
+    }
+  ]
+}
+</script>
+
 <script>document.documentElement.classList.remove("no-js");</script>
 </head>
 <body>

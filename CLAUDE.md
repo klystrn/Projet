@@ -396,6 +396,29 @@ height bottleneck once the text column shrank). Together these bring the
 logo carousel comfortably on-screen at 1366×768, 1440×900, and 1920×1080
 without touching any copy.
 
+**Hero + logo carousel fill the window (Aug 2026).** Asked explicitly: the
+Featured challenges / Success stories split must not be visible until the
+reader scrolls. Before this the hero + carousel were a fixed ~813px tall
+regardless of window height, so the split peeked above the fold on every
+window taller than ~810px (measured: 1440x900, 1536x864, 1920x1080 all
+showed it). `.hero` now carries
+
+```css
+--fold-reserve:234px;                                  /* nav 76 + logo strip 158 */
+min-height:min(calc(100svh - var(--fold-reserve)), 900px);
+display:flex; align-items:center;                      /* .hero-grid gets width:100% */
+```
+
+`min()` and not a fixed height, deliberately, so this can only ever GROW the
+hero: on short windows the hero's natural content height is larger than the
+computed figure and simply wins, so nothing is ever squashed. The 900px
+ceiling is the "within reason" part. Verified the split lands exactly on the
+fold at 1536x864, 1440x900, 1600x900 and 1920x1080, stays below it at 1280x720
+/ 1366x768 / 1280x800, and is allowed to peek only at 2560x1440, where filling
+the window would mean ~1200px of stretched whitespace. `svh` (with a `vh`
+fallback line) so mobile browser chrome doesn't push the fold off-screen.
+**If the nav or the logo strip ever changes height, update `--fold-reserve`.**
+
 ### 2. Logo carousel
 **A true recycling marquee, not a duplicate-and-reset loop** — the user was
 explicit that it must not jump back, only reintroduce what scrolled off.
@@ -529,9 +552,13 @@ restored from git history (`git show <pre-static-grid commit>:assets/
 landing.css`/`landing.js`) and adapted from 5 steps to the current 4, with
 no rubric content re-added.
 
-Current implementation: `.flow` is a **368vh** wrapper (scaled down
-proportionally from the old 460vh for 5 steps); `.flow-stage` pins for the
-duration. `.flow-fluid` tracks `background-position` on the fluid artwork
+Current implementation: `.flow` is a **540vh** wrapper; `.flow-stage` pins
+for the duration. **Raised from 368vh (Aug 2026)** because the user reported
+the scroll animation "feels too short, it finishes before I even process" a
+step: 368vh gave each of the 4 steps only ~92vh (0.75 screen-heights) of
+scroll. At 540vh each step gets ~135vh (1.10 screen-heights), measured, so a
+headline holds long enough to read. Desktop only, since below 900px `.flow`
+collapses to `height:auto` and a plain stacked list. `.flow-fluid` tracks `background-position` on the fluid artwork
 (delivered via `--img-fluid-full`, AVIF with a WebP fallback — see "Known
 issues" #3) as the reader scrolls (opacity `.58`, own `landing.js` scrub
 tied into the shared `scrollUpdaters` ticker, not its own listener).
@@ -550,12 +577,13 @@ and multiplies by a zoom factor for the overhang the scrub pans through:
 
 ```css
 --fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
---fluid-zoom:1.25;
+--fluid-zoom:1.4;
 background-size:calc(max(100vw, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
 ```
 
-Measured upscale went 2.93x -> **1.84x** at 1440px, 3.91x -> **2.22x** at
-1920px, 5.21x -> **2.96x** at 2560px, with the distortion gone entirely.
+Measured upscale went 2.93x -> **2.06x** at 1440px, with the distortion gone
+entirely. (`--fluid-zoom` was 1.25 / 1.84x for one round, then nudged up to
+1.4 on request for a slightly tighter crop.)
 `--fluid-zoom` is the single knob if the motion needs more or less travel;
 raising it trades sharpness back for pan distance.
 
@@ -1014,6 +1042,40 @@ vestigial now that the chooser is gone — harmless, just never populated.
    text) — the flagged pattern is specifically gradient *text*, not colour
    gradients generally, and DESIGN.md documents those as an established
    brand motif (the "light spectrum wave").
+
+## SEO
+
+Added Aug 2026 on request. Static files at the repo root, plus per-page head
+tags. Nothing here is generated, so it needs hand-updating.
+
+- **`robots.txt`** — allows everything and points at the sitemap. It
+  deliberately does **not** `Disallow` the noindex pages. That is the common
+  trap: a `Disallow` stops the crawler fetching the page at all, so it never
+  sees the `noindex`, and the bare URL can still surface in results. Allow the
+  fetch and let the meta tag do the work.
+- **`sitemap.xml`** — lists only `https://myprojet.co/`. `challenges.html`,
+  `login.html` and `signup.html` are all `noindex`, and listing a noindex URL
+  in a sitemap is a contradictory signal. **Add `challenges.html` at the same
+  time its `noindex` comes off**, which is when the API serves real briefs.
+  Namespace must be `http://www.sitemaps.org/schemas/sitemap/0.9` (sitemap*s*,
+  plural — an easy typo that silently invalidates the file).
+- **JSON-LD** on `index.html`: an `@graph` of `Organization` + `WebSite` +
+  `WebPage`, cross-referenced by `@id`. Scoped **only to facts already public
+  on the page**: name, URL, logo, what the product does, and Singapore (which
+  the footer states). Deliberately omitted: founder names, email, phone,
+  funding, founding date. None of those appear on the public site, and
+  structured data that outruns the visible page is worse than none. There is
+  no `SearchAction` because the site has no search.
+- **`challenges.html` got a canonical + full OG/Twitter set.** It had none.
+  Social tags still matter on a `noindex` page: `noindex` keeps it out of
+  search, but the URL can still be pasted into Slack or a DM, and these
+  control the unfurl.
+- `og:locale` is `en_SG` on both pages. `og-cover.jpg` is a correct 1200x630.
+
+**Caveat worth re-reading before pushing for traffic:** the landing page is
+indexable and still carries invented testimonials and fictional partner logos
+(see "Known issues" #1). SEO work makes that content easier to find, so the
+placeholder swap matters more now, not less.
 
 ## Working conventions established so far
 

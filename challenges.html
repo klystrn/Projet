@@ -17,8 +17,28 @@
 <link rel="stylesheet" href="assets/landing.css">
 <link rel="stylesheet" href="assets/challenges.css">
 <meta name="description" content="Browse open challenges on Projet: real briefs from real companies. Submit your work and get evaluated on what you actually built.">
-<!-- noindex while the listings are samples rather than live data -->
+<link rel="canonical" href="https://myprojet.co/challenges.html">
+<!-- noindex while the listings are samples rather than live data. Note this
+     page is deliberately NOT disallowed in robots.txt: a crawler has to be
+     able to fetch the page to see this tag. Remove when briefs are real, and
+     add the URL to sitemap.xml at the same time. -->
 <meta name="robots" content="noindex">
+<!-- Social tags are still worth having on a noindex page: noindex keeps it out
+     of search results, but the URL can still be pasted into Slack, WhatsApp or
+     a DM, and these control how that unfurls. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Projet">
+<meta property="og:url" content="https://myprojet.co/challenges.html">
+<meta property="og:title" content="Challenges | Projet">
+<meta property="og:description" content="Real briefs from real companies. Submit your work and get evaluated on what you actually built.">
+<meta property="og:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_SG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Challenges | Projet">
+<meta name="twitter:description" content="Real briefs from real companies. Submit your work and get evaluated on what you actually built.">
+<meta name="twitter:image" content="https://myprojet.co/assets/og-cover.jpg">
 <meta name="theme-color" content="#14130f">
 <script>document.documentElement.classList.remove("no-js");</script>
 </head>
