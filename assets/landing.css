@@ -136,17 +136,20 @@ main:focus{outline:none;}
   }
 }
 
+/* No leading bullet dot. Every section eyebrow used to carry one (only the
+   hero was the deliberate exception) — dropped everywhere now: a coloured
+   dot in front of an uppercase mono kicker is one of the most recognisable
+   generic-SaaS-template tells, and the hero already proved the label reads
+   fine without it. */
 .eyebrow{
   font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
   /* accent-deep, not accent — the base accent (Signal orange at 3.1:1, Current
      blue is fine but kept symmetric) fails WCAG AA at this 12px mono size on
      paper; the deep/hover shade of each accent passes (5.09:1 / 6.68:1) */
   letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep);
-  display:inline-flex; align-items:center; gap:9px;
+  display:inline-flex; align-items:center;
   transition:color .3s var(--ease);
 }
-.eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none;}
-.eyebrow--plain::before{content:none;}
 
 /* ---------- BUTTONS ---------- */
 .btn{
@@ -516,9 +519,8 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
 .ss-eyebrow{
   font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600;
   letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.72);
-  display:inline-flex; align-items:center; gap:9px; margin-bottom:18px;
+  display:inline-flex; align-items:center; margin-bottom:18px;
 }
-.ss-eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
 .ss-inner h2{font-size:clamp(30px,3.9vw,52px); margin-bottom:16px;}
 .ss-lede{font-size:16.5px; line-height:1.6; color:rgba(255,255,255,.82); margin-bottom:26px;}
 

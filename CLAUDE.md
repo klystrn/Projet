@@ -344,9 +344,11 @@ statistic directly below them (3 figures, not 4 — see "Copy framing"
 above for why "10+ live defenses" is gone).
 
 - The eyebrow reads "Where real work is the strongest hiring signal" (the
-  page's own established tagline) and has **no leading bullet dot**
-  (`.eyebrow--plain` — every other section eyebrow keeps the dot; this was
-  a specific ask for the hero only).
+  page's own established tagline). It originally had no leading bullet dot
+  as a hero-only exception (`.eyebrow--plain`); the dot was later dropped
+  from every section eyebrow site-wide (see "Known issues" #10) and that
+  class no longer exists — this is now just a plain `.eyebrow`, no
+  different from any other section's.
 - The `+` in "120+" lives **inside** the `<b>`, not as a bare text node
   after it. `.hero-stat-row span` is a flex row, so its `gap` would
   otherwise land between the number and the plus and render "120 + builders".
@@ -1042,6 +1044,25 @@ vestigial now that the chooser is gone — harmless, just never populated.
    text) — the flagged pattern is specifically gradient *text*, not colour
    gradients generally, and DESIGN.md documents those as an established
    brand motif (the "light spectrum wave").
+
+10. **Eyebrow dot removed (Aug 2026)** — the user flagged the small coloured
+   bullet in front of every section's uppercase mono kicker ("FEATURED
+   CHALLENGES", "SUCCESS STORIES", "HOW IT WORKS", etc.) as another AI tell,
+   separately from the em-dash/gradient/side-tab pass. `.eyebrow::before`
+   and `.ss-eyebrow::before` (both a `width:6px; height:6px; border-radius:
+   50%` dot) are gone. The mono/uppercase/letter-spaced label itself stays —
+   that's an editorial kicker convention older than any AI tooling, and
+   JetBrains Mono for labels is a documented brand token (see "Brand
+   tokens" above) — only the dot glyph in front of it was the recognisable
+   generic-SaaS-template signature.
+
+   This also resolved a small asymmetry: the hero eyebrow was the one
+   deliberate dot-less exception (`eyebrow--plain`, "asked and confirmed"
+   per an earlier round), while every other section kept the dot. With the
+   dot gone everywhere, `eyebrow--plain` became identical to the base
+   `.eyebrow` and was deleted along with its one HTML usage — there is now
+   only one eyebrow treatment, used consistently across every section on
+   both pages.
 
 ## SEO
 
