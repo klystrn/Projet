@@ -640,10 +640,10 @@
       var endpoint = form.getAttribute("data-endpoint");
       msg.classList.add("is-pending");
       if (!endpoint) {
-        msg.textContent = "Not connected yet — this form is the finished front end, waiting on the API.";
+        msg.textContent = "Not connected yet. This form is the finished front end, waiting on the API.";
         return;
       }
-      msg.textContent = "Thanks — you’re on the list.";
+      msg.textContent = "Thanks. You’re on the list.";
     });
   })();
 

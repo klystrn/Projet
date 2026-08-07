@@ -199,7 +199,7 @@
       if (!endpoint) {
         // Deliberate: better to say the wiring is pending than to fake a
         // success and leave someone believing they have an account.
-        say('pending', 'Accounts aren’t connected yet — this form is the finished front end, waiting on the API.');
+        say('pending', 'Accounts aren’t connected yet. This form is the finished front end, waiting on the API.');
         return;
       }
 

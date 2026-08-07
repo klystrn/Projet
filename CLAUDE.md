@@ -980,6 +980,40 @@ vestigial now that the chooser is gone — harmless, just never populated.
      spectrum band's brightest passage. A text-shadow wasn't enough for
      white-on-white; it now uses the same translucent dark pill as the
      countdown and the toggle beneath it.
+9. **"AI tell" cleanup (Aug 2026)** — asked explicitly to remove signs the
+   site was AI-generated, em-dashes named as the example. Scope was every
+   visitor-visible surface: rendered HTML text/attributes (`title`, meta
+   `og:`/`twitter:`/`description`, `aria-label`, tag content) and JS-injected
+   `textContent`/`say()` strings across `index.html`, `challenges.html`,
+   `login.html`/`signup.html`, `landing.js`, `challenges.js`, `site.js` — 22
+   em-dashes (including `&mdash;`/`&#8212;` entity forms) rewritten as plain
+   sentences (periods, commas, "and") rather than swapped for a semicolon or
+   hyphen. **Deliberately NOT touched**: HTML/CSS/JS comments. Those never
+   render to a visitor — reading them requires View Source — and this repo's
+   comments are load-bearing engineering documentation (hard-won bug
+   fixes, explicit user asks, the "why" behind non-obvious choices); wiping
+   them for zero visitor-facing benefit would have cost real institutional
+   memory. If that judgment call is wrong, ask for comments specifically.
+
+   Also addressed, since `/impeccable`'s own detector had been naming these
+   as literal AI-generation signatures on every turn this session:
+   - **Gradient text removed.** `.hero h1 .accent` (`background-clip:text`
+     spectrum gradient on "not paper."/"not your resume.") is now a solid
+     `var(--orange)`. Single CSS rule, three HTML call sites (business/
+     builder mode-swap + static fallback), no DESIGN.md dependency — clean
+     to convert. Kept the brand accent colour, dropped the gradient.
+   - **Side-tab card border removed.** `.t-card::before`, a 3px top-edge
+     accent bar colour-coding testimonial speaker side (blue=company,
+     orange=builder), is gone. It was pure redundancy, not just an AI
+     tell: `.t-badge` already encodes the same side via both text
+     ("Company"/"Builder") and colour. `.t-card`'s `position:relative`
+     stays — still needed for the watermark and badge.
+
+   Not touched: the diagonal spectrum-split stripe, the flow-scrub
+   background, and other gradient *fills* on decorative surfaces (not
+   text) — the flagged pattern is specifically gradient *text*, not colour
+   gradients generally, and DESIGN.md documents those as an established
+   brand motif (the "light spectrum wave").
 
 ## Working conventions established so far
 

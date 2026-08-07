@@ -346,10 +346,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
    the largest size that still fits both headlines in one line per <br>
    segment within the ~605px text column at 1280-1920px widths. */
 .hero h1{font-size:clamp(42px,6.4vw,72px); margin:18px 0 20px; line-height:1.05;}
-.hero h1 .accent{
-  background:linear-gradient(100deg, var(--orange) 0%, var(--amber-light) 32%, var(--violet) 66%, var(--blue) 100%);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-}
+.hero h1 .accent{color:var(--orange);}
 .hero-sub{font-size:18.5px; line-height:1.55; color:var(--ink-soft); max-width:34ch; margin-bottom:26px;}
 .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;}
 
@@ -844,8 +841,8 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%); backg
   background:#fff; border-radius:20px; padding:28px 26px;
   box-shadow:0 14px 40px -20px rgba(20,19,15,.22);
 }
-.t-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue);}
-.t-card[data-side="builder"]::before{background:var(--orange);}
+/* Speaker side is tagged by .t-badge alone (text + colour) — no separate
+   top-edge accent bar. That bar used to duplicate the same information. */
 /* the "projet asset" bonus: Logo O Alone.png (the icon mark alone) as a
    faint watermark standing in for a literal quotation mark, low enough
    opacity that it never competes with the quote text sitting on top of it */
