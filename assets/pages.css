@@ -1,0 +1,51 @@
+/* ==========================================================================
+   Projet — shared styles for the small marketing subpages (about.html,
+   faq.html). Loaded after landing.css, which owns the shared nav/footer/
+   buttons/tokens; this file only adds what those two pages need on top.
+   ========================================================================== */
+
+/* ---------- generic page header, used by both pages ---------- */
+.page-hero{padding:64px 0 12px; max-width:70ch;}
+.page-hero h1{font-size:clamp(38px,5.4vw,58px); margin:14px 0 18px;}
+.page-hero-sub{font-size:17.5px; line-height:1.6; color:var(--ink-soft); max-width:56ch;}
+
+/* ---------- about.html ---------- */
+.about-section{padding:56px 0;}
+.about-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px;}
+.about-grid h2{font-size:clamp(22px,2.6vw,28px); margin:10px 0 12px;}
+.about-grid p{font-size:15.5px; line-height:1.65; color:var(--ink-soft); max-width:48ch;}
+.about-grid a{font-weight:700; color:var(--accent-deep);}
+@media (max-width:800px){ .about-grid{grid-template-columns:1fr; gap:36px;} }
+
+.about-stats{padding:16px 0 72px;}
+.about-stats-inner{
+  padding:36px 40px; border-radius:var(--radius-xl); background:var(--paper-warm);
+  border:1px solid var(--line);
+}
+.about-stats .hero-stat-row{border-left:0; padding-left:0; font-size:14px; gap:32px;}
+.about-stats .hero-stat-row b{font-size:26px;}
+
+/* ---------- faq.html ---------- */
+.faq-section{padding:48px 0 72px; display:flex; flex-direction:column; gap:40px;}
+.faq-group h2{
+  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--accent-deep);
+  margin-bottom:14px;
+}
+.faq-item{
+  border-bottom:1px solid var(--line); padding:18px 0;
+}
+.faq-item summary{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  cursor:pointer; list-style:none; font-size:16.5px; font-weight:700; color:var(--ink);
+}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{
+  content:'+'; flex:none; width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; font-weight:400; color:var(--muted); border:1px solid var(--line);
+  transition:transform .25s var(--ease);
+}
+.faq-item[open] summary::after{transform:rotate(45deg);}
+.faq-item summary:focus-visible{outline:2px solid var(--ink); outline-offset:4px; border-radius:4px;}
+.faq-item p{margin-top:12px; font-size:15px; line-height:1.65; color:var(--ink-soft); max-width:64ch;}
