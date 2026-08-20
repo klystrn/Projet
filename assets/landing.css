@@ -89,7 +89,7 @@ html{transition:none;}
 }
 
 *{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth; overflow-x:hidden;}
 body{
   margin:0;
   font-family:'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -541,35 +541,74 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 /* ==========================================================================
    5. TESTIMONIALS
    ========================================================================== */
-.testimonials{padding:80px 0 88px; background:var(--paper-warm); overflow:hidden;}
+.testimonials{padding:80px 0 88px; background:var(--paper-warm);}
 .t-head{text-align:center; margin-bottom:36px;}
 .t-head h2{font-size:clamp(28px,3.4vw,40px); margin-top:12px;}
 .t-avatar-defs{position:absolute; width:0; height:0; overflow:hidden;}
-.t-wall-row{overflow:hidden;}
-.t-wall-track{display:flex; gap:18px; width:max-content; will-change:transform;}
-.t-card{
-  position:relative; overflow:hidden; text-align:left;
-  flex:0 0 clamp(280px,30vw,380px);
-  background:#fff; border-radius:var(--radius-lg); padding:28px 26px;
-  box-shadow:0 16px 44px -24px rgba(20,19,15,.24);
+
+/* ---------- option C: spotlight + strip ----------
+   One card promoted above the rest; hovering/focusing a strip chip
+   promotes IT instead. Every chip already carries its own full quote, so
+   nothing here depends on JS to be readable — only the swap itself does. */
+.t-layout{display:flex; flex-direction:column; gap:22px;}
+.t-spot{
+  position:relative; overflow:hidden; border-radius:var(--radius-xl);
+  padding:clamp(30px,4vw,46px); color:#fff; background:var(--grad-dark);
+  box-shadow:0 34px 76px -40px rgba(20,19,15,.5);
 }
-.t-quote-mark{
-  position:absolute; top:22px; left:24px; width:52px; height:52px;
-  background:url('icon-mark.png') center/contain no-repeat;
-  opacity:.08; pointer-events:none;
+.t-spot::after{
+  content:''; position:absolute; inset:-40% -10% auto auto; width:60%; height:170%;
+  background:var(--grad-glow); pointer-events:none;
 }
-.t-badge{
-  position:absolute; top:18px; right:18px;
-  font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
-  letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
-  background:rgba(47,107,255,.12); color:var(--blue-deep);
+.t-spot > *{position:relative; z-index:1;}
+.t-spot-mark{display:block; font-size:52px; line-height:1; font-weight:900; color:rgba(255,255,255,.22); margin-bottom:6px;}
+.t-spot-quote{
+  font-size:clamp(19px,2.4vw,26px); font-weight:700; line-height:1.38; letter-spacing:-.01em;
+  max-width:56ch; margin-bottom:28px; transition:opacity .18s var(--ease);
 }
-.t-card[data-side="builder"] .t-badge{background:rgba(255,91,36,.12); color:var(--orange-deep);}
-.t-quote{position:relative; z-index:1; margin-top:10px; font-size:16px; line-height:1.55; margin-bottom:22px; margin-right:12px; font-weight:500;}
-.t-person{display:flex; align-items:center; gap:13px;}
-.t-avatar{width:44px; height:44px; border-radius:50%; flex:none;}
-.t-name{font-weight:700; font-size:14px;}
-.t-role{font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted);}
+.t-spot-foot{display:flex; align-items:center; gap:14px;}
+.t-spot-avatar{width:50px; height:50px; border-radius:50%; flex:none;}
+.t-spot-name{font-weight:700; font-size:15px;}
+.t-spot-role{font-family:'JetBrains Mono', monospace; font-size:11.5px; color:rgba(255,255,255,.6);}
+.t-spot-tag{
+  margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; padding:5px 11px; border-radius:999px;
+  background:rgba(47,107,255,.28); color:#bcd0ff; white-space:nowrap;
+}
+.t-spot[data-side="builder"] .t-spot-tag{background:rgba(255,91,36,.28); color:#ffcbb3;}
+
+.t-strip{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:14px;}
+.t-chip{
+  text-align:left; display:flex; gap:12px; align-items:flex-start;
+  background:#fff; border:1.5px solid var(--line); border-radius:var(--radius-lg);
+  padding:16px 17px; cursor:pointer;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), transform .2s var(--ease);
+}
+.t-chip:hover, .t-chip:focus-visible{
+  border-color:var(--accent); transform:translateY(-2px);
+  box-shadow:0 16px 34px -22px rgba(20,19,15,.3);
+}
+.t-chip:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.t-chip[aria-current="true"]{border-color:var(--ink); background:var(--paper-warm);}
+.t-chip-avatar{width:34px; height:34px; border-radius:50%; flex:none;}
+.t-chip-body{display:flex; flex-direction:column; gap:6px; min-width:0;}
+.t-chip-quote{
+  font-size:12.5px; line-height:1.5; color:var(--ink-soft);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.t-chip-who{
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+  font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:600; color:var(--muted);
+}
+.t-chip-tag{
+  font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  padding:2px 7px; border-radius:999px; background:rgba(47,107,255,.12); color:var(--blue-deep);
+}
+.t-chip-tag--builder{background:rgba(255,91,36,.12); color:var(--orange-deep);}
+
+@media (max-width:760px){
+  .t-strip{grid-template-columns:1fr;}
+}
 
 /* ==========================================================================
    6. FINAL CTA — full-bleed (asked explicitly: no margins, stretches
@@ -645,18 +684,6 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
    !important because [data-reveal].revealed's own rule would otherwise keep
    these pinned at opacity 1 (higher specificity, same property). */
 .mode-swap{opacity:0 !important; transition:opacity .16s var(--ease) !important;}
-
-/* ---------- testimonial marquee fallbacks ----------
-   Reduced motion runs the clone-fill but skips the animation loop, so the
-   track would sit frozen and overflowing. No-js never clones at all. Both
-   land here: hide the surplus and wrap the real cards into a static grid,
-   rather than leaving a clipped single row. */
-@media (prefers-reduced-motion: reduce){
-  .t-wall-track{flex-wrap:wrap; width:auto; justify-content:center; transform:none !important;}
-  .t-wall-track .t-card:nth-child(n+6){display:none;}
-}
-.no-js .t-wall-track{flex-wrap:wrap; width:auto; justify-content:center;}
-.no-js .t-wall-track .t-card:nth-child(n+6){display:none;}
 
 /* ==========================================================================
    REVEAL (the one motion system kept from v2)

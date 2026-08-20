@@ -361,8 +361,9 @@
       <h2>What the pilot sounded like.</h2>
     </div>
 
-    <!-- Avatar gradients + the shared clip live once here, outside the track,
-         so the marquee's cloned cards carry no duplicate ids. -->
+    <!-- Avatar gradients + the shared clip live once here, referenced by id
+         from both the spotlight and every strip chip below, so five+one
+         avatars don't need six duplicate <linearGradient> definitions. -->
     <svg class="t-avatar-defs" width="0" height="0" aria-hidden="true" focusable="false">
       <defs>
         <linearGradient id="avA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient>
@@ -374,55 +375,73 @@
       </defs>
     </svg>
 
-    <div class="t-wall-row">
-      <div class="t-wall-track" id="tWallTrack">
-        <!-- PLACEHOLDER: invented quotes, attributed to roles only, never a
-             named real person. Avatars are illustrated, not photographs. -->
-        <article class="t-card" data-side="business">
-          <span class="t-quote-mark" aria-hidden="true"></span>
-          <span class="t-badge">Company</span>
-          <p class="t-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</p>
-          <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avA)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-            <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
-          </div>
-        </article>
-        <article class="t-card" data-side="builder">
-          <span class="t-quote-mark" aria-hidden="true"></span>
-          <span class="t-badge">Builder</span>
-          <p class="t-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</p>
-          <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avB)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-            <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
-          </div>
-        </article>
-        <article class="t-card" data-side="business">
-          <span class="t-quote-mark" aria-hidden="true"></span>
-          <span class="t-badge">Company</span>
-          <p class="t-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</p>
-          <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avC)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-            <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
-          </div>
-        </article>
-        <article class="t-card" data-side="builder">
-          <span class="t-quote-mark" aria-hidden="true"></span>
-          <span class="t-badge">Builder</span>
-          <p class="t-quote">&ldquo;I finally had something real to point at. Not a bullet point. Actual work, and I got to explain why I built it that way.&rdquo;</p>
-          <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avD)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-            <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
-          </div>
-        </article>
-        <article class="t-card" data-side="business">
-          <span class="t-quote-mark" aria-hidden="true"></span>
-          <span class="t-badge">Company</span>
-          <p class="t-quote">&ldquo;Faster than a take-home round, and we ended up with work we could actually use.&rdquo;</p>
-          <div class="t-person">
-            <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avE)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
-            <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
-          </div>
-        </article>
+    <!-- Testimonials option C (spotlight + strip): one card promoted above
+         the rest at a larger size, and hovering (or focusing, for keyboard
+         users) any strip card promotes IT into the spotlight instead. The
+         strip cards already carry the full quote themselves, not a
+         truncated teaser, so a no-js visitor loses nothing but the swap
+         animation — every testimonial is fully readable either way.
+         PLACEHOLDER: invented quotes, attributed to roles (and, for the
+         company side, the same placeholder company names used elsewhere
+         on the site) rather than a named real person. Avatars are
+         illustrated, not photographs — see CLAUDE.md "Known issues". -->
+    <div class="t-layout wrap">
+      <article class="t-spot" id="tSpot" data-side="business">
+        <span class="t-spot-mark" aria-hidden="true">&ldquo;</span>
+        <p class="t-spot-quote" id="tSpotQuote">We got a working solution to a real backlog item out of it. The hire was almost a bonus.</p>
+        <div class="t-spot-foot">
+          <svg class="t-spot-avatar" id="tSpotAvatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avA)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+          <div><div class="t-spot-name" id="tSpotName">Engineering manager</div><div class="t-spot-role" id="tSpotRole">Nordwave</div></div>
+          <span class="t-spot-tag" id="tSpotTag">Company</span>
+        </div>
+      </article>
+
+      <div class="t-strip" role="list" aria-label="More testimonials — hover or focus one to feature it above">
+        <button class="t-chip" type="button" role="listitem" data-side="business" data-avatar="avA" aria-current="true"
+          data-name="Engineering manager" data-role="Nordwave" data-tag="Company"
+          data-quote="We got a working solution to a real backlog item out of it. The hire was almost a bonus.">
+          <svg class="t-chip-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avA)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+          <span class="t-chip-body">
+            <span class="t-chip-quote">&ldquo;We got a working solution to a real backlog item out of it. The hire was almost a bonus.&rdquo;</span>
+            <span class="t-chip-who">Engineering manager &middot; Nordwave <span class="t-chip-tag">Company</span></span>
+          </span>
+        </button>
+        <button class="t-chip" type="button" role="listitem" data-side="builder" data-avatar="avB" aria-current="false"
+          data-name="Builder" data-role="Hack &amp; Hire participant" data-tag="Builder"
+          data-quote="Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.">
+          <svg class="t-chip-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avB)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+          <span class="t-chip-body">
+            <span class="t-chip-quote">&ldquo;Nerve-wracking, honestly. But it's the first process where someone actually asked how I think instead of scanning my CV.&rdquo;</span>
+            <span class="t-chip-who">Builder &middot; Hack &amp; Hire participant <span class="t-chip-tag t-chip-tag--builder">Builder</span></span>
+          </span>
+        </button>
+        <button class="t-chip" type="button" role="listitem" data-side="business" data-avatar="avC" aria-current="false"
+          data-name="Founder" data-role="Fieldstone" data-tag="Company"
+          data-quote="Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.">
+          <svg class="t-chip-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avC)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+          <span class="t-chip-body">
+            <span class="t-chip-quote">&ldquo;Anonymous submissions changed who we shortlisted. Two of our top five weren't people we'd have called back on paper.&rdquo;</span>
+            <span class="t-chip-who">Founder &middot; Fieldstone <span class="t-chip-tag">Company</span></span>
+          </span>
+        </button>
+        <button class="t-chip" type="button" role="listitem" data-side="builder" data-avatar="avD" aria-current="false"
+          data-name="Builder" data-role="Hack &amp; Hire participant" data-tag="Builder"
+          data-quote="I finally had something real to point at. Not a bullet point. Actual work, and I got to explain why I built it that way.">
+          <svg class="t-chip-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avD)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+          <span class="t-chip-body">
+            <span class="t-chip-quote">&ldquo;I finally had something real to point at. Not a bullet point. Actual work, and I got to explain why I built it that way.&rdquo;</span>
+            <span class="t-chip-who">Builder &middot; Hack &amp; Hire participant <span class="t-chip-tag t-chip-tag--builder">Builder</span></span>
+          </span>
+        </button>
+        <button class="t-chip" type="button" role="listitem" data-side="business" data-avatar="avE" aria-current="false"
+          data-name="Hiring lead" data-role="Anchorpoint" data-tag="Company"
+          data-quote="Faster than a take-home round, and we ended up with work we could actually use.">
+          <svg class="t-chip-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avE)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
+          <span class="t-chip-body">
+            <span class="t-chip-quote">&ldquo;Faster than a take-home round, and we ended up with work we could actually use.&rdquo;</span>
+            <span class="t-chip-who">Hiring lead &middot; Anchorpoint <span class="t-chip-tag">Company</span></span>
+          </span>
+        </button>
       </div>
     </div>
   </section>

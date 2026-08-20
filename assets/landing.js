@@ -341,65 +341,42 @@
     requestAnimationFrame(tick);
   })();
 
-  /* ---------------- testimonials wall — recycling marquee ----------------
-     A generalised twin of the logo marquee that can also run right-to-left.
-     Instead of moving DOM nodes, it measures one full un-cloned pass
-     (cycleWidth) and wraps the offset by exactly that, so the pattern lines
-     up with itself and the wrap is seamless by construction. */
-  function buildMarqueeRow(track, speed, direction) {
-    if (!track) return;
-    var original = Array.prototype.slice.call(track.children);
-    if (!original.length) return;
-    var gap = parseFloat(getComputedStyle(track).gap) || 18;
+  /* ---------------- testimonials — spotlight + strip ----------------
+     Option C: hovering or focusing a .t-chip in the strip promotes its
+     content into the #tSpot card above. Hover and focus are wired
+     identically (not just :hover in CSS) so keyboard users get the same
+     swap. Falls back to the default spotlight — chip[0]'s content, already
+     inline in the HTML — for no-js and for anyone who never interacts;
+     every chip's own full quote is always readable in the strip itself
+     regardless, so nothing is gated behind hover. */
+  (function () {
+    var spot = document.getElementById("tSpot");
+    var chips = document.querySelectorAll(".t-chip");
+    if (!spot || !chips.length) return;
+    var quoteEl = document.getElementById("tSpotQuote");
+    var avatarEl = document.getElementById("tSpotAvatar");
+    var nameEl = document.getElementById("tSpotName");
+    var roleEl = document.getElementById("tSpotRole");
+    var tagEl = document.getElementById("tSpotTag");
 
-    var cycleWidth = original.reduce(function (sum, n) {
-      return sum + n.offsetWidth + gap;
-    }, 0);
-    if (!cycleWidth) return;
-
-    var guard = 0;
-    while (track.scrollWidth < cycleWidth * 2 + window.innerWidth && guard < 20) {
-      original.forEach(function (n) {
-        var clone = n.cloneNode(true);
-        clone.setAttribute("aria-hidden", "true");
-        clone.setAttribute("tabindex", "-1");
-        track.appendChild(clone);
-      });
-      guard++;
+    function activate(chip) {
+      if (!chip || chip.getAttribute("aria-current") === "true") return;
+      chips.forEach(function (c) { c.setAttribute("aria-current", c === chip ? "true" : "false"); });
+      spot.setAttribute("data-side", chip.getAttribute("data-side") || "business");
+      quoteEl.textContent = chip.getAttribute("data-quote") || "";
+      nameEl.textContent = chip.getAttribute("data-name") || "";
+      roleEl.textContent = chip.getAttribute("data-role") || "";
+      tagEl.textContent = chip.getAttribute("data-tag") || "";
+      var avatarId = chip.getAttribute("data-avatar");
+      var fill = avatarEl.querySelector("circle");
+      if (fill && avatarId) fill.setAttribute("fill", "url(#" + avatarId + ")");
     }
 
-    if (reducedMotion) return; // CSS wraps the visible cards into a static grid
-
-    var offset = 0, last = 0, running = true, paused = false;
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (entries) {
-        running = entries[0].isIntersecting;
-        if (running) { last = 0; requestAnimationFrame(tick); }
-      }, { threshold: 0 }).observe(track.parentElement || track);
-    }
-    ["mouseenter", "focusin"].forEach(function (ev) {
-      track.addEventListener(ev, function () { paused = true; });
+    chips.forEach(function (chip) {
+      chip.addEventListener("mouseenter", function () { activate(chip); });
+      chip.addEventListener("focus", function () { activate(chip); });
     });
-    ["mouseleave", "focusout"].forEach(function (ev) {
-      track.addEventListener(ev, function () { paused = false; last = 0; requestAnimationFrame(tick); });
-    });
-
-    function tick(now) {
-      if (!running) return;
-      if (!last) last = now;
-      var dt = (now - last) / 1000;
-      last = now;
-      if (!paused) {
-        offset += direction * speed * dt;
-        if (offset <= -cycleWidth) offset += cycleWidth;
-        if (offset >= 0 && direction > 0) offset -= cycleWidth;
-        track.style.transform = "translateX(" + offset + "px)";
-      }
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-  buildMarqueeRow(document.getElementById("tWallTrack"), 32, -1);
+  })();
 
   /* ---------------- featured-challenge countdown ----------------
      A real ticking clock against a PLACEHOLDER deadline: hours-from-page-load
