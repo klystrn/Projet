@@ -384,7 +384,7 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   font-size:23px; font-weight:900; letter-spacing:-.01em; color:var(--muted-large);
   padding:8px 2px; white-space:nowrap; transition:color .25s var(--ease);
 }
-.logo-chip:hover{color:var(--ink-soft);}
+.logo-chip:hover, .logo-chip:focus-visible{color:var(--accent-deep);}
 .logo-chip:focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:6px;}
 
 /* ==========================================================================
