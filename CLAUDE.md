@@ -163,13 +163,18 @@ archive/v2/         the complete v2 site, verified-rendering snapshot
    half are **retired**; `#stories` no longer exists anywhere, and the dead
    anchors that pointed at it were removed from `challenges.html`.
 6. **Section 3 is a static vertical timeline** ("option B"), all four steps
-   visible at all times. The pinned scroll-scrub is **retired**.
+   always present and readable. **The pin came back** (see "How it works —
+   pinned scroll-highlight, v3.1" below) — a fresh, later instruction asked
+   for the site to lock in place through this section with a moving
+   highlight, so "no pin at all" is no longer accurate; "no step ever
+   hidden" still is.
 
 **Retired in v3 — do not reinstate without a fresh instruction:** the
-light-spectrum wave split, the How-it-works pinned scroll-scrub, and the
-hero cursor-tilt parallax. The `BAND_ZOOM` table, `spectrum.*` assets and
-`fluid-full.*` assets are no longer referenced by any live page (they remain
-on disk and in `archive/v2/`).
+light-spectrum wave split and the hero cursor-tilt parallax. The
+`BAND_ZOOM` table, `spectrum.*` assets and `fluid-full.*` assets are no
+longer referenced by any live page (they remain on disk and in
+`archive/v2/`). The How-it-works pin itself is **not** on this retired
+list any more — see below.
 
 **The review canvas is a deliverable, keep it.** The v3 direction was chosen
 from a multi-artboard design canvas (hero, both dashboards, 3 Featured-
@@ -195,6 +200,62 @@ suite** (worth knowing if either area is touched again):
   `[hidden]{display:none}` rule the moment its own class sets `display` to
   anything other than `none` — the attribute alone isn't reliable once a
   class-level `display` declaration exists for that element.
+
+**How it works — pinned scroll-highlight, v3.1.** Explicit follow-up ask
+after v3 shipped: *"Create an animated scroll for the how it works such
+that the site becomes fixed when the user reaches the How It Works
+section and the highlighted text changes as they scroll, not just stuck
+on point 1."* The static-timeline content (all 4 steps, all always
+present) stays exactly as v3 specified — this only changes how the
+*emphasis* moves through it. Structure now:
+
+```
+.flow-scroll                 tall (300vh, desktop-only) scroll-room wrapper
+  .flow-stage                 position:sticky; top:96px (clears the nav)
+    .flow-tl                  unchanged: the 4 .flow-step cards, .flow-fill rail
+```
+
+`landing.js` maps scroll progress through `.flow-scroll` to one of the 4
+steps and toggles `.is-active` on it — the other three stay fully in the
+DOM and readable at `opacity:.55`, never hidden, satisfying the same
+"nothing gated behind a scroll effect" rule as everything else on the
+page. A `.flow-fill` rail (`--flow-progress` custom property driving
+`transform:scaleY()`, not `height`) draws down the timeline alongside it,
+so the reader sees continuous progress, not just a jump cut between
+steps. Steps are re-queried live off `#flowTl` every frame rather than
+cached, since `[data-mode-copy]` replaces that element's whole innerHTML
+on an audience swap — caching would go stale the instant the reader
+toggles mode.
+
+**The active node reuses the rank-badge contrast fix, not the raw
+gradient.** The first version of this used `background:var(--grad-accent)`
+on `.tl-node` for the active step, which is the exact same WCAG AA failure
+already found and fixed on the dashboard's `.dp-rank.is-top` (small white
+text over a two-stop gradient drops as low as ~2.1:1 at the lighter
+stop). Fixed the same way: a flat `var(--accent-deep)` fill instead.
+
+**Bug caught mid-build, not by the regression suite:** after any audience
+mode swap, `.is-active` and the fill's `--flow-progress` would go blank
+and stay blank until the reader scrolled again. Cause: `[data-mode-copy]`
+swaps only run in response to a real `scroll`/`resize` event reaching the
+shared `scrollUpdaters` ticker, and a mode-toggle click is neither —
+`applyModeCopy()` replaces `.flow-tl`'s children (the very nodes the
+updater was tracking) without ever re-driving that ticker. Fixed by
+calling `onScroll()` directly at the end of `applyModeCopy()`, both on the
+instant (`animate:false`, page-load) path and after the `.mode-swap`
+crossfade's `setTimeout`. Worth remembering for *any* future scroll-linked
+effect anchored inside a `[data-mode-copy]` element: a mode swap is a DOM
+replacement, not a scroll, and nothing re-syncs it unless something says
+so explicitly.
+
+Mobile (below 900px), `prefers-reduced-motion`, and no-js all render the
+same plain stacked list at full opacity with no pin — `.flow-scroll{height:
+auto}` / `.flow-stage{position:static}` / `.flow-step{opacity:1}` /
+`.flow-fill{display:none}`, gated the same three ways (`@media
+(max-width:900px)`, `@media (prefers-reduced-motion:reduce)`, `.no-js`)
+every other effect on the page already uses. The JS-side highlight logic
+also self-skips at setup time under those same conditions, so no scroll
+listener is even registered for a visitor who's never going to see the pin.
 
 **Backend seams for Andrei** (front end is done, nothing else to rewire):
 - `#heroDash[data-endpoint]` on index.html — hero summary card

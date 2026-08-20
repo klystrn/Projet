@@ -465,20 +465,36 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .ch-note{margin-top:18px; font-size:13px; color:var(--muted);}
 
 /* ==========================================================================
-   4. HOW IT WORKS — vertical timeline (v3 option B), always fully visible
+   4. HOW IT WORKS — pinned scroll-highlight timeline (all 4 steps are
+   always rendered and readable; scrolling through the pinned stage only
+   moves which one is emphasised, it never hides the other three).
    ========================================================================== */
 .flow{padding:88px 0 92px; position:relative;}
 .flow-head{max-width:56ch; margin-bottom:44px;}
 .flow-head h2{font-size:clamp(30px,3.8vw,44px); margin:14px 0 12px;}
 .flow-head p{font-size:16.5px; line-height:1.6; color:var(--ink-soft);}
+
+/* .flow-scroll only gets scroll-room + a sticky child on desktop; below
+   900px (and reduced-motion/no-js, via the same rules further down) it
+   collapses back to a plain block so nothing ever pins on a screen too
+   short to make that legible. */
 .flow-tl{position:relative; max-width:820px;}
-/* the connector: a gradient that fades out at the tail so the sequence
-   reads as ongoing rather than stopping dead */
+/* the connector: a static faint line under the animated fill below */
 .flow-tl::before{
   content:''; position:absolute; left:26px; top:18px; bottom:26px; width:2px;
-  background:linear-gradient(180deg, var(--accent) 0%, var(--accent-lift) 45%, var(--line) 100%);
+  background:var(--line);
 }
-.flow-step{position:relative; display:flex; gap:26px; padding-bottom:38px;}
+/* the fill draws down the same rail as the reader scrolls through the
+   pinned stage — this is the "highlighted text changes as they scroll"
+   progress readout. landing.js sets --flow-progress (0-1) every scroll
+   frame; scaleY is compositor-only, so this never touches layout the way
+   animating height in a scroll loop would. */
+.flow-fill{
+  position:absolute; left:26px; top:18px; bottom:26px; width:2px;
+  background:linear-gradient(180deg, var(--accent) 0%, var(--accent-lift) 100%);
+  transform:scaleY(var(--flow-progress, 0)); transform-origin:top;
+}
+.flow-step{position:relative; display:flex; gap:26px; padding-bottom:38px; opacity:.55; transition:opacity .4s var(--ease);}
 .flow-step:last-child{padding-bottom:0;}
 .tl-node{
   position:relative; z-index:1; flex:none;
@@ -486,12 +502,15 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   display:flex; align-items:center; justify-content:center;
   font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700;
   background:#fff; border:2px solid var(--line); color:var(--muted);
+  transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), box-shadow .3s var(--ease), transform .3s var(--ease);
 }
-/* first node carries the live accent gradient; the rest stay quiet so the
-   eye starts in the right place */
-.flow-step:first-child .tl-node{
-  background:var(--grad-accent); border-color:transparent; color:#fff;
-  box-shadow:var(--accent-glow-shadow);
+/* the active node carries a flat accent-deep fill (not the raw gradient —
+   white text on the gradient's lighter stop fails WCAG AA, see the same
+   fix already applied to the dashboard rank badges) */
+.flow-step.is-active{opacity:1;}
+.flow-step.is-active .tl-node{
+  background:var(--accent-deep); border-color:transparent; color:#fff;
+  box-shadow:var(--accent-glow-shadow); transform:scale(1.04);
 }
 .flow-body{padding-top:5px; min-width:0;}
 .flow-body h3{font-size:21px; margin-bottom:9px;}
@@ -506,6 +525,15 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   display:inline-flex; align-items:center; gap:7px; margin-top:13px;
   padding:7px 13px; border-radius:999px; background:var(--paper-warm);
   font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
+}
+/* the pin: desktop only. .flow-scroll is tall enough to give ~1 screen-height
+   of scroll per step; .flow-stage sticks for that distance while landing.js
+   maps scroll progress to which .flow-step carries .is-active. 96px top
+   clears the sticky nav (76px expanded, less compact) with a little room
+   to spare. */
+@media (min-width:901px){
+  .flow-scroll{height:300vh;}
+  .flow-stage{position:sticky; top:96px;}
 }
 
 /* ==========================================================================
@@ -627,6 +655,21 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
   [data-reveal]{opacity:1 !important; transform:none !important;}
 }
 
+/* ---------- how-it-works pin fallbacks ----------
+   Reduced motion and no-js both get the plain stacked list rather than a
+   scroll-jacked pin: nothing here is ever a scroll effect someone can get
+   stuck inside without motion or without JS to drive it. */
+@media (prefers-reduced-motion: reduce){
+  .flow-scroll{height:auto !important;}
+  .flow-stage{position:static !important;}
+  .flow-step{opacity:1 !important;}
+  .flow-fill{display:none !important;}
+}
+.no-js .flow-scroll{height:auto;}
+.no-js .flow-stage{position:static;}
+.no-js .flow-step{opacity:1;}
+.no-js .flow-fill{display:none;}
+
 /* ==========================================================================
    RESPONSIVE
    ========================================================================== */
@@ -655,6 +698,12 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
   .flow-tl::before{left:22px;}
   .tl-node{width:46px; height:46px; font-size:13px;}
   .flow-step{gap:20px;}
+  /* no room to pin a screen-height stage below 900px: fall back to the
+     plain stacked list, every step fully visible and equally weighted */
+  .flow-scroll{height:auto;}
+  .flow-stage{position:static;}
+  .flow-step{opacity:1;}
+  .flow-fill{display:none;}
 }
 @media (max-width:640px){
   .hero h1{font-size:clamp(34px,9vw,44px);}

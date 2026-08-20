@@ -66,6 +66,40 @@
     });
   })();
 
+  /* ---------------- how-it-works: pinned scroll-highlight ----------------
+     .flow-scroll is a tall (300vh, desktop-only via CSS) wrapper; .flow-stage
+     sticks inside it. As the reader scrolls through that range, progress
+     maps to which .flow-step carries .is-active — nothing is ever hidden,
+     only which step is emphasised moves, so it can't get "stuck" on the
+     first one. --flow-progress drives the rail fill via scaleY (compositor
+     -only) rather than animating height, so this never thrashes layout in
+     a scroll loop. Steps are re-queried live each frame rather than cached,
+     since [data-mode-copy] replaces .flow-tl's innerHTML wholesale on every
+     audience switch. Desktop + motion-ok only: mobile and reduced-motion
+     render the plain flat list from CSS alone, no JS needed there. */
+  (function () {
+    var scrollWrap = document.getElementById("flowScroll");
+    var tl = document.getElementById("flowTl");
+    if (!scrollWrap || !tl) return;
+    if (reducedMotion) return;
+    if (window.matchMedia && window.matchMedia("(max-width:900px)").matches) return;
+
+    scrollUpdaters.push(function () {
+      var steps = tl.querySelectorAll(".flow-step");
+      if (!steps.length) return;
+      var rect = scrollWrap.getBoundingClientRect();
+      var scrollable = scrollWrap.offsetHeight - window.innerHeight;
+      var progress = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
+      var idx = clamp(Math.floor(progress * steps.length), 0, steps.length - 1);
+      // re-applied every tick rather than only on change: [data-mode-copy]
+      // replaces these nodes wholesale on an audience swap, which would
+      // otherwise silently lose .is-active until progress next changed.
+      for (var i = 0; i < steps.length; i++) steps[i].classList.toggle("is-active", i === idx);
+      var fill = document.getElementById("flowFill");
+      if (fill) fill.style.setProperty("--flow-progress", progress);
+    });
+  })();
+
   /* ---------------- mobile nav ---------------- */
   (function () {
     var toggle = document.getElementById("navToggle");
@@ -152,6 +186,7 @@
           var next = el.getAttribute("data-" + (mode === "business" ? "business" : "builder"));
           if (next != null) el.innerHTML = next;
         });
+        onScroll(); // re-run scroll-linked updaters against the fresh nodes
         return;
       }
       copyEls.forEach(function (el) {
@@ -167,6 +202,11 @@
           if (next != null) el.innerHTML = next;
           el.classList.remove("mode-swap");
         });
+        // e.g. the how-it-works pin: .flow-tl's nodes were just replaced
+        // wholesale, and nothing re-drives scrollUpdaters until the next
+        // real scroll event — without this, .is-active/--flow-progress
+        // would sit blank on the new nodes until the reader scrolls again.
+        onScroll();
       }, reducedMotion ? 0 : SWAP_MS);
     }
 
