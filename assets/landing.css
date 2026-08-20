@@ -158,8 +158,12 @@ main:focus{outline:none;}
 .btn-ghost:hover{border-color:var(--ink);}
 .btn-white{background:#fff; color:var(--ink);}
 .btn-sm{padding:14px 17px; font-size:13px;}
-.btn-arrow .arw{max-width:0; opacity:0; overflow:hidden; transition:max-width .25s var(--ease), opacity .25s var(--ease);}
-.btn-arrow:hover .arw, .btn-arrow:focus-visible .arw{max-width:20px; opacity:1;}
+/* The arrow's own box is a fixed size at all times (asked explicitly: no
+   button size change on hover any more) — only its opacity/position
+   animate, both compositor-only, so this is strictly cheaper than the old
+   max-width transition too. */
+.btn-arrow .arw{display:inline-block; opacity:0; transform:translateX(-6px); transition:opacity .25s var(--ease), transform .25s var(--ease);}
+.btn-arrow:hover .arw, .btn-arrow:focus-visible .arw{opacity:1; transform:translateX(0);}
 
 /* ==========================================================================
    NAV
@@ -568,61 +572,72 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .t-role{font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted);}
 
 /* ==========================================================================
-   6. FINAL CTA
-   ========================================================================== */
-.final{padding:0 0 96px;}
-.final-wrap{
-  position:relative; overflow:hidden; border-radius:var(--radius-xl);
-  padding:clamp(48px,7vw,88px) clamp(28px,5vw,64px); text-align:center;
+   6. FINAL CTA — full-bleed (asked explicitly: no margins, stretches
+   across the entire page). Previously .final carried .wrap directly, which
+   capped it at the same padded content width as everything else; now
+   .final is the full-width background carrier and .final-wrap is just the
+   text-width-constrained inner content, same split the hero already uses
+   for its own full-bleed wash. No bottom padding either — the footer
+   trails directly off it now, see FOOTER below. */
+.final{
+  position:relative; overflow:hidden;
+  padding:clamp(64px,9vw,120px) 0; text-align:center;
   background:var(--grad-dark); color:#fff;
 }
-.final-wrap::before{
+.final::before{
   content:''; position:absolute; inset:-40% -20% auto auto; width:90%; height:180%;
   background:var(--grad-glow); opacity:1; pointer-events:none;
 }
-.final-wrap::after{
+.final::after{
   content:''; position:absolute; inset:auto auto -60% -20%; width:80%; height:150%;
   background:var(--grad-glow); opacity:.5; pointer-events:none;
 }
-.final-wrap > *{position:relative; z-index:1;}
+.final-wrap{position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding:0 32px;}
 .final h2{font-size:clamp(30px,4.4vw,52px); margin-bottom:14px;}
 .final p{font-size:17px; color:rgba(255,255,255,.74); margin-bottom:30px;}
 .final-ctas{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
 .final-fineprint{margin-top:22px; font-family:'JetBrains Mono',monospace; font-size:12px; color:rgba(255,255,255,.55);}
 
 /* ==========================================================================
-   FOOTER
+   FOOTER — matches the final CTA's dark background now that the CTA is
+   full-bleed with no bottom padding of its own; a light footer directly
+   under a dark full-width section would have read as a seam where none is
+   needed any more, and it lets the CTA's own glow layers bleed straight
+   into the footer's top edge instead of hitting a hard color change.
+   Every colour below is re-tuned for the dark surface — same rgba(255,255,
+   255,N) scale the CTA copy already uses (.final p / .final-fineprint), not
+   the light-mode tokens (--ink-soft/--muted/--line) this footer used before.
    ========================================================================== */
-footer{position:relative; background:var(--paper-warm); padding:60px 0 34px;}
+footer{position:relative; background:var(--ink); color:#fff; padding:56px 0 34px;}
 footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--grad-rule);}
 .footer-grid{display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:40px; margin-bottom:44px;}
 .footer-brand .logo-img{height:22px; margin-bottom:14px;}
-.footer-brand p{font-size:14px; color:var(--ink-soft); line-height:1.6; max-width:34ch; margin-bottom:22px;}
-.footer-notify-label{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+.footer-brand p{font-size:14px; color:rgba(255,255,255,.72); line-height:1.6; max-width:34ch; margin-bottom:22px;}
+.footer-notify-label{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-bottom:10px;}
 .footer-notify-row{display:flex; gap:8px; flex-wrap:wrap;}
 .footer-notify-row input{
   flex:1; min-width:200px; padding:13px 15px; border-radius:999px;
-  border:1px solid var(--line); background:#fff; font-size:14px; font-family:inherit;
+  border:1px solid transparent; background:#fff; font-size:14px; font-family:inherit;
 }
-.footer-notify-row input:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
-.footer-notify-msg{margin-top:10px; font-size:12.5px; color:var(--muted); min-height:1em;}
+.footer-notify-row input:focus-visible{outline:none; box-shadow:0 0 0 2px var(--ink), 0 0 0 4px #fff;}
+.footer-notify-msg{margin-top:10px; font-size:12.5px; color:rgba(255,255,255,.55); min-height:1em;}
 .footer-col h3{
   font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; letter-spacing:.12em;
-  line-height:1.4; text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+  line-height:1.4; text-transform:uppercase; color:rgba(255,255,255,.5); margin:0 0 14px;
 }
-.footer-col a{display:block; font-size:14px; color:var(--ink-soft); padding:6px 0;}
-.footer-col a:hover{color:var(--ink);}
-.footer-col a:focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:4px;}
-.footer-pending{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--muted); padding:6px 0; cursor:default;}
+.footer-col a{display:block; font-size:14px; color:rgba(255,255,255,.72); padding:6px 0;}
+.footer-col a:hover{color:#fff;}
+.footer-col a:focus-visible{outline:2px solid #fff; outline-offset:3px; border-radius:4px;}
+.footer-pending{display:flex; align-items:center; gap:8px; font-size:14px; color:rgba(255,255,255,.4); padding:6px 0; cursor:default;}
 .footer-pending em{
   font-family:'JetBrains Mono', monospace; font-style:normal;
   font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-  padding:2px 7px; border-radius:999px; background:var(--line); color:var(--muted);
+  padding:2px 7px; border-radius:999px; background:rgba(255,255,255,.12); color:rgba(255,255,255,.55);
 }
 .footer-bottom{
   display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
-  padding-top:26px; border-top:1px solid var(--line);
-  font-size:13px; color:var(--muted);
+  padding-top:26px; border-top:1px solid rgba(255,255,255,.14);
+  font-size:13px; color:rgba(255,255,255,.5);
 }
 
 /* ---------- mode crossfade ----------
