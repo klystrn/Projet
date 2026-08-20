@@ -258,13 +258,190 @@ also self-skips at setup time under those same conditions, so no scroll
 listener is even registered for a visitor who's never going to see the pin.
 
 **Backend seams for Andrei** (front end is done, nothing else to rewire):
-- `#heroDash[data-endpoint]` on index.html — hero summary card
 - `body.dash-page[data-endpoint]` on dashboard.html — full dashboard
 - `window.ProjetDashboard.setView(role)` / `.showEmpty(bool)` — drive the
   view from a real session instead of `?view=`
 - `#footerNotify[data-endpoint]`, and the auth forms' own `data-endpoint`
 - Expected response shapes are documented in comment headers in
   `assets/landing.js` and `assets/dashboard.js`
+- `#heroDash` (index.html's hero card) is **no longer a backend seam** —
+  see "v3.2 updates" below, it's a pure graphic now.
+
+## v3.2 updates (this round, Aug 2026)
+
+A further punch list landed on top of v3, superseding several things
+described just above. Read this before trusting anything above it about
+the nav, hero, How it works, testimonials, challenges.html, the final CTA/
+footer, or about.html.
+
+**Nav.** `Log in` / `Sign up` merged into one `Log in` button (both auth
+pages already cross-link each other). The persistent `.nav-dash` "My
+dashboard" chip is gone — that's where a session lands *after* auth, not
+something the nav needs to keep surfacing pre-login. Added `About us` /
+`FAQs`; `dashboard.html`'s nav also picked up the `Testimonials` link it
+was missing.
+
+**Hero.** `#heroDash` is now a pure illustrative graphic — dropped
+`data-endpoint`, the fetch/backend-hook logic in `landing.js`, and the
+signed-out `.dash-gate` bar entirely (nothing to gate; it was never
+showing a real logged-in user's data anyway). `.hero`'s gradient wash now
+bleeds to the true viewport edges (see "the sticky/overflow-x gotcha"
+below for a bug this surfaced later). The `<hr class="rule">` divider
+between the hero/logo-carousel and Featured Challenges is gone. Logo
+carousel chips are a mark+name lockup now (`.logo-chip-mark` +
+`.logo-chip-name`), not a plain text wordmark — still a placeholder (no
+real logo images exist), just one that reads as a logo. Hover no longer
+tints the chip; only pause-on-hover remains. The whole carousel section
+now has `data-carousel-enabled="true|false"` on `.logos`, so it can be
+hidden outright (`.logos[data-carousel-enabled="false"]{display:none}`)
+whenever there aren't enough real partners to carry a row.
+
+**Dashboard.** The visible Student/Company `.dp-viewswitch` toggle is
+gone — the nav's own audience toggle already drives `setView()`
+(`dashboard.js` ~line 193), so it was a redundant second control. `?view=`
+and the nav toggle both still work exactly as before.
+
+**Auth pages.** Fixed a layout jump on submit: `.field .err`/
+`.auth-status` used to toggle `display:none/block`, and because
+`.auth-main` vertically centered the card, a newly-appeared error banner
+recentered the *whole* card around its new height rather than just
+growing downward. Switched both to an animated `max-height`/`opacity`
+reveal, and `.auth-main` from `align-items:center` to `align-items:
+flex-start` with a fixed top offset, so growth only ever extends downward
+from a point that never moves.
+
+**How it works — pinned fluid-scrub, v3.2 (supersedes v3.1's
+scroll-highlight above).** A further explicit ask: bring the fluid-artwork
+scrub back (the one v3 first retired, described under "5. How it works" in
+the v2-history section below), but reshaped — cropped to the right 5/8 of
+the viewport instead of full-bleed, with the section title fixed on the
+left 3/8, one step visible at a time (not all four dimmed-but-present like
+v3.1), and a final "recap" beat showing all four together right before the
+pin releases. `--img-fluid-full` (AVIF/WebP via `image-set()`) is back in
+`landing.css`'s `:root`, same fallback pattern as before.
+
+```
+.flow-scroll                     650vh, desktop-only scroll-room wrapper
+  .flow-stage                     sticky; top:0; height:100vh;
+                                   grid-template-columns:3fr 5fr
+    .flow-left                    static title (eyebrow/h2/p) + .flow-rail
+      .flow-rail                  data-mode-copy; 4 .flow-rail-item, the
+                                   "design element" filling the space under
+                                   the title — doubles as a progress readout
+    .flow-right                   overflow:hidden; background:var(--ink)
+      .flow-fluid                 the scrub background (cropped to this column)
+      .flow-scrim                 readability gradient over it
+      .flow-steps                 data-mode-copy; 4 .flow-step, crossfade
+                                   stacked, one .is-active at a time
+      .flow-recap                 data-mode-copy; all 4 steps' num+title
+                                   together, .is-active only for the final beat
+```
+
+`landing.js`'s scroll updater divides `.flow-scroll`'s progress into
+`steps.length + 1` even segments (4 steps + 1 recap) rather than 4; the
+last segment sets `.flow-steps.is-recap` (fades the crossfade stack out)
+and `#flowRecap.is-active` (fades the grid of all 4 in). Rail items track
+the same beat via `.is-active`/`.is-done`. Steps/rail/recap are re-queried
+live every tick (not cached), same reason as v3.1: `[data-mode-copy]`
+replaces these nodes wholesale on an audience swap. Below 900px /
+reduced-motion / no-js, everything collapses to a plain light-background
+stacked list (not the dark image treatment — that was tuned for white
+crossfading text over an image, and would just be a contrast problem
+re-flowed as static content); the fallback CSS is written three times
+(`@media(max-width:900px)`, `@media(prefers-reduced-motion:reduce)`,
+`.no-js`), matching the file's existing convention for this kind of thing.
+
+**The sticky/overflow-x gotcha.** Fixing a real ~148px horizontal-scroll
+bug (`.hero::after`'s radial bloom bled a fixed 20% of `.hero`'s own width
+past its edge, which overflowed the true viewport at widths close to
+`--maxw`, confirmed via `window.scrollTo(9999,0)` actually moving
+`scrollX`) was first "fixed" by adding `overflow-x:hidden` to `<html>`.
+That broke `position:sticky` for *every* sticky element on the page,
+including this section's own pin — any non-`visible` overflow on
+`html`/`body` changes what `position:sticky` resolves its containing
+block against. Reverted; the real fix needed no override at all: capped
+`.hero::after`'s bleed at `calc(-1 * min(var(--maxw) * .2, (100vw -
+var(--maxw)) / 2))` instead of a flat `-20%`, so it never exceeds
+whatever margin actually exists between `.hero` and the true viewport
+edge. **If a future overflow bug ever tempts a fix on `html`/`body`'s own
+`overflow-x`, check `position:sticky` everywhere on the page before
+shipping it** — `body{overflow-x:hidden}` alone (no `html` override) is
+the version already proven not to break sticky, even though it doesn't
+reliably stop every possible overflow (this bug proved that too).
+
+**Testimonials — option C spotlight + strip, v3.2 (supersedes the
+recycling-marquee wall described under "6. Testimonials" in the v2-history
+section below).** One promoted `.t-spot` card above a `.t-strip` of 5
+`.t-chip` buttons; hovering *or* focusing a chip promotes its quote,
+avatar, name/role and company/builder tag into the spotlight and sets
+`aria-current`. Every chip already carries its own full quote as
+`data-quote` (not a truncated teaser), so a no-js visitor loses only the
+swap animation, never any content. Quotes vary in length, so swapping
+which one is in the spotlight was changing `#tSpot`'s own height and
+jolting the section on every hover — `landing.js` measures every chip's
+quote against the spotlight's real layout once (and again on resize) and
+reserves the tallest as `min-height`, so the swap only ever changes
+content now, never layout.
+
+**Final CTA / footer, v3.2.** `.final` no longer carries `.wrap` directly
+(same trap the hero had) — `.final` is now the full-width background
+carrier and `.final-wrap` is the text-width-constrained inner content, so
+the section stretches edge to edge instead of sitting as a rounded card
+with page margins. Its own bottom padding is gone too, so the footer
+trails directly off it with zero gap. The footer matches the CTA's dark
+background now (was `--paper-warm`) for the same reason — every footer
+colour re-tuned for the dark surface via the `rgba(255,255,255,N)` scale
+the CTA copy already used, and the footer logo swapped to the existing
+`logo-white.png` (no CSS filter hack). `.btn-arrow`'s reveal changed from
+`max-width:0→20px` (grew the whole button on hover) to a fixed-size arrow
+box animating only `opacity`/`transform:translateX` — same reveal feel,
+zero size change, compositor-only. Applies everywhere `.btn-arrow` is
+used. `challenges.html`'s own `.cl-cta` is a separate, page-specific
+component and keeps its rounded-card treatment — the full-bleed ask was
+about the shared `.final` section repeated across index/about/faq, not
+every CTA on the site.
+
+**challenges.html rebuilt on the canvas's "option A," v3.2** (supersedes
+the six-card version described further down under "`challenges.html` —
+the listing page"). Each `.cl-card` gets a timeline progress fill bar and
+a "View brief" button that opens a real `<dialog>` modal (native
+`showModal()`/`close()` — free focus-trapping, ESC-to-close, `::backdrop`,
+no hand-rolled ARIA), populated from the card's own `data-brief-*`
+attributes on click. The whole page's class prefix is `.cl-` (challenges
+**l**isting), not `.ch-` — `landing.css` already owns `.ch-*` for the
+homepage's own Featured Challenges section, and since this page also
+loads `landing.css`, the old shared prefix risked those rules leaking
+onto this page's markup.
+
+Two further passes since the initial rebuild:
+- `.cl-view-brief` now carries `margin-top:auto` so it sits flush at the
+  bottom of every card regardless of how much the title/description above
+  it wraps — `.cl-grid`'s items already stretch to the row's tallest card
+  (grid's default `align-items:stretch`), and without `margin-top:auto`
+  nothing was pushing the button down to fill that extra height, so it
+  visibly jumped between cards in the same row.
+- The "spots" stat is gone entirely — `data-brief-spots`, the "N
+  submitted · M spots" meta line, and the modal's third stat cell (now a
+  2-column grid, was 3). The timeline fill bar no longer derives its width
+  from a submission cap; it keeps its own authored value, and the modal
+  mirrors whichever card was clicked instead of recomputing from spots.
+- Now **12 sample briefs**, not 6: the original six (Nordwave, Fieldstone,
+  Anchorpoint, Cobalt & Co, Meridian Co, Vertex Studio) plus six more —
+  Northwind, Acme Labs and Lumen Works (the three established placeholder
+  names from the logo carousel that weren't yet used here), plus a second
+  brief each for Nordwave/Fieldstone/Anchorpoint in a different discipline
+  than their first. All still `data-category`-tagged so the discipline
+  filter works against the larger set (4 product / 3 design / 3
+  engineering / 2 data).
+
+**about.html gained explicit Problem/Mission/Vision sections, v3.2.** The
+former single "Why we exist" / "How it works" `.about-grid` row is now two
+rows: Problem/Mission, then Vision/How it works (same `.about-grid`
+component reused, not a new one). Content stays inside what's already
+public — the AI-generated-resume framing already used in the hero, the
+anonymous-scoring model, the Hack & Hire pilot numbers — no new claims
+about founders, funding, or anything this project has deliberately kept
+off the public site.
 
 ---
 
