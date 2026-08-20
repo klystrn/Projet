@@ -67,7 +67,6 @@
     var bodyEl = document.getElementById("cmBody");
     var fillEl = document.getElementById("cmFillIn");
     var submittedEl = document.getElementById("cmSubmitted");
-    var spotsEl = document.getElementById("cmSpots");
     var deadlineEl = document.getElementById("cmDeadline");
 
     grid.querySelectorAll(".cl-view-brief").forEach(function (btn) {
@@ -77,14 +76,15 @@
         var discipline = card.getAttribute("data-brief-discipline") || "";
         var company = card.getAttribute("data-brief-company") || "";
         var submitted = parseInt(card.getAttribute("data-brief-submitted"), 10) || 0;
-        var spots = parseInt(card.getAttribute("data-brief-spots"), 10) || 0;
+        var cardFill = card.querySelector(".cl-fill-in");
 
         tagEl.textContent = discipline + (company ? " · " + company : "");
         titleEl.textContent = card.getAttribute("data-brief-title") || "";
         bodyEl.textContent = card.getAttribute("data-brief-body") || "";
-        fillEl.style.width = (spots > 0 ? Math.round((submitted / spots) * 100) : 0) + "%";
+        // mirrors the card's own timeline fill exactly rather than
+        // recomputing it, since there's no submission cap to derive it from
+        fillEl.style.width = cardFill ? cardFill.style.width : "0%";
         submittedEl.textContent = submitted;
-        spotsEl.textContent = spots;
         deadlineEl.textContent = card.getAttribute("data-brief-deadline") || "";
 
         modal.showModal();

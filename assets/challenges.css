@@ -93,8 +93,10 @@
 .cl-card h2{font-size:18.5px; line-height:1.25; letter-spacing:-.01em;}
 .cl-card p{font-size:14.5px; line-height:1.6; color:var(--ink-soft);}
 
-/* the progress fill — submissions against total spots, the "timeline
-   progress bar" from the chosen canvas direction */
+/* the progress fill — how much of the challenge's open window has elapsed,
+   the "timeline progress bar" from the chosen canvas direction. Not tied to
+   a submission cap (there isn't one) — just a read on how close a brief is
+   to closing, at a glance. */
 .cl-fill{height:5px; border-radius:99px; background:var(--line); overflow:hidden;}
 .cl-fill-in{height:100%; background:var(--orange-deep); border-radius:99px;}
 
@@ -104,8 +106,15 @@
 }
 .cl-meta .cl-deadline{color:var(--accent-deep); font-weight:700;}
 
+/* pinned to the bottom of the card regardless of how much the title/body/
+   meta above it wraps: .cl-grid's items stretch to the row's tallest card
+   (grid's default align-items:stretch), and margin-top:auto on the last
+   flex child in a column absorbs all of that extra height, rather than
+   leaving it as blank space below a button that's floated wherever its own
+   card's shorter content happened to end. Without this the button's
+   position visibly jumped between cards in the same row. */
 .cl-view-brief{
-  margin-top:6px; padding:12px; border-radius:999px; border:0; cursor:pointer;
+  margin-top:auto; padding:12px; border-radius:999px; border:0; cursor:pointer;
   background:var(--ink); color:#fff; font-family:'Satoshi',sans-serif;
   font-size:13.5px; font-weight:700; transition:background .2s var(--ease), transform .2s var(--ease);
 }
@@ -153,7 +162,7 @@
 .cl-modal-close:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
 .cl-modal h2{font-size:23px; line-height:1.25; padding-right:36px;}
 .cl-modal-inner > p{font-size:15px; line-height:1.65; color:var(--ink-soft);}
-.cl-modal-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:2px;}
+.cl-modal-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:2px;}
 .cl-modal-stats div{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
 .cl-modal-stats b{display:block; font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
 .cl-modal-stats span{display:block; margin-top:4px; font-size:11px; color:var(--muted);}
