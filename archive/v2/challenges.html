@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenges | Projet</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- landing.css first (tokens + shared nav/footer/buttons), then this page's own -->
+<link rel="stylesheet" href="assets/landing.css">
+<link rel="stylesheet" href="assets/challenges.css">
+<meta name="description" content="Browse open challenges on Projet: real briefs from real companies. Submit your work and get evaluated on what you actually built.">
+<link rel="canonical" href="https://myprojet.co/challenges.html">
+<!-- noindex while the listings are samples rather than live data. Note this
+     page is deliberately NOT disallowed in robots.txt: a crawler has to be
+     able to fetch the page to see this tag. Remove when briefs are real, and
+     add the URL to sitemap.xml at the same time. -->
+<meta name="robots" content="noindex">
+<!-- Social tags are still worth having on a noindex page: noindex keeps it out
+     of search results, but the URL can still be pasted into Slack, WhatsApp or
+     a DM, and these control how that unfurls. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Projet">
+<meta property="og:url" content="https://myprojet.co/challenges.html">
+<meta property="og:title" content="Challenges | Projet">
+<meta property="og:description" content="Real briefs from real companies. Submit your work and get evaluated on what you actually built.">
+<meta property="og:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_SG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Challenges | Projet">
+<meta name="twitter:description" content="Real briefs from real companies. Submit your work and get evaluated on what you actually built.">
+<meta name="twitter:image" content="https://myprojet.co/assets/og-cover.jpg">
+<meta name="theme-color" content="#14130f">
+<script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body>
+
+<a class="skip-link" href="#top">Skip to main content</a>
+
+<!-- ============================ NAV (shared with index.html) ============================
+     Section links point back at index.html's anchors, since those sections
+     live on the landing page, not here. -->
+<header class="nav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="logo" aria-label="Projet home">
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+      </a>
+      <div class="mode-switch" id="modeSwitch" role="group" aria-label="Switch audience">
+        <span class="mode-indicator" aria-hidden="true"></span>
+        <button class="mode-opt" data-audience="builder" aria-current="true">For students</button>
+        <button class="mode-opt" data-audience="business" aria-current="false">For companies</button>
+      </div>
+    </div>
+    <nav class="links">
+      <a href="challenges.html" class="is-current" aria-current="page">Challenges</a>
+      <a href="index.html#stories">Success stories</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="index.html#testimonials">Testimonials</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="login.html" class="nav-auth">Log in</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mode-switch mode-switch--mobile" role="group" aria-label="Switch audience">
+      <span class="mode-indicator" aria-hidden="true"></span>
+      <button class="mode-opt" data-audience="builder" aria-current="true">For students</button>
+      <button class="mode-opt" data-audience="business" aria-current="false">For companies</button>
+    </div>
+    <a class="m-link" href="challenges.html">Challenges</a>
+    <a class="m-link" href="index.html#stories">Success stories</a>
+    <a class="m-link" href="index.html#how-it-works">How it works</a>
+    <a class="m-link" href="index.html#testimonials">Testimonials</a>
+    <div class="mobile-menu-ctas">
+      <a href="login.html" class="btn btn-ghost">Log in</a>
+      <a href="signup.html" class="btn btn-primary">Sign up</a>
+    </div>
+  </div>
+</header>
+
+<main id="top" tabindex="-1">
+  <div class="wrap">
+
+    <div class="ch-head">
+      <span class="eyebrow">Challenges</span>
+      <h1>Real briefs, straight from the backlog.</h1>
+      <p class="ch-lede">
+        Every challenge here is an actual problem a team needs solved. Not
+        take-home busywork invented to test you. Pick one, submit your best
+        work, and get evaluated on what you actually built.
+      </p>
+
+      <!-- PLACEHOLDER CONTENT, labelled — same convention as the landing
+           page's placeholder logos and testimonials. These six are sample
+           briefs written to show the listing at realistic weight; they are
+           not live listings and no company has posted them. Replace this
+           whole block with real data (and drop the noindex in <head>) once
+           the API is serving challenges. -->
+      <p class="ch-notice">
+        <b>Sample briefs, not live listings.</b>&nbsp;Projet is pre-launch.
+        These six show what a real challenge looks like. Create an account and
+        we'll tell you the moment live briefs open.
+      </p>
+    </div>
+
+    <!-- Client-side filtering only; no data is fetched. Buttons are toggles,
+         not tabs — nothing is being shown/hidden as a panel. -->
+    <div class="ch-filters" role="group" aria-label="Filter challenges by discipline">
+      <button class="ch-filter" data-filter="all" aria-pressed="true">All</button>
+      <button class="ch-filter" data-filter="product" aria-pressed="false">Product</button>
+      <button class="ch-filter" data-filter="design" aria-pressed="false">Design</button>
+      <button class="ch-filter" data-filter="engineering" aria-pressed="false">Engineering</button>
+      <button class="ch-filter" data-filter="data" aria-pressed="false">Data</button>
+      <p class="ch-count" id="chCount" aria-live="polite">6 challenges</p>
+    </div>
+
+    <div class="ch-grid" id="chGrid">
+      <article class="ch-card" data-category="product">
+        <div class="ch-card-top">
+          <span class="ch-tag">Product</span>
+          <span class="ch-pill">OPEN</span>
+        </div>
+        <h2>Rebuild the pricing page conversion flow</h2>
+        <p>Visitors reach pricing and stall. Redesign the flow from plan choice through to checkout, and show why your version converts better.</p>
+        <div class="ch-meta"><span class="ch-deadline">6 days left</span><span>Sample brief</span></div>
+      </article>
+
+      <article class="ch-card" data-category="design">
+        <div class="ch-card-top">
+          <span class="ch-tag">Design</span>
+          <span class="ch-pill">OPEN</span>
+        </div>
+        <h2>Cut onboarding drop-off in the mobile app</h2>
+        <p>Most new users never finish setup. Rework the first-run experience so someone reaches their first real action without giving up.</p>
+        <div class="ch-meta"><span class="ch-deadline">11 days left</span><span>Sample brief</span></div>
+      </article>
+
+      <article class="ch-card" data-category="engineering">
+        <div class="ch-card-top">
+          <span class="ch-tag">Engineering</span>
+          <span class="ch-pill">OPEN</span>
+        </div>
+        <h2>Ship a data pipeline for churn signals</h2>
+        <p>Build a pipeline that turns raw product events into the handful of signals that actually predict a customer leaving.</p>
+        <div class="ch-meta"><span class="ch-deadline">4 days left</span><span>Sample brief</span></div>
+      </article>
+
+      <article class="ch-card" data-category="design">
+        <div class="ch-card-top">
+          <span class="ch-tag">Design</span>
+          <span class="ch-pill">OPEN</span>
+        </div>
+        <h2>Design a stock-alert dashboard for warehouse staff</h2>
+        <p>Floor staff need to see what is running out at a glance, on a shared screen, from several metres away. Design for that room, not a desk.</p>
+        <div class="ch-meta"><span class="ch-deadline">9 days left</span><span>Sample brief</span></div>
+      </article>
+
+      <article class="ch-card" data-category="data">
+        <div class="ch-card-top">
+          <span class="ch-tag">Data</span>
+          <span class="ch-pill">OPEN</span>
+        </div>
+        <h2>Automate the weekly ops reporting pack</h2>
+        <p>An analyst rebuilds the same report by hand every Monday. Automate it end to end and make the output something leadership will actually read.</p>
+        <div class="ch-meta"><span class="ch-deadline">14 days left</span><span>Sample brief</span></div>
+      </article>
+
+      <article class="ch-card" data-category="product">
+        <div class="ch-card-top">
+          <span class="ch-tag">Product</span>
+          <span class="ch-pill">OPEN</span>
+        </div>
+        <h2>Prototype a referral loop for a B2B tool</h2>
+        <p>Referrals work for consumer apps; this one sells to teams. Design a loop that fits how buying decisions actually get made inside a company.</p>
+        <div class="ch-meta"><span class="ch-deadline">7 days left</span><span>Sample brief</span></div>
+      </article>
+    </div>
+
+    <div class="ch-empty" id="chEmpty">
+      <b>No challenges in that discipline yet.</b>
+      Try another filter, or create an account and we'll notify you when new briefs open.
+    </div>
+
+    <section class="ch-cta">
+      <h2>Ready to build something real?</h2>
+      <p>Free for builders. No card required.</p>
+      <div class="ch-cta-btns">
+        <a href="signup.html?role=builder" class="btn btn-white btn-arrow">Sign up to compete</a>
+        <a href="signup.html?role=business" class="btn btn-white btn-arrow">Post a challenge</a>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ============================ FOOTER (shared with index.html) ============================ -->
+<footer id="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+        <p>Proof-based hiring. Companies post real challenges, builders ship real work.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Product</h3>
+        <a href="challenges.html">Challenges</a>
+        <a href="index.html#stories">Success stories</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#testimonials">Testimonials</a>
+      </div>
+      <!-- Not yet built — shown as pending rather than as links to nowhere,
+           matching index.html and the auth forms' honesty convention. -->
+      <div class="footer-col">
+        <h3>Company</h3>
+        <span class="footer-pending">About<em>soon</em></span>
+        <span class="footer-pending">Careers<em>soon</em></span>
+        <span class="footer-pending">Contact<em>soon</em></span>
+      </div>
+      <div class="footer-col">
+        <h3>Account</h3>
+        <a href="login.html">Log in</a>
+        <a href="signup.html">Sign up</a>
+        <span class="footer-pending">Privacy<em>soon</em></span>
+        <span class="footer-pending">Terms<em>soon</em></span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Projet. All rights reserved.</span>
+      <span>Singapore</span>
+    </div>
+  </div>
+</footer>
+
+<!-- landing.js owns the shared chrome (mobile menu, audience toggle, nav
+     compaction); its index-only effects self-skip when their elements are
+     absent. challenges.js adds only this page's filter. -->
+<script src="assets/landing.js"></script>
+<script src="assets/challenges.js"></script>
+</body>
+</html>

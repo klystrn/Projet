@@ -1,0 +1,1126 @@
+:root{
+  --ink:#14130f;
+  --ink-soft:#3a382f;
+  --paper:#ffffff;
+  --paper-warm:#f5f4ef;
+  --line:#e6e3da;
+  --orange:#ff5b24;
+  --orange-deep:#c73e10;
+  --navy:#161c3f;
+  --navy-soft:#2a3266;
+  --navy-mid:#1c3d8f;
+  --navy-deep:#0c1638;
+  --blue:#2f6bff;
+  --blue-deep:#1d4fd6;
+  --violet:#7a3f8f;
+  --amber-light:#ff9a5a;
+  --green-ok:#1f7a4d;
+  --red-fail:#c73e10;
+  /* darkened from the #9c988c gray this replaces — that failed WCAG AA
+     (2.6-2.9:1) at the 10-12.5px sizes it's used at; this passes 5.16:1 on
+     paper / 4.69:1 on paper-warm. Kept in sync with the same token in
+     landing.css. */
+  --muted:#726d5f;
+  --radius:14px;
+  --maxw:1240px;
+  --ease:cubic-bezier(.16,.84,.44,1);
+
+  /* mode accent — orange for business, blue for builder. Components that
+     should tint per-mode read this instead of --orange directly; body picks
+     up the override below. Kept separate from --orange itself since some
+     UI (brand selection color, focus rings, the legacy overview page) is
+     always orange regardless of which mode is showing. */
+  --accent:var(--orange);
+  --accent-deep:var(--orange-deep);
+}
+/* single override point — add/remove this one class rather than patching
+   individual elements with inline color styles, which is how pain-card,
+   offer-num and the model-list checkmarks ended up staying orange on the
+   builder page after everything else had already been switched to blue */
+html.mode-builder{ --accent:var(--blue); --accent-deep:var(--blue-deep); }
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+}
+
+/* gentle section snapping — "proximity" (not "mandatory") only snaps once
+   the user has already stopped scrolling near a section, so it never fights
+   a fast wheel/trackpad scroll; skipped entirely under reduced motion since
+   even proximity snapping is still browser-driven motion */
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-snap-type:y proximity; scroll-padding-top:92px;}
+}
+section.wrap, .how-pin{scroll-snap-align:start;}
+/* the how-it-works header is a short lead-in right before .how-pin — as its
+   own snap point it sat close enough to the pin's start to be a second,
+   redundant snap target a few hundred px apart. Leaving only .how-pin as
+   the target here keeps entry into the pin clean (real-user wheel-scroll
+   testing confirmed proximity snapping otherwise coexists fine with the
+   scrub itself — it doesn't yank position during it). */
+#how-it-works{scroll-snap-align:none;}
+body{
+  margin:0;
+  font-family:'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:'Satoshi', sans-serif; font-weight:900; margin:0; letter-spacing:-0.02em; line-height:1.02;}
+p{margin:0;}
+a{color:inherit; text-decoration:none;}
+img{display:block; max-width:100%;}
+.mono{font-family:'JetBrains Mono', monospace;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 32px;}
+@media (max-width:640px){ .wrap{padding:0 20px;} }
+
+/* faint grain, used behind hero/final-cta and the FAQ band for a bit of texture */
+.grain{position:relative;}
+.grain::after{
+  content:'';
+  position:absolute; inset:0; pointer-events:none; opacity:.5; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  /* accent-deep, not accent — matches the same WCAG AA fix in landing.css:
+     the base accent fails contrast at this 12px mono size on paper */
+  color:var(--accent-deep);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.eyebrow::before{
+  content:'';
+  width:6px; height:6px; border-radius:50%;
+  background:var(--accent);
+  display:inline-block;
+}
+
+/* anchor targets must clear the sticky header, or in-page nav lands with the
+   section heading hidden behind it */
+[id]{scroll-margin-top:92px;}
+
+/* reveal-on-scroll */
+.reveal{opacity:0; transform:translateY(22px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+/* ---------- SCROLL PROGRESS ---------- */
+/* thin accent-colored bar tracking how far down the page you are; sits above
+   the sticky nav so it reads as a fixed rail rather than part of the header */
+.scroll-progress{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:var(--accent); z-index:200; pointer-events:none;
+  transition:width .1s linear;
+}
+@media (prefers-reduced-motion: reduce){ .scroll-progress{transition:none;} }
+
+/* ---------- NAV ---------- */
+header.nav{
+  position:sticky; top:0; z-index:100;
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s var(--ease), box-shadow .3s var(--ease);
+}
+/* toggled by site.js once the page has scrolled past the hero — a plain
+   sticky header with no visual change on scroll reads as static/flat */
+header.nav.is-compact{
+  border-bottom-color:var(--line);
+  box-shadow:0 8px 24px -18px rgba(20,19,15,.25);
+}
+.nav-inner{
+  max-width:var(--maxw); margin:0 auto; padding:16px 32px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+  transition:padding .3s var(--ease);
+}
+header.nav.is-compact .nav-inner{padding-top:11px; padding-bottom:11px;}
+@media (max-width:640px){ .nav-inner{padding:14px 20px;} }
+/* Real exported logomark (assets/logo-dark.png / logo-white.png) replaces the
+   CSS-drawn stand-in. .logo-img is the shipping element; .logo-mark/.logo-word
+   are kept only as a no-image fallback. */
+.logo{display:flex; align-items:center; gap:8px;}
+.logo-img{height:26px; width:auto; display:block;}
+@media (max-width:480px){ .logo-img{height:23px;} }
+.logo-mark{
+  position:relative; width:20px; height:20px; border-radius:50%;
+  background:var(--orange); overflow:hidden; flex:none;
+}
+.logo-mark::after{
+  content:''; position:absolute; top:-4px; right:-4px; width:14px; height:14px;
+  background:var(--paper); transform:rotate(45deg);
+}
+.logo-word{font-family:'Satoshi'; font-weight:900; font-size:22px; color:var(--ink); letter-spacing:-0.02em; display:flex; align-items:center; gap:6px;}
+nav.links{display:flex; align-items:center; gap:28px; font-size:14px; font-weight:500; color:var(--ink-soft);}
+nav.links a:hover{color:var(--ink);}
+.nav-cta{display:flex; align-items:center; gap:14px;}
+
+/* ---------- NAV DROPDOWNS (Challenges / Resources) ----------
+   Hover/focus-within open it with pure CSS (so it works before JS runs);
+   site.js layers click-to-toggle + outside-click/Escape-to-close on top for
+   touch and explicit keyboard control. Challenges' "sort" links are all
+   decorative previews — challenges.html has no real listing yet, so nothing
+   here promises filtering that doesn't exist. */
+.nav-dropdown{position:relative;}
+.nav-drop-trigger{
+  display:inline-flex; align-items:center; gap:5px;
+  background:none; border:none; padding:0; margin:0;
+  font:inherit; color:inherit; cursor:pointer;
+}
+.nav-drop-trigger .chev{font-size:10px; transition:transform .2s var(--ease);}
+.nav-dropdown.open .nav-drop-trigger .chev,
+.nav-dropdown:focus-within .nav-drop-trigger .chev{transform:rotate(180deg);}
+@media (hover:hover){ .nav-dropdown:hover .nav-drop-trigger .chev{transform:rotate(180deg);} }
+
+.nav-drop-panel{
+  position:absolute; top:calc(100% + 16px); left:50%;
+  transform:translateX(-50%) translateY(-6px);
+  min-width:230px; background:#fff; border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 24px 48px -20px rgba(20,19,15,.28);
+  padding:16px; opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .2s var(--ease), transform .2s var(--ease), visibility .2s;
+  z-index:120;
+}
+.nav-dropdown.open .nav-drop-panel,
+.nav-dropdown:focus-within .nav-drop-panel{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+}
+@media (hover:hover){
+  .nav-dropdown:hover .nav-drop-panel{
+    opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+  }
+}
+.drop-label{
+  display:block; font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:#9c988c; margin:0 0 8px;
+}
+.nav-drop-panel a{display:block; padding:7px 2px; font-size:14px; font-weight:500; color:var(--ink-soft); border:none;}
+.nav-drop-panel a:hover{color:var(--ink);}
+.drop-cta{
+  margin-top:10px !important; text-align:center; padding:10px 14px !important;
+  background:var(--accent); color:#fff !important; border-radius:999px; font-weight:700 !important;
+}
+.drop-cta:hover{color:#fff !important; opacity:.9;}
+@media (max-width:900px){ .nav-dropdown{display:none;} } /* flattened into .mobile-menu instead */
+
+/* ---------- DUAL-MODE SWITCH ----------
+   The home page is one interface in two modes; this is the switch between
+   them. Sits beside the logo so it reads as a product-level control rather
+   than another marketing link. */
+.nav-left{display:flex; align-items:center; gap:16px; min-width:0;}
+.mode-switch{
+  display:inline-flex; padding:3px; gap:2px;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:999px;
+}
+.mode-opt{
+  padding:7px 15px; border-radius:999px; white-space:nowrap;
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600;
+  letter-spacing:.03em; color:var(--ink-soft);
+  transition:background .22s var(--ease), color .22s var(--ease);
+}
+.mode-opt:hover{color:var(--ink);}
+.mode-opt[aria-current="page"]{background:var(--ink); color:#fff;}
+.mode-opt[aria-current="page"].is-builder{background:var(--blue);}
+@media (max-width:900px){ .nav-left .mode-switch{display:none;} }
+
+/* full-width version for the mobile sheet */
+.mobile-menu .mode-switch{display:flex; width:100%; margin-bottom:6px;}
+.mobile-menu .mode-opt{flex:1; text-align:center; padding:11px 10px; font-size:12px;}
+
+/* ---------- AUTH ENTRY POINTS IN NAV ---------- */
+.nav-auth{
+  font-size:14px; font-weight:600; color:var(--ink-soft); white-space:nowrap;
+  padding:8px 4px; transition:color .2s var(--ease);
+}
+.nav-auth:hover{color:var(--ink);}
+
+/* ---------- AUTH PAGES (login / signup) ---------- */
+.auth-page{min-height:100vh; display:grid; grid-template-columns:1fr 1fr;}
+@media (max-width:900px){ .auth-page{grid-template-columns:1fr; min-height:auto;} }
+
+.auth-aside{
+  position:relative; overflow:hidden; color:#fff; padding:48px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  background:var(--ink);
+}
+.auth-aside img.texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.9; z-index:0;}
+.auth-aside::after{
+  content:''; position:absolute; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(10,16,42,.62), rgba(10,16,42,.42) 45%, rgba(10,16,42,.72));
+}
+/* :not(img) matters — lifting the texture to z-index 2 as well would put it
+   back on top of the scrim and undo the contrast fix */
+.auth-aside > *:not(img){position:relative; z-index:2;}
+.auth-aside .logo-word{color:#fff;}
+.auth-aside .logo-mark::after{background:var(--ink);}
+.auth-quote{font-size:clamp(22px,2.4vw,30px); font-weight:900; line-height:1.16; letter-spacing:-.02em; max-width:15ch;}
+.auth-aside .auth-stats{display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono'; font-size:12px; color:rgba(255,255,255,.72);}
+.auth-aside .auth-stats b{color:#fff;}
+@media (max-width:900px){
+  .auth-aside{padding:26px 20px; min-height:210px; gap:26px;}
+  .auth-quote{max-width:none;}
+  .auth-aside .auth-stats{display:none;}
+}
+
+.auth-main{display:flex; align-items:center; justify-content:center; padding:48px 32px;}
+@media (max-width:640px){ .auth-main{padding:34px 20px;} }
+.auth-card{width:100%; max-width:420px;}
+.auth-card h1{font-size:clamp(28px,3.4vw,38px); margin-bottom:10px;}
+.auth-lede{font-size:15.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:28px;}
+
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+/* role picker — prefilled from whichever side of the chooser they came through */
+.role-toggle{
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px;
+  border:0; padding:0; margin-inline:0;   /* strip the default fieldset chrome */
+}
+.role-opt{position:relative;}
+.role-opt input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;}
+.role-opt span{
+  display:block; text-align:center; padding:13px 10px; border-radius:12px;
+  border:1px solid var(--line); background:var(--paper-warm);
+  font-size:14px; font-weight:700; transition:all .2s var(--ease);
+}
+.role-opt small{display:block; font-weight:500; font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+.role-opt input:checked + span{border-color:var(--ink); background:var(--ink); color:#fff;}
+.role-opt input:checked + span small{color:rgba(255,255,255,.7);}
+.role-opt input:focus-visible + span{outline:2px solid var(--orange); outline-offset:2px;}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:13px; font-weight:700; margin-bottom:6px;}
+.field input{
+  width:100%; padding:13px 14px; font-size:15px; font-family:'Satoshi', sans-serif;
+  border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink);
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.field input:focus{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(255,91,36,.16);}
+.field input[aria-invalid="true"]{border-color:var(--red-fail);}
+.field .err{display:none; font-size:12.5px; color:var(--red-fail); margin-top:5px; font-weight:600;}
+.field input[aria-invalid="true"] ~ .err{display:block;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+@media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
+
+.auth-submit{width:100%; padding:15px 22px; font-size:15px; margin-top:6px;}
+.auth-alt{margin-top:20px; font-size:14px; color:var(--ink-soft); text-align:center;}
+.auth-alt a{font-weight:700; color:var(--ink); text-decoration:underline; text-underline-offset:3px;}
+.auth-fineprint{margin-top:18px; font-size:12px; color:var(--muted); line-height:1.5; text-align:center;}
+
+/* form-level status message (also the seam where the API result surfaces) */
+.auth-status{
+  display:none; margin-bottom:18px; padding:13px 15px; border-radius:12px;
+  font-size:13.5px; line-height:1.5; font-weight:600;
+}
+.auth-status.show{display:block;}
+.auth-status.err{background:rgba(199,62,16,.08); border:1px solid rgba(199,62,16,.35); color:var(--orange-deep);}
+.auth-status.pending{background:var(--paper-warm); border:1px solid var(--line); color:var(--ink-soft);}
+.btn[aria-busy="true"]{opacity:.65; pointer-events:none;}
+
+/* ---------- MOBILE NAV (hamburger) ---------- */
+.nav-toggle{
+  display:none;
+  width:44px; height:44px; flex:none;      /* 44px = comfortable touch target */
+  align-items:center; justify-content:center;
+  background:transparent; border:1px solid var(--line); border-radius:12px;
+  cursor:pointer; padding:0;
+}
+.nav-toggle-bars{position:relative; width:18px; height:12px; display:block;}
+.nav-toggle-bars::before, .nav-toggle-bars::after{
+  content:''; position:absolute; left:0; width:100%; height:2px;
+  background:var(--ink); border-radius:2px;
+  transition:transform .28s var(--ease), top .28s var(--ease);
+}
+.nav-toggle-bars::before{top:0;}
+.nav-toggle-bars::after{top:10px;}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before{top:5px; transform:rotate(45deg);}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after{top:5px; transform:rotate(-45deg);}
+
+.mobile-menu{display:none;}
+.mobile-menu a{display:block; padding:15px 0; font-size:17px; font-weight:700; border-bottom:1px solid var(--line);}
+.mobile-menu a:last-of-type{border-bottom:none;}
+.mobile-menu-ctas{display:flex; flex-direction:column; gap:10px; padding-top:16px;}
+.mobile-menu-ctas .btn{width:100%; padding:14px 22px;}
+
+@media (max-width:900px){
+  nav.links{display:none;}
+  .nav-toggle{display:flex;}
+  /* secondary nav actions move into the menu; keep only the primary CTA in the bar */
+  .nav-cta .audience-switch,
+  .nav-cta .btn-ghost{display:none;}
+  .mobile-menu.open{
+    display:block;
+    padding:4px 32px 22px;
+    border-top:1px solid var(--line);
+    animation:menuIn .26s var(--ease);
+  }
+  @keyframes menuIn{ from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
+}
+@media (max-width:640px){
+  .mobile-menu.open{padding:4px 20px 22px;}
+}
+/* keep the primary CTA in the bar as long as it fits: tighten it rather than
+   dropping the only always-visible conversion path */
+@media (max-width:480px){
+  .nav-inner{gap:10px;}
+  .logo-word{font-size:19px;}
+  .nav-cta .btn{padding:9px 13px; font-size:12.5px;}
+}
+/* below this the three items genuinely collide — CTA falls back to the menu */
+@media (max-width:359px){
+  .nav-cta{display:none;}
+}
+
+/* audience switch chip: small pill linking to the sibling business/builder page */
+.audience-switch{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:'JetBrains Mono'; font-size:12px; font-weight:600; letter-spacing:.02em;
+  color:var(--ink-soft); padding:7px 14px; border-radius:999px; border:1px solid var(--line);
+  transition:border-color .2s var(--ease), color .2s var(--ease);
+}
+.audience-switch:hover{border-color:var(--ink); color:var(--ink);}
+.audience-switch .arrow{transition:transform .2s var(--ease);}
+.audience-switch:hover .arrow{transform:translateX(2px);}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 22px; border-radius:999px;
+  font-size:14px; font-weight:700; font-family:'Satoshi';
+  cursor:pointer; border:1px solid transparent;
+  transition:transform .25s var(--ease), background .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease);
+  white-space:nowrap;
+}
+.btn:hover{transform:translateY(-2px);}
+/* same universal two-tone ring as landing.css's .btn:focus-visible — a light
+   inner ring + a dark outer ring so at least one is visible regardless of
+   which section background the button sits on */
+.btn:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.btn-primary{background:var(--ink); color:#fff;}
+.btn-primary:hover{background:var(--orange);}
+.btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn-orange{background:var(--orange); color:#fff;}
+.btn-orange:hover{background:var(--orange-deep);}
+.btn-blue{background:var(--blue); color:#fff;}
+.btn-blue:hover{background:#1d4fd6;}
+.btn-white{background:#fff; color:var(--ink);}
+.btn-white:hover{background:var(--orange); color:#fff;}
+.btn-outline-white{background:transparent; color:#fff; border-color:rgba(255,255,255,.35);}
+.btn-outline-white:hover{border-color:#fff;}
+.btn-sm{padding:9px 16px; font-size:13px;}
+
+/* ---------- HERO ---------- */
+/* vertical padding only — horizontal padding belongs to .wrap, and a shorthand
+   here would out-rank it (same specificity, later in the file) and flatten the
+   page against the viewport edge on mobile. Same reason .section uses longhand. */
+.hero{padding-top:64px; padding-bottom:40px; position:relative;}
+.hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center;}
+@media (max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
+.hero-eyebrow-row{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:22px;}
+/* 58px ceiling, not 78px: the headlines are full sentences now, and at 78px the
+   business one ran to five lines and pushed the CTAs below the fold */
+.hero h1{font-size:clamp(36px,4.4vw,58px); margin:0 0 20px; line-height:1.06;}
+.hero h1 .accent{color:var(--accent);}
+.hero-sub{font-size:18px; line-height:1.55; color:var(--ink-soft); max-width:520px; margin-bottom:32px;}
+.hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;}
+.hero-stats{display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono'; font-size:12.5px; color:var(--ink-soft);}
+.hero-stats b{color:var(--ink); font-weight:700;}
+.hero-stats span{display:inline-flex; align-items:center; gap:7px;}
+.dot{width:5px; height:5px; border-radius:50%; background:var(--orange); display:inline-block;}
+
+/* the mission line under the hero CTAs — prose, not a data point, so it does
+   not use the mono .hero-stats treatment */
+.hero-mission{
+  font-size:14.5px; line-height:1.6; color:var(--ink-soft); max-width:44ch;
+  padding-left:15px; border-left:2px solid var(--line);
+}
+
+.hero-visual{
+  position:relative; border-radius:24px; overflow:hidden; aspect-ratio:1/1.02;
+  background:linear-gradient(155deg,#ff9a5a 0%, #ff5b24 22%, #7a3f8f 46%, #1c3d8f 72%, #0c1638 100%);
+  box-shadow:0 30px 70px -30px rgba(20,19,15,.5);
+}
+/* scaled up beyond the frame so the subtle scroll-parallax (site.js) never
+   exposes an edge as the image drifts within its clipped container */
+.hero-visual .texture{
+  position:absolute; inset:-6%; width:112%; height:112%; object-fit:cover;
+  mix-blend-mode:normal; opacity:.92; will-change:transform;
+}
+@media (prefers-reduced-motion: reduce){ .hero-visual .texture{transform:none !important;} }
+.hero-card{
+  position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
+  width:88%; background:rgba(20,19,15,.82); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:18px 20px;
+  color:#fff; box-shadow:0 24px 50px -18px rgba(0,0,0,.6);
+}
+.hero-card-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+.hero-card-top .tag{font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:.08em; color:rgba(255,255,255,.55);}
+.hero-card-title{font-weight:700; font-size:14.5px; margin-bottom:12px;}
+.cand-row{display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-top:1px solid rgba(255,255,255,.1);}
+.cand-row:first-of-type{border-top:none;}
+.cand-left{display:flex; align-items:center; gap:10px; font-size:13px;}
+.count-up{font-variant-numeric:tabular-nums;}
+.cand-rank{font-family:'JetBrains Mono'; color:var(--accent); font-weight:700; width:16px;}
+.cand-score{font-family:'JetBrains Mono'; font-size:11px; color:rgba(255,255,255,.6);}
+.unlock-pill{
+  font-family:'JetBrains Mono'; font-size:10.5px; font-weight:700; padding:6px 11px; border-radius:999px;
+  background:var(--orange); color:#fff; cursor:pointer; transition:transform .2s var(--ease), background .2s var(--ease);
+  position:relative;
+}
+.unlock-pill:hover{transform:scale(1.05); background:var(--orange-deep);}
+.unlock-pill .tip{
+  position:absolute; bottom:130%; right:0; background:#fff; color:var(--ink); font-size:10px; font-weight:600;
+  padding:6px 9px; border-radius:8px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.unlock-pill:hover .tip{opacity:1;}
+
+/* ---------- PROOF STRIP ---------- */
+.proof-strip{
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  padding:20px 0; margin-top:8px;
+}
+.proof-strip .wrap{
+  display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap;
+  font-family:'JetBrains Mono'; font-size:12px; color:var(--ink-soft); text-align:center;
+}
+.proof-strip b{color:var(--ink); font-weight:700;}
+
+/* ---------- PROBLEM ---------- */
+.section{padding-top:104px; padding-bottom:104px;}
+@media (max-width:640px){ .section{padding-top:72px; padding-bottom:72px;} }
+.section-head{max-width:680px; margin-bottom:52px;}
+.section-head h2{font-size:clamp(30px,4vw,46px); margin:14px 0 16px;}
+.section-head p{font-size:17px; color:var(--ink-soft); line-height:1.6;}
+
+.stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+@media (max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
+.stat-cell{background:var(--paper-warm); padding:30px 26px;}
+.stat-num{font-family:'JetBrains Mono'; font-weight:700; font-size:clamp(26px,3vw,34px); color:var(--orange); margin-bottom:10px;}
+.stat-label{font-size:14px; color:var(--ink-soft); line-height:1.45;}
+.source-note{margin-top:16px; font-family:'JetBrains Mono'; font-size:10.5px; color:#9c988c; text-transform:uppercase; letter-spacing:.06em;}
+
+/* ---------- PAIN POINTS: vertical scroll-emphasis track ----------
+   A connecting line runs down the left edge; its fill and each point's
+   emphasis are driven by scroll position in site.js (a fixed reference
+   line partway down the viewport — not IntersectionObserver — because the
+   fill needs continuous 0-100% progress, not just an enter/exit trigger).
+   Falls back to a plain static list with everything already visible when
+   JS is unavailable or prefers-reduced-motion is set. */
+.pain-track{position:relative; padding-left:54px;}
+.pain-line{
+  position:absolute; left:15px; top:6px; bottom:6px; width:2px;
+  background:var(--line); border-radius:2px; overflow:hidden;
+}
+.pain-line-fill{
+  position:absolute; top:0; left:0; width:100%; height:0;
+  background:var(--accent); border-radius:2px;
+}
+/* JS toggles this once measurements are ready, to avoid a 0->100 flash of
+   the fill animating on load for a track that's already scrolled past */
+.pain-track[data-ready] .pain-line-fill{transition:height .12s linear;}
+
+.pain-item{
+  position:relative; padding:26px 0;
+  opacity:.45; transform:scale(1); transform-origin:left center;
+  transition:opacity .4s var(--ease), transform .4s var(--ease);
+}
+.pain-item:not(:last-child){border-bottom:1px solid var(--line);}
+.pain-item.is-active{opacity:1; transform:scale(1.045);}
+
+.pain-num{
+  position:absolute; left:-54px; top:26px;
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--paper-warm); border:1px solid var(--line);
+  font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
+  color:var(--ink-soft);
+  transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), transform .3s var(--ease);
+}
+.pain-item.is-active .pain-num{
+  background:var(--accent); border-color:var(--accent); color:#fff; transform:scale(1.08);
+}
+
+.pain-item h3{font-size:19px; margin-bottom:8px; transition:color .3s var(--ease), font-size .35s var(--ease);}
+.pain-item.is-active h3{color:var(--accent); font-size:22px;}
+.pain-item p{font-size:14.5px; line-height:1.6; color:var(--ink-soft); max-width:62ch;}
+
+@media (max-width:640px){
+  .pain-track{padding-left:44px;}
+  .pain-line{left:12px;}
+  .pain-num{left:-44px; width:28px; height:28px; font-size:11px;}
+  .pain-item{padding:20px 0;}
+}
+
+/* no-JS / reduced-motion: skip the emphasis mechanic entirely rather than
+   leaving two of three points stuck dim with no way to trigger them */
+.no-js .pain-item,
+.reduced-motion .pain-item{opacity:1;}
+.no-js .pain-line-fill,
+.reduced-motion .pain-line-fill{height:100%;}
+.no-js .pain-num,
+.reduced-motion .pain-num{background:var(--accent); border-color:var(--accent); color:#fff;}
+.no-js .pain-item h3,
+.reduced-motion .pain-item h3{color:var(--accent);}
+
+/* ---------- LOGO STRIP ----------
+   Placeholder chips (no real customer logos exist yet) in a pure-CSS
+   marquee — the track's markup is the chip list duplicated once, so
+   translating it by exactly -50% loops seamlessly with no JS involved. */
+.logo-strip-wrap{padding:8px 0 40px;}
+.logo-marquee{
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.logo-track{
+  display:flex; align-items:center; gap:56px; width:max-content;
+  animation:logoScroll 26s linear infinite;
+}
+@keyframes logoScroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+.logo-chip{
+  font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:#c8c4b8; white-space:nowrap;
+}
+.no-js .logo-track,
+.reduced-motion .logo-track{animation:none;}
+@media (prefers-reduced-motion: reduce){ .logo-track{animation:none;} }
+
+/* ---------- CHALLENGES TEASER — body-level link into challenges.html,
+   distinct from the nav/footer links so the page itself points there too */
+.challenges-teaser{
+  display:flex; align-items:center; justify-content:space-between; gap:28px;
+  padding:36px 40px; margin:0 0 8px;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+}
+.challenges-teaser h3{font-size:22px; margin:10px 0 6px;}
+.challenges-teaser p{font-size:14.5px; color:var(--ink-soft); max-width:52ch;}
+.challenges-teaser .btn{flex:none; white-space:nowrap;}
+@media (max-width:640px){
+  .challenges-teaser{flex-direction:column; align-items:flex-start; padding:28px 22px;}
+  .challenges-teaser .btn{width:100%; text-align:center;}
+}
+
+/* ---------- OFFER / SOLUTIONS ---------- */
+.offer-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+@media (max-width:900px){ .offer-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:600px){ .offer-grid{grid-template-columns:1fr;} }
+/* staggered reveal: each card fades/lifts in on its own delay as the grid
+   enters view, driven by site.js adding .in with an index-based timeout —
+   reads as the grid assembling rather than the whole block popping at once */
+.offer-card{
+  background:#fff; padding:28px 26px;
+  opacity:0; transform:translateY(16px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease);
+}
+.offer-card.in{opacity:1; transform:translateY(0);}
+.offer-num{
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.1em; color:var(--accent); display:block; margin-bottom:12px;
+}
+.offer-card h3{font-size:17.5px; margin-bottom:9px;}
+.offer-card p{font-size:14px; line-height:1.6; color:var(--ink-soft);}
+
+/* ---------- BUSINESS MODEL ---------- */
+.model-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+@media (max-width:800px){ .model-grid{grid-template-columns:1fr;} }
+.model-card{
+  border-radius:var(--radius); padding:34px 30px; border:1px solid var(--line);
+  opacity:0; transform:translateY(16px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease), background .3s var(--ease);
+}
+.model-card.in{opacity:1; transform:translateY(0);}
+.model-card.dark{background:var(--ink); color:#fff; border-color:var(--ink);}
+.model-card.light{background:var(--paper-warm);}
+.model-card h3{font-size:22px; margin-bottom:20px;}
+.model-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:13px;}
+.model-list li{
+  position:relative; padding-left:28px; font-size:15px; line-height:1.5; color:var(--ink-soft);
+}
+.model-card.dark .model-list li{color:rgba(255,255,255,.78);}
+.model-list li::before{
+  content:''; position:absolute; left:0; top:6px;
+  width:15px; height:8px; border-left:2px solid var(--accent); border-bottom:2px solid var(--accent);
+  transform:rotate(-45deg);
+}
+.model-free{
+  display:inline-block; margin-top:22px;
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--orange);
+}
+@media (max-width:640px){ .model-card{padding:26px 22px;} }
+
+/* ---------- HOW IT WORKS — pinned scroll-through ----------
+   The section sticks in the viewport while the user scrolls past a tall
+   wrapper; a scroll-driven progress value (site.js, off the shared ticker
+   like the pain track) decides which of the four steps is active. Collapses
+   to a plain static list under 900px / no-js / reduced-motion — sticky-
+   scrubbing a narrow phone viewport reads as broken, not immersive. */
+.how-pin{position:relative; height:400vh;}
+.how-pin-inner{
+  position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:0 32px;
+}
+.how-stage{position:relative; width:100%; max-width:620px; min-height:220px; text-align:center;}
+.how-stage-step{
+  position:absolute; inset:0; opacity:0; transform:translateY(18px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease);
+  pointer-events:none;
+}
+.how-stage-step.is-active{opacity:1; transform:translateY(0); pointer-events:auto;}
+.how-num{
+  font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;
+  letter-spacing:.1em; color:var(--accent); display:block; margin-bottom:14px;
+}
+.how-stage-step h3{font-size:clamp(24px,3vw,32px); margin-bottom:12px;}
+.how-stage-step p{font-size:16px; line-height:1.6; color:var(--ink-soft); max-width:52ch; margin:0 auto;}
+.how-dots{display:flex; gap:10px; margin-top:44px;}
+.how-dot{
+  width:8px; height:8px; border-radius:50%; background:var(--line);
+  transition:background .3s var(--ease), transform .3s var(--ease);
+}
+.how-dot.is-active{background:var(--accent); transform:scale(1.3);}
+
+/* .how-pin sits outside .wrap (it needs full-bleed width for the sticky
+   pin), so the collapsed fallback below has to reapply .wrap's own side
+   padding by hand — otherwise the static list renders flush against the
+   raw viewport edge instead of lining up with every other section. */
+@media (max-width:900px){
+  .how-pin{height:auto;}
+  .how-pin-inner{position:static; height:auto; display:block; padding:0 32px; max-width:var(--maxw); margin:0 auto;}
+  .how-stage{position:static; min-height:0; max-width:none; text-align:left;}
+  .how-stage-step{position:static; opacity:1; transform:none; pointer-events:auto; padding:22px 0;}
+  .how-stage-step:not(:last-child){border-bottom:1px solid var(--line);}
+  .how-stage-step p{margin:0;}
+  .how-dots{display:none;}
+}
+@media (max-width:640px){
+  .how-pin-inner{padding:0 20px;}
+}
+.no-js .how-pin, .reduced-motion .how-pin{height:auto;}
+.no-js .how-pin-inner, .reduced-motion .how-pin-inner{position:static; height:auto; display:block; padding:0 32px; max-width:var(--maxw); margin:0 auto;}
+.no-js .how-stage, .reduced-motion .how-stage{position:static; min-height:0; max-width:none; text-align:left;}
+.no-js .how-stage-step, .reduced-motion .how-stage-step{position:static; opacity:1; transform:none; pointer-events:auto; padding:22px 0;}
+.no-js .how-stage-step:not(:last-child), .reduced-motion .how-stage-step:not(:last-child){border-bottom:1px solid var(--line);}
+.no-js .how-stage-step p, .reduced-motion .how-stage-step p{margin:0;}
+.no-js .how-dots, .reduced-motion .how-dots{display:none;}
+@media (max-width:640px){
+  .no-js .how-pin-inner, .reduced-motion .how-pin-inner{padding:0 20px;}
+}
+
+/* ---------- TESTIMONIALS ----------
+   Placeholder quotes (no named individuals/companies attached) until real
+   ones exist — the carousel mechanic itself is real: a native horizontal
+   scroller with scroll-snap, nudged a card at a time by the arrow buttons.
+   Touch users can just swipe, so the buttons hide below 640px. */
+.testimonial-carousel{display:flex; align-items:center; gap:14px;}
+.testimonial-track{
+  display:flex; gap:20px; flex:1; padding:4px 2px;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.testimonial-track::-webkit-scrollbar{display:none;}
+.testimonial-card{
+  flex:0 0 clamp(240px, 30vw, 320px); scroll-snap-align:start;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 24px;
+}
+.testimonial-quote{font-size:15px; line-height:1.6; margin-bottom:18px;}
+.testimonial-attr{font-size:13px; font-weight:700; color:var(--ink-soft);}
+.carousel-btn{
+  flex:none; width:42px; height:42px; border-radius:50%; border:1px solid var(--line);
+  background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:15px; transition:border-color .2s var(--ease), background .2s var(--ease);
+}
+.carousel-btn:hover{border-color:var(--ink); background:var(--paper-warm);}
+@media (max-width:640px){ .carousel-btn{display:none;} }
+
+/* ---------- PRODUCT DEMO PLACEHOLDER ----------
+   No real demo video exists yet; this is a clearly-labelled placeholder
+   rather than repurposing the hero's abstract fluid loop as if it were a
+   product demo. */
+.video-placeholder{
+  aspect-ratio:16/9; border-radius:var(--radius); background:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  color:rgba(255,255,255,.65);
+}
+.video-play-btn{
+  width:64px; height:64px; border-radius:50%; border:1px solid rgba(255,255,255,.3);
+  display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff;
+  padding-left:4px; /* optically centers the play glyph */
+}
+.video-placeholder p{font-size:14px; font-family:'JetBrains Mono', monospace; letter-spacing:.04em;}
+
+/* ---------- COMPARISON ---------- */
+.compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+@media (max-width:800px){ .compare-grid{grid-template-columns:1fr;} }
+.compare-card{border-radius:var(--radius); padding:36px; min-height:230px;}
+.compare-card.light{background:var(--paper-warm); border:1px solid var(--line);}
+.compare-card.dark{background:var(--ink); color:#fff;}
+.compare-tag{font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px; display:block;}
+.compare-card.light .compare-tag{color:#9c988c;}
+.compare-card.dark .compare-tag{color:var(--orange);}
+.compare-card h3{font-size:26px; margin-bottom:14px;}
+.compare-card p{font-size:15px; line-height:1.6;}
+.compare-card.light p{color:var(--ink-soft);}
+.compare-card.dark p{color:rgba(255,255,255,.72);}
+.compare-foot{margin-top:26px; font-family:'JetBrains Mono'; font-size:11.5px; color:var(--orange); letter-spacing:.03em;}
+
+/* ---------- HOW IT WORKS ---------- */
+.steps-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:18px; margin-top:8px; position:relative;}
+@media (max-width:900px){ .steps-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:520px){ .steps-grid{grid-template-columns:1fr;} }
+.step{padding:0 4px; position:relative;}
+.step-badge{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--paper-warm);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono'; font-weight:700; font-size:13px; color:var(--orange);
+  margin-bottom:16px; position:relative; z-index:2;
+  transition:background .4s var(--ease), color .4s var(--ease), border-color .4s var(--ease);
+}
+.step.in .step-badge{background:var(--ink); color:#fff; border-color:var(--ink);}
+.step-badge::after{
+  content:''; position:absolute; top:50%; left:100%; width:18px; height:1px; background:var(--line);
+  display:none;
+}
+@media (min-width:521px){
+  .steps-grid > .step:not(:last-child) .step-badge::after{ display:block; width:calc(100% + 18px - 38px); }
+}
+.step h4{font-size:17px; font-weight:700; margin-bottom:8px; font-family:'Satoshi';}
+.step p{font-size:13.5px; color:var(--ink-soft); line-height:1.5;}
+.steps-foot{margin-top:40px; font-size:15px; color:var(--ink-soft); max-width:640px; line-height:1.6;}
+
+/* ---------- DEFENSE (signature) ---------- */
+.defense-section{background:var(--navy); color:#fff; position:relative; overflow:hidden;}
+.defense-section::before{
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(700px 400px at 85% 10%, rgba(255,91,36,.25), transparent 60%);
+  pointer-events:none;
+}
+.defense-grid{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; position:relative;}
+@media (max-width:900px){ .defense-grid{grid-template-columns:1fr; gap:40px;} }
+.defense-section .eyebrow{color:var(--orange);}
+.defense-section h2{font-size:clamp(30px,4vw,44px); margin:14px 0 18px; color:#fff;}
+.defense-section > .wrap > .defense-grid > div:first-child p{font-size:16.5px; color:rgba(255,255,255,.72); line-height:1.6; margin-bottom:26px;}
+.autofail{
+  border:1px solid rgba(255,91,36,.4); background:rgba(255,91,36,.08); border-radius:12px; padding:20px 22px;
+}
+.autofail .tag{font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.1em; color:var(--orange); text-transform:uppercase; display:block; margin-bottom:8px;}
+.autofail p{font-size:14.5px; color:rgba(255,255,255,.85); line-height:1.5;}
+.defense-foot{margin-top:24px; font-size:14px; color:rgba(255,255,255,.55); line-height:1.6;}
+
+.rubric-card{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:28px;}
+.rubric-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; font-family:'JetBrains Mono'; font-size:12px;}
+.rubric-head .rtitle{color:rgba(255,255,255,.55); letter-spacing:.08em; text-transform:uppercase;}
+.rubric-head .pass{color:var(--orange); font-weight:700;}
+.rubric-row{margin-bottom:20px;}
+.rubric-row:last-child{margin-bottom:0;}
+.rubric-top{display:flex; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:6px;}
+.rubric-top span.pct{font-family:'JetBrains Mono'; color:var(--orange);}
+.rubric-desc{font-size:12.5px; color:rgba(255,255,255,.5); margin-bottom:8px;}
+.rubric-track{height:6px; background:rgba(255,255,255,.12); border-radius:4px; overflow:hidden;}
+.rubric-fill{height:100%; width:0%; background:var(--orange); border-radius:4px; transition:width 1.1s var(--ease);}
+
+/* ---------- DEFENSE DEMO ---------- */
+.dd{
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12);
+  border-radius:16px; overflow:hidden; margin-top:28px;
+}
+.dd-head{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:15px 18px; border-bottom:1px solid rgba(255,255,255,.1);
+  font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.06em;
+  color:rgba(255,255,255,.5); text-transform:uppercase;
+}
+.dd-brief{color:rgba(255,255,255,.78);}
+.dd-live{display:inline-flex; align-items:center; gap:7px; color:var(--orange);}
+.dd-live::before{
+  content:''; width:7px; height:7px; border-radius:50%; background:var(--orange);
+  animation:ddPulse 1.6s ease-in-out infinite;
+}
+@keyframes ddPulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* the two scripted outcomes — same brief, same question, different candidate */
+.dd-switch{display:flex; gap:8px; padding:14px 18px 0;}
+.dd-switch button{
+  flex:1; padding:10px 12px; border-radius:10px; cursor:pointer;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16);
+  color:rgba(255,255,255,.65); font-family:'JetBrains Mono'; font-size:11px;
+  font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+  transition:all .25s var(--ease);
+}
+.dd-switch button:hover{color:#fff; border-color:rgba(255,255,255,.4);}
+.dd-switch button[aria-selected="true"]{background:#fff; color:var(--ink); border-color:#fff;}
+
+.dd-thread{list-style:none; margin:0; padding:18px; min-height:270px;}
+.dd-turn{
+  display:flex; flex-direction:column; gap:5px; margin-bottom:15px;
+  opacity:0; transform:translateY(9px);
+  transition:opacity .45s var(--ease), transform .45s var(--ease);
+}
+.dd-turn.in{opacity:1; transform:none;}
+.dd-turn:last-child{margin-bottom:0;}
+.dd-who{
+  font-family:'JetBrains Mono'; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(255,255,255,.42);
+}
+.dd-turn p{
+  font-size:14.5px; line-height:1.55; padding:11px 14px; border-radius:12px; max-width:92%;
+}
+.dd-q p{background:rgba(255,255,255,.07); color:rgba(255,255,255,.9); border-top-left-radius:4px;}
+.dd-a p{
+  align-self:flex-end; background:rgba(255,91,36,.14); border:1px solid rgba(255,91,36,.3);
+  color:#fff; border-top-right-radius:4px;
+}
+.dd-a{align-items:flex-end;}
+.dd-a .dd-who{text-align:right;}
+.dd--fail .dd-a p{background:rgba(199,62,16,.16); border-color:rgba(199,62,16,.42);}
+
+.dd-verdict{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:15px 18px; border-top:1px solid rgba(255,255,255,.1);
+  opacity:0; transition:opacity .5s var(--ease);
+}
+.dd-verdict.in{opacity:1;}
+.dd-verdict-label{font-size:13.5px; color:rgba(255,255,255,.65); line-height:1.45;}
+.dd-score{
+  font-family:'JetBrains Mono'; font-size:12px; font-weight:700; padding:8px 13px; border-radius:999px;
+  white-space:nowrap;
+}
+.dd-score.pass{background:var(--orange); color:#fff;}
+.dd-score.fail{background:rgba(199,62,16,.2); color:#ff9d7a; border:1px solid rgba(199,62,16,.5);}
+.dd-replay{
+  background:none; border:none; cursor:pointer; padding:0;
+  font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  color:rgba(255,255,255,.45); text-decoration:underline; text-underline-offset:4px;
+}
+.dd-replay:hover{color:#fff;}
+.dd-note{
+  padding:0 18px 16px; font-family:'JetBrains Mono'; font-size:10px;
+  color:rgba(255,255,255,.3); letter-spacing:.04em;
+}
+@media (max-width:640px){
+  .dd-thread{padding:15px; min-height:0;}
+  .dd-turn p{max-width:100%; font-size:14px;}
+  .dd-switch{padding:12px 15px 0;}
+  .dd-switch button{font-size:10px; padding:9px 8px;}
+}
+/* without JS every turn is simply visible — the transcript still reads */
+.no-js .dd-turn, .no-js .dd-verdict{opacity:1; transform:none;}
+
+/* ---------- EVIDENCE ---------- */
+.evidence-grid{display:grid; grid-template-columns:1.3fr .8fr; gap:56px; align-items:start;}
+@media (max-width:900px){ .evidence-grid{grid-template-columns:1fr;} }
+.bar-row{display:grid; grid-template-columns:180px 1fr 48px; align-items:center; gap:14px; padding:11px 0; border-top:1px solid var(--line);}
+.bar-row:first-child{border-top:none;}
+.bar-label{font-size:13.5px; font-weight:600;}
+.bar-label small{display:block; font-family:'JetBrains Mono'; font-size:10.5px; font-weight:600; color:var(--orange); text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
+.bar-track{height:10px; background:var(--paper-warm); border-radius:6px; overflow:hidden; border:1px solid var(--line);}
+.bar-fill{height:100%; width:0%; border-radius:6px; background:#c9c6bb; transition:width 1.2s var(--ease);}
+.bar-fill.hi{background:linear-gradient(90deg,var(--orange),var(--orange-deep));}
+.bar-val{font-family:'JetBrains Mono'; font-size:13px; text-align:right; color:var(--ink-soft);}
+.evidence-side{background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius); padding:28px;}
+.evidence-side h5{font-family:'JetBrains Mono'; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--orange); margin-bottom:12px;}
+.evidence-side p{font-size:14px; color:var(--ink-soft); line-height:1.6; margin-bottom:20px;}
+.evidence-side .cite{font-family:'JetBrains Mono'; font-size:10.5px; color:#9c988c; padding-top:16px; border-top:1px solid var(--line);}
+
+/* ---------- TRACTION ---------- */
+.traction-top{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px; margin-bottom:40px;}
+.quote-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:44px;}
+@media (max-width:800px){ .quote-grid{grid-template-columns:1fr;} }
+.quote-card{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:24px;}
+.quote-card p{font-size:15px; line-height:1.55; margin-bottom:12px; color:var(--ink);}
+.quote-card cite{font-family:'JetBrains Mono'; font-size:11px; color:#9c988c; font-style:normal;}
+
+/* ---------- FAQ ---------- */
+.faq-list{border-top:1px solid var(--line);}
+.faq-item{border-bottom:1px solid var(--line);}
+.faq-q{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:20px;
+  padding:24px 4px; background:none; border:none; text-align:left; cursor:pointer;
+  font-family:'Satoshi'; font-size:17px; font-weight:700; color:var(--ink);
+}
+.faq-q .plus{
+  flex:none; width:24px; height:24px; position:relative; transition:transform .3s var(--ease);
+}
+.faq-q .plus::before, .faq-q .plus::after{
+  content:''; position:absolute; background:var(--ink); border-radius:2px;
+}
+.faq-q .plus::before{ top:50%; left:0; width:100%; height:2px; transform:translateY(-50%); }
+.faq-q .plus::after{ left:50%; top:0; height:100%; width:2px; transform:translateX(-50%); transition:opacity .25s var(--ease); }
+.faq-item.open .faq-q .plus{ transform:rotate(45deg); }
+.faq-a{
+  max-height:0; overflow:hidden; transition:max-height .4s var(--ease);
+}
+.faq-a-inner{padding:0 4px 24px; font-size:15px; line-height:1.6; color:var(--ink-soft); max-width:720px;}
+/* generous ceiling: answers wrap to many more lines on narrow screens, and a
+   tight max-height silently clips them mid-sentence */
+.faq-item.open .faq-a{max-height:600px;}
+/* without JS nothing ever adds .open, so the accordion would otherwise
+   clip every answer permanently — same "never hide content" rule as the
+   pain-track/how-pin/count-up fallbacks elsewhere in this file */
+.no-js .faq-a{max-height:none;}
+
+/* ---------- PRICING ---------- */
+.price-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;}
+@media (max-width:900px){ .price-grid{grid-template-columns:1fr;} }
+.price-card{border-radius:var(--radius); padding:32px; border:1px solid var(--line);}
+.price-card.dark{background:var(--ink); color:#fff; border-color:var(--ink);}
+.price-tag{font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); display:block; margin-bottom:14px;}
+.price-amt{font-size:40px; font-weight:900; margin-bottom:6px;}
+.price-unit{font-size:14px; color:var(--ink-soft); margin-bottom:18px; display:block;}
+.price-card.dark .price-unit{color:rgba(255,255,255,.6);}
+.price-desc{font-size:14px; line-height:1.55; color:var(--ink-soft);}
+.price-card.dark .price-desc{color:rgba(255,255,255,.72);}
+.price-card.calc{background:var(--paper-warm);}
+.calc-row{display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:13px; padding:8px 0; border-top:1px solid var(--line);}
+.calc-row:first-of-type{border-top:none;}
+.calc-row.total{font-weight:700; color:var(--orange); border-top:1px solid var(--ink); margin-top:4px;}
+/* the price cards are the highest-intent moment on the page and had no action */
+.price-cta{
+  display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  margin-top:26px; padding:24px 28px;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:var(--radius);
+}
+.price-cta p{font-size:15px; line-height:1.55; color:var(--ink-soft); max-width:56ch;}
+@media (max-width:640px){
+  .price-cta{flex-direction:column; align-items:stretch; text-align:left; padding:22px;}
+  .price-cta .btn{width:100%; padding:15px 22px;}
+}
+
+/* ---------- FINAL CTA ---------- */
+/* wrapper keeps .wrap's responsive horizontal padding; only the tail spacing is ours */
+.final-cta-wrap{padding-bottom:100px;}
+@media (max-width:640px){ .final-cta-wrap{padding-bottom:64px;} }
+
+.traction-section{background:var(--paper-warm); border-radius:28px;}
+
+.final-cta{
+  position:relative; border-radius:28px; overflow:hidden; padding:90px 48px; text-align:center;
+  background:linear-gradient(155deg,#ff9a5a 0%, #ff5b24 20%, #7a3f8f 48%, #1c3d8f 74%, #0c1638 100%);
+  color:#fff;
+}
+.final-cta .texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85;}
+/* scrim: the swirl has bright cream/orange passages that white copy disappears
+   into — worst on mobile, where the block is short enough that the light part
+   of the image lands directly behind the headline */
+.final-cta::after{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(180deg, rgba(10,16,42,.58), rgba(10,16,42,.34) 45%, rgba(10,16,42,.62));
+}
+.final-cta-inner{position:relative; z-index:2; max-width:640px; margin:0 auto;}
+.final-cta h2{font-size:clamp(30px,4.4vw,50px); color:#fff; margin-bottom:18px;}
+.final-cta p{font-size:17px; color:rgba(255,255,255,.85); margin-bottom:34px; line-height:1.5;}
+.final-cta-btns{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+@media (max-width:640px){ .final-cta{padding:64px 24px;} }
+
+/* ---------- FOOTER ---------- */
+footer{padding:64px 0 40px; border-top:1px solid var(--line); margin-top:20px;}
+.footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; margin-bottom:48px;}
+@media (max-width:800px){ .footer-grid{grid-template-columns:1fr 1fr; row-gap:32px;} }
+.footer-brand p{font-size:14px; color:var(--ink-soft); line-height:1.6; margin-top:14px; max-width:260px;}
+.footer-col h6{font-family:'JetBrains Mono'; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#9c988c; margin-bottom:14px;}
+.footer-col a{display:block; font-size:14px; color:var(--ink-soft); margin-bottom:10px;}
+.footer-col a:hover{color:var(--ink);}
+.footer-bottom{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:24px; border-top:1px solid var(--line); font-family:'JetBrains Mono'; font-size:11.5px; color:#9c988c;}
+
+::selection{background:var(--orange); color:#fff;}
+
+/* ==================================================================
+   MOBILE / SMALL-SCREEN REFINEMENTS
+   The layout grids already collapse via their own breakpoints above;
+   this block handles spacing, touch targets, and the few components
+   that need to be restructured rather than just narrowed.
+   ================================================================== */
+
+@media (max-width:900px){
+  .hero{padding-top:44px; padding-bottom:24px;}
+  .hero-grid{gap:36px;}
+  .defense-grid{gap:36px;}
+}
+
+@media (max-width:640px){
+  /* --- rhythm --- */
+  .section-head{margin-bottom:36px;}
+  .section-head p{font-size:16px;}
+  .hero-sub{font-size:16.5px; margin-bottom:26px;}
+
+  /* --- hero CTAs: full-width stacked buttons are far easier to hit --- */
+  .hero-ctas{flex-direction:column; align-items:stretch; gap:10px;}
+  .hero-ctas .btn{width:100%; padding:15px 22px;}
+
+  /* --- hero stats: the inline dot separators orphan onto their own lines
+         once the row wraps, so switch to a stacked list and drop them --- */
+  .hero-stats{flex-direction:column; gap:8px; font-size:13px;}
+  .hero-stats .dot{display:none;}
+
+  .hero-visual{aspect-ratio:1/1.12;}
+  .hero-card{width:92%; bottom:18px; padding:15px 16px;}
+  .hero-card-title{font-size:13.5px;}
+  .cand-left{font-size:12px; gap:7px;}
+  .cand-score{display:block; font-size:10px;}
+
+  /* --- proof strip: read as stacked lines, not a cramped wrapped row --- */
+  .proof-strip{padding:16px 0;}
+  .proof-strip .wrap{flex-direction:column; gap:8px; font-size:11.5px;}
+
+  /* --- cards / panels --- */
+  .stat-cell{padding:22px 18px;}
+  .compare-card{padding:26px 22px; min-height:0;}
+  .compare-card h3{font-size:23px;}
+  .evidence-side{padding:22px;}
+  .price-card{padding:26px 22px;}
+  .quote-card{padding:20px;}
+  .rubric-card{padding:22px 18px;}
+  .autofail{padding:17px 18px;}
+
+  /* --- evidence chart: a fixed 180px label column leaves the bar with
+         almost no room at 390px, so stack the label above its own bar --- */
+  .bar-row{
+    grid-template-columns:1fr auto;
+    grid-template-areas:'label label' 'track value';
+    gap:7px 12px;
+    padding:14px 0;
+  }
+  .bar-label{grid-area:label; font-size:13px;}
+  .bar-track{grid-area:track;}
+  .bar-val{grid-area:value; font-size:12px;}
+
+  /* --- how-it-works: the connector line between badges is meaningless
+         once the steps stack into a single column --- */
+  .steps-grid{gap:26px;}
+  .step-badge::after{display:none !important;}
+
+  /* --- FAQ: bigger tap target, tighter type --- */
+  .faq-q{padding:20px 0; font-size:16px; gap:14px;}
+  .faq-a-inner{font-size:14.5px; padding-bottom:20px;}
+
+  /* --- final CTA --- */
+  .final-cta{border-radius:22px;}
+  .final-cta p{font-size:16px; margin-bottom:26px;}
+  .final-cta-btns{flex-direction:column; align-items:stretch;}
+  .final-cta-btns .btn{width:100%; padding:15px 22px;}
+
+  /* --- traction block sits in a rounded card; trim its inset --- */
+  .traction-section{border-radius:22px;}
+
+  /* --- footer --- */
+  footer{padding-top:48px;}
+  .footer-grid{gap:28px; margin-bottom:34px;}
+  .footer-bottom{flex-direction:column; align-items:flex-start; gap:8px;}
+}
+
+@media (max-width:420px){
+  .footer-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr;}
+}

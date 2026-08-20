@@ -120,7 +120,35 @@ shipped code — always download/export the actual asset file locally (as
 was done for `projet-split-hero/assets/spectrum.jpg`) rather than linking
 the API URL directly.
 
-## Site architecture — REBUILT (Aug 2026). Read this first.
+## Site architecture — v3 IN PROGRESS (Aug 2026). Read this first.
+
+**The single-page rebuild described in most of this file is now "v2" —
+archived whole, at `archive/v2/` (a complete, self-contained, verified-
+rendering snapshot: `index.html`, `challenges.html`, `login.html`,
+`signup.html`, `robots.txt`, `sitemap.xml`, and `assets/`), per explicit
+founder direction to move to a v3.** Unlike every earlier archive entry
+(a single superseded page), this is the first whole-site archive, so it
+gets its own subfolder rather than joining the flat `archive/*.html`
+convention. Raw/unreferenced masters that the archived pages don't
+actually load (`fluid_animation_3500ms.mp4`, `official-spectrum.png`,
+`fluid-foreground.png`, the raw `Logo Full */Logo 3 V2*` exports, `Test.png`,
+`favicon.svg`) were deliberately left OUT of the copy to avoid duplicating
+~22MB of dead weight — verified via Playwright that `archive/v2/index.html`
+still has zero failed network requests without them. The live `assets/`
+folder is untouched; only the archive copy was trimmed.
+
+**v3 is a substantial rework, not an iteration** — new sections, new
+navigation model (dashboards), and both the "spectrum wave" split and the
+pinned How-it-works scroll-scrub are being retired outright (see below).
+Expect large parts of this document to go stale as v3 lands; update
+sections in place as each part ships rather than appending v3 notes on top
+of v2 documentation that no longer describes the live page.
+
+---
+
+*(Everything below this line describes v2, preserved as historical/working
+reference until each part is superseded by v3 — check the top of each
+section for a v3 status note before trusting it as current.)*
 
 **The whole previous multi-page site was scrapped on the user's explicit
 instruction.** `index.html` is the landing page and the entry point (launching

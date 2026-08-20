@@ -1,0 +1,1044 @@
+/* ==========================================================================
+   Projet — landing page
+   Single-page, dependency-free. Loaded only by index.html.
+
+   The previous multi-page site (business/builders/chooser/overview) is in
+   archive/ — this file deliberately does NOT extend assets/site.css, so the
+   landing page can evolve without dragging that page's layout baggage along.
+
+   "Light spectrum wave" is the house name for the bar-shear animation first
+   built for the audience chooser: the spectrum image sliced into horizontal
+   bars that shear away from whichever side is active, each bar offset on a
+   sine curve and delayed by index so the motion reads as a cascade. It is
+   used here in the Featured challenges / Success stories split.
+   ========================================================================== */
+
+:root{
+  --ink:#14130f;
+  --ink-soft:#3a382f;
+  --paper:#ffffff;
+  --paper-warm:#f5f4ef;
+  --line:#e6e3da;
+  --orange:#ff5b24;
+  --orange-deep:#c73e10;
+  --navy:#161c3f;
+  --navy-mid:#1c3d8f;
+  --navy-deep:#0c1638;
+  --blue:#2f6bff;
+  --blue-deep:#1d4fd6;
+  --violet:#7a3f8f;
+  --amber-light:#ff9a5a;
+  /* darkened from the #9c988c/#a8a496 grays this replaces — those failed
+     WCAG AA (2.5-2.9:1) at the 10-12.5px sizes they're used at; this passes
+     5.16:1 on paper / 4.69:1 on paper-warm */
+  --muted:#726d5f;
+  /* darkened from #c2beb2 for the same reason; only meets the 3:1 large-text
+     threshold, so it's reserved for the 23px/900-weight logo chips */
+  --muted-large:#8f8874;
+  --radius:14px;
+  --maxw:1240px;
+  --ease:cubic-bezier(.16,.84,.44,1);
+
+  /* mode accent — orange for builders/students (the default mode), blue for
+     companies. Components that should tint per-mode read this instead of
+     --orange directly; the nav toggle flips it via html[data-audience]. */
+  --accent:var(--orange);
+  --accent-deep:var(--orange-deep);
+}
+html[data-audience="business"]{ --accent:var(--blue); --accent-deep:var(--blue-deep); }
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:'Satoshi', sans-serif; font-weight:900; margin:0; letter-spacing:-.02em; line-height:1.03;}
+p{margin:0;}
+a{color:inherit; text-decoration:none;}
+img{display:block; max-width:100%;}
+button{font:inherit;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 32px;}
+@media (max-width:640px){ .wrap{padding:0 20px;} }
+[id]{scroll-margin-top:88px;}
+
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+/* ==========================================================================
+   ARTWORK SOURCES — AVIF primary, WebP fallback
+   ------------------------------------------------------------------------
+   These three are smooth-gradient artworks, and all three are ZOOMED on
+   screen (the flow scrub runs at background-size:220%, each spectrum bar
+   zooms into its own row), which magnifies any encoding artifact.
+   WebP's lossy mode is 4:2:0 ONLY — it throws away half the colour
+   resolution in each axis by design, which is the worst possible trade for
+   gradient art. Measured against the PNG masters, that capped WebP at
+   ~32-35dB no matter the quality setting (q=82 gave 31.8dB; q=100 gave
+   32.9dB — the slider barely moves because subsampling, not quantisation,
+   is the bottleneck). AVIF at 4:4:4 reaches 43-46dB at a comparable size.
+
+   Declared once here as custom properties so the call sites stay readable.
+   The plain url() below is the fallback; the @supports block upgrades it
+   only where image-set()+AVIF actually decode. Regenerate with:
+     ffmpeg -i <master>.png -c:v libaom-av1 -crf 6 -pix_fmt yuv444p \
+            -still-picture 1 -cpu-used 3 <name>.avif
+   Keeping -pix_fmt yuv444p is the whole point — do not let it fall back
+   to yuv420p.
+   ========================================================================== */
+:root{
+  --img-fluid-full:url("fluid-full.webp");
+  --img-hero-visual:url("hero-visual.webp");
+  --img-spectrum:url("spectrum.webp");
+}
+@supports (background-image:image-set(url("x.avif") type("image/avif"))){
+  :root{
+    --img-fluid-full:image-set(url("fluid-full.avif") type("image/avif"),
+                               url("fluid-full.webp") type("image/webp"));
+    --img-hero-visual:image-set(url("hero-visual.avif") type("image/avif"),
+                                url("hero-visual.webp") type("image/webp"));
+    --img-spectrum:image-set(url("spectrum.avif") type("image/avif"),
+                             url("spectrum.webp") type("image/webp"));
+  }
+}
+
+/* Skip link — off-screen until it takes keyboard focus, then it drops into
+   the top-left corner as a normal-looking button. Above the sticky nav's
+   z-index (200) so it can never be painted behind it. */
+.skip-link{
+  position:fixed; top:8px; left:8px; z-index:400;
+  transform:translateY(-150%);
+  padding:14px 22px; border-radius:999px;
+  background:var(--ink); color:#fff;
+  font-size:14px; font-weight:700;
+  box-shadow:0 10px 30px -12px rgba(20,19,15,.5);
+  transition:transform .2s var(--ease);
+}
+.skip-link:focus-visible{transform:translateY(0); outline:2px solid var(--accent); outline-offset:2px;}
+/* main gets tabindex="-1" so focus can land on it; never show a ring for that */
+main:focus{outline:none;}
+
+/* Global reduced-motion guard (per the animation library's Global Setup).
+   Every JS-driven effect ALSO checks the flag in landing.js and renders its
+   end state directly, so nothing is left mid-transition or hidden. */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *, *::before, *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+
+/* No leading bullet dot. Every section eyebrow used to carry one (only the
+   hero was the deliberate exception) — dropped everywhere now: a coloured
+   dot in front of an uppercase mono kicker is one of the most recognisable
+   generic-SaaS-template tells, and the hero already proved the label reads
+   fine without it. */
+.eyebrow{
+  font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
+  /* accent-deep, not accent — the base accent (Signal orange at 3.1:1, Current
+     blue is fine but kept symmetric) fails WCAG AA at this 12px mono size on
+     paper; the deep/hover shade of each accent passes (5.09:1 / 6.68:1) */
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep);
+  display:inline-flex; align-items:center;
+  transition:color .3s var(--ease);
+}
+
+/* ---------- BUTTONS ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:13px 24px; border-radius:999px; border:1px solid transparent;
+  font-size:14.5px; font-weight:700; cursor:pointer; white-space:nowrap;
+  transition:transform .22s var(--ease), background .22s var(--ease),
+             border-color .22s var(--ease), color .22s var(--ease);
+}
+.btn:hover{transform:translateY(-2px);}
+/* Universal two-tone ring: a light inner ring + a dark outer ring means at
+   least one is always visible, regardless of whether the button sits on a
+   light section (paper) or a dark one (final CTA, the light-spectrum wave,
+   how-it-works) — no per-variant color-matching needed. Every .btn variant
+   shares this since every button in index.html carries the base .btn class. */
+.btn:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+}
+.btn-primary{background:var(--ink); color:#fff;}
+.btn-primary:hover{background:var(--orange);}
+.btn-orange{background:var(--accent); color:#fff;}
+.btn-orange:hover{background:var(--accent-deep);}
+.btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn-white{background:#fff; color:var(--ink);}
+.btn-white:hover{background:var(--orange); color:#fff;}
+/* Fixed to the literal colour, not var(--accent) — these two tag which SIDE
+   of the spectrum split a CTA belongs to (challenges/orange vs stories/blue),
+   which must stay put regardless of which audience mode the nav toggle is
+   in, unlike .btn-orange elsewhere which intentionally follows --accent. */
+.btn-solid-orange{background:var(--orange); color:#fff;}
+.btn-solid-orange:hover{background:var(--orange-deep);}
+.btn-solid-blue{background:var(--blue); color:#fff;}
+.btn-solid-blue:hover{background:var(--blue-deep);}
+/* 14px, not 9px, vertical padding — 9px rendered a 35px-tall tap target,
+   under the 44px touch-target minimum */
+.btn-sm{padding:14px 17px; font-size:13px;}
+
+/* ---------- SECTION REVEAL (animation library #2) ----------
+   Connective-tissue fade/slide applied at section level. .no-js and reduced
+   motion both land on the revealed state so content is never gated. */
+[data-reveal]{opacity:0; transform:translateY(28px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+[data-reveal].revealed{opacity:1; transform:none;}
+.no-js [data-reveal]{opacity:1; transform:none;}
+@media (prefers-reduced-motion: reduce){ [data-reveal]{opacity:1; transform:none;} }
+
+/* Mode-switch content crossfade — applyModeCopy() in landing.js toggles this
+   class immediately before/after swapping .innerHTML, so hero H1/sub/CTAs/
+   card and the How It Works steps fade out, swap, and fade back in instead
+   of the text just popping to the other mode's copy mid-frame. !important:
+   [data-reveal].revealed already sets opacity:1 with higher specificity
+   (attribute + class) than a plain .mode-swap class alone could beat. */
+[data-mode-copy]{transition:opacity .16s var(--ease);}
+[data-mode-copy].mode-swap{opacity:0 !important;}
+
+/* ---------- SCROLL PROGRESS ---------- */
+/* transform:scaleX, not width — this updates every scroll frame via the
+   shared rAF ticker, so animating a layout property (width) here would
+   force a reflow on every frame; scaleX is a compositor-only change */
+.scroll-progress{
+  position:fixed; top:0; left:0; height:2px; width:100%;
+  transform:scaleX(0); transform-origin:left;
+  background:var(--orange); z-index:300; pointer-events:none;
+  transition:transform .1s linear;
+}
+
+/* ---------- NAV ---------- */
+header.nav{
+  position:sticky; top:0; z-index:200;
+  background:rgba(255,255,255,.86); backdrop-filter:blur(12px);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s var(--ease), box-shadow .3s var(--ease), background .3s var(--ease);
+}
+header.nav.is-compact{
+  border-bottom-color:var(--line);
+  box-shadow:0 8px 26px -20px rgba(20,19,15,.3);
+}
+.nav-inner{
+  max-width:var(--maxw); margin:0 auto; padding:15px 32px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+  transition:padding .3s var(--ease);
+}
+header.nav.is-compact .nav-inner{padding-top:10px; padding-bottom:10px;}
+@media (max-width:640px){ .nav-inner{padding:13px 20px;} }
+/* padding, not a taller logo-img — pads the tap target to the 44px touch
+   target minimum without changing the logo's visual size */
+.logo{display:inline-flex; align-items:center; padding:9px 0;}
+.logo-img{height:26px; width:auto;}
+@media (max-width:480px){ .logo-img{height:22px;} .logo{padding:11px 0;} }
+nav.links{display:flex; align-items:center; gap:30px; font-size:14px; font-weight:500; color:var(--ink-soft);}
+nav.links a{position:relative; padding:4px 0;}
+/* transform:scaleX, not width — same reasoning as .scroll-progress: a
+   compositor-only change instead of a layout-triggering one */
+nav.links a::after{
+  content:''; position:absolute; left:0; bottom:0; height:1.5px; width:100%;
+  transform:scaleX(0); transform-origin:left;
+  background:var(--accent); transition:transform .28s var(--ease);
+}
+nav.links a:hover{color:var(--ink);}
+nav.links a:hover::after{transform:scaleX(1);}
+nav.links a:focus-visible{color:var(--ink); outline:2px solid var(--ink); outline-offset:4px; border-radius:4px;}
+nav.links a:focus-visible::after{transform:scaleX(1);}
+/* whichever section is actually in view keeps its underline without a
+   hover — a quiet wayfinding cue, not just a link list */
+nav.links a.is-current{color:var(--ink); font-weight:700;}
+nav.links a.is-current::after{transform:scaleX(1);}
+.nav-cta{display:flex; align-items:center; gap:14px;}
+.nav-auth{font-size:14px; font-weight:600; color:var(--ink-soft); white-space:nowrap; transition:color .2s var(--ease);}
+.nav-auth:hover{color:var(--ink);}
+
+/* ---------- AUDIENCE MODE TOGGLE ----------
+   Sits beside the logo so it reads as a product-level control rather than
+   another marketing link. Re-tints --accent site-wide; doesn't navigate,
+   since this is one shared page rather than two audience-specific ones. */
+.nav-left{display:flex; align-items:center; gap:16px; min-width:0;}
+.mode-switch{
+  position:relative; display:inline-flex; padding:3px; gap:2px;
+  background:var(--paper-warm); border:1px solid var(--line); border-radius:999px;
+}
+/* the pill itself slides between options rather than each option flipping
+   its own background on/off — reads as one continuous choice, not two
+   independent toggles */
+.mode-indicator{
+  position:absolute; top:3px; left:3px; width:calc(50% - 3px); height:calc(100% - 6px);
+  border-radius:999px; background:var(--orange); z-index:0;
+  /* students/builders is the first (left) button and the default mode, so
+     the pill starts left; default/no-attribute state is "builder". Students
+     are orange, companies are blue — maintained everywhere this pairing
+     shows up on the page (testimonial badges, spectrum-split CTAs, etc). */
+  transform:translateX(0);
+  transition:transform .32s var(--ease), background .32s var(--ease);
+}
+html[data-audience="business"] .mode-indicator{transform:translateX(100%); background:var(--blue);}
+.mode-opt{
+  position:relative; z-index:1;
+  padding:7px 15px; border-radius:999px; white-space:nowrap;
+  border:none; background:none; cursor:pointer;
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600;
+  letter-spacing:.03em; color:var(--ink-soft);
+  transition:color .22s var(--ease);
+}
+.mode-opt:hover{color:var(--ink);}
+.mode-opt:focus-visible{color:var(--ink); outline:2px solid var(--ink); outline-offset:2px;}
+.mode-opt[aria-current="true"]{color:#fff;}
+@media (max-width:900px){ .nav-left .mode-switch{display:none;} }
+.mode-switch--mobile{display:flex; width:100%; margin-bottom:6px;}
+/* 15px, not 11px, vertical padding — 11px rendered a 36px-tall tap target,
+   under the 44px touch-target minimum */
+.mode-switch--mobile .mode-opt{flex:1; text-align:center; padding:15px 10px; font-size:12px;}
+
+.nav-toggle{
+  display:none; width:44px; height:44px; flex:none;
+  align-items:center; justify-content:center;
+  background:transparent; border:1px solid var(--line); border-radius:12px; cursor:pointer; padding:0;
+}
+.nav-toggle-bars{position:relative; width:18px; height:12px; display:block;}
+.nav-toggle-bars::before, .nav-toggle-bars::after{
+  content:''; position:absolute; left:0; width:100%; height:2px;
+  background:var(--ink); border-radius:2px;
+  transition:transform .28s var(--ease), top .28s var(--ease);
+}
+.nav-toggle-bars::before{top:0;}
+.nav-toggle-bars::after{top:10px;}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before{top:5px; transform:rotate(45deg);}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after{top:5px; transform:rotate(-45deg);}
+
+.mobile-menu{display:none;}
+.mobile-menu a.m-link{display:block; padding:15px 0; font-size:17px; font-weight:700; border-bottom:1px solid var(--line);}
+.mobile-menu a.m-link:focus-visible{outline:2px solid var(--ink); outline-offset:-2px;}
+.mobile-menu-ctas{display:flex; flex-direction:column; gap:10px; padding-top:16px;}
+.mobile-menu-ctas .btn{width:100%; padding:14px 22px;}
+@media (max-width:900px){
+  nav.links{display:none;}
+  .nav-toggle{display:flex;}
+  .nav-cta .nav-auth{display:none;}
+  .mobile-menu.open{
+    display:block; padding:4px 32px 22px; border-top:1px solid var(--line);
+    animation:menuIn .26s var(--ease);
+  }
+  @keyframes menuIn{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
+}
+@media (max-width:900px){ .mobile-menu.open{padding-left:20px; padding-right:20px;} }
+@media (max-width:359px){ .nav-cta{display:none;} }
+
+/* ==========================================================================
+   1. HERO
+   ========================================================================== */
+/* Hero + logo carousel together fill the window, so the Featured challenges /
+   Success stories split below them is never visible until the reader scrolls.
+   Before this the pair was a fixed ~813px tall, so the split peeked above the
+   fold on every window taller than ~810px (1440x900, 1536x864, 1920x1080).
+
+   min() rather than a fixed height, because this must only ever GROW the hero:
+   - Tall windows: 100svh minus the nav and the logo strip, so the pair lands
+     exactly on the fold.
+   - Short windows: the hero's natural content height is larger than that
+     figure, so it simply wins and nothing is squashed.
+   - The 900px ceiling is the "within reason" part. Past it the hero would
+     just be stretching whitespace, so on very tall windows the split is
+     allowed to peek instead.
+   --fold-reserve is the nav (76px) plus the logo strip (158px); update it if
+   either changes height. svh (not vh) so mobile browser chrome doesn't push
+   the fold off-screen; the vh line above it is the fallback. */
+.hero{
+  position:relative; padding-top:64px; padding-bottom:56px; overflow:hidden;
+  --fold-reserve:234px;
+  min-height:min(calc(100vh - var(--fold-reserve)), 900px);
+  min-height:min(calc(100svh - var(--fold-reserve)), 900px);
+  display:flex; align-items:center;
+}
+.hero-grid{display:grid; grid-template-columns:1.08fr .92fr; gap:56px; align-items:center; width:100%;}
+@media (max-width:980px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
+
+/* Capped at 72px, not 86px — the builder/student headline ("Prove your
+   skills," / "not your resume.") is longer than the business one and wrapped
+   into 4 lines instead of 2 at the old max, adding ~170px of height that
+   pushed the logo carousel below the fold on most desktop viewports. 72px is
+   the largest size that still fits both headlines in one line per <br>
+   segment within the ~605px text column at 1280-1920px widths. */
+.hero h1{font-size:clamp(42px,6.4vw,72px); margin:18px 0 20px; line-height:1.05;}
+.hero h1 .accent{color:var(--orange);}
+.hero-sub{font-size:18.5px; line-height:1.55; color:var(--ink-soft); max-width:34ch; margin-bottom:26px;}
+.hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;}
+
+/* the statistic under the CTAs — real Hack & Hire pilot figures */
+.hero-stat{
+  padding-left:18px; border-left:2px solid var(--line);
+  display:flex; flex-direction:column; gap:7px;
+}
+.hero-stat-row{display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--ink-soft);}
+.hero-stat-row b{color:var(--ink); font-weight:700; font-size:15px;}
+.hero-stat-row span{display:inline-flex; align-items:baseline; gap:6px;}
+.hero-stat-cap{font-size:12px; color:var(--muted); letter-spacing:.02em;}
+
+@media (max-width:640px){
+  .hero{padding-top:44px; padding-bottom:56px;}
+  .hero-sub{font-size:16.5px; margin-bottom:26px; max-width:none;}
+  .hero-ctas{flex-direction:column; align-items:stretch; gap:10px;}
+  .hero-ctas .btn{width:100%; padding:15px 22px;}
+}
+
+/* Static background-image visual — no <video>, no scroll-linked change (see
+   index.html comment above .hero-visual). hero-visual.webp is a still frame,
+   so it keeps the "doesn't move on scroll" rule the earlier hero handoff broke;
+   the gradient layer underneath is a fallback fill only. */
+.hero-visual{
+  /* 1/0.86, not 1/1.04 — the taller ratio made this column the height
+     bottleneck for the whole hero (taller than the text column), which was
+     the other big contributor pushing the logo carousel below the fold */
+  position:relative; border-radius:26px; overflow:hidden; aspect-ratio:1/0.86;
+  background:linear-gradient(180deg, rgba(20,19,15,0) 45%, rgba(20,19,15,.6) 100%),
+    var(--img-hero-visual) center/cover no-repeat,
+    linear-gradient(155deg,var(--amber-light) 0%, var(--orange) 22%, var(--violet) 48%, var(--navy-mid) 74%, var(--navy-deep) 100%);
+  box-shadow:0 34px 80px -34px rgba(20,19,15,.55);
+}
+
+/* live-status card floating over the visual */
+.hero-card{
+  position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+  width:88%; background:rgba(20,19,15,.82); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:17px 19px;
+  color:#fff; box-shadow:0 24px 54px -20px rgba(0,0,0,.65);
+}
+.hero-card-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:11px;}
+.hero-card-top .tag{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.09em; color:rgba(255,255,255,.55);}
+/* fixed, not --accent — this card sits on hero-visual.webp's warm/fire
+   palette, which doesn't change with the audience toggle, so its own accents
+   stay put too rather than clashing (e.g. blue-on-fire in company mode) */
+.hero-card-live{display:inline-flex; align-items:center; gap:7px; color:var(--orange);}
+.hero-card-live::before{content:''; width:7px; height:7px; border-radius:50%; background:var(--orange); animation:livePulse 1.7s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.3; transform:scale(.8);}}
+.hero-card-title{font-weight:700; font-size:14.5px; margin-bottom:12px;}
+.hc-row{display:flex; align-items:center; gap:11px; padding:8px 0; border-top:1px solid rgba(255,255,255,.1); font-size:13px;}
+.hc-row:first-of-type{border-top:none;}
+.hc-rank{font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--orange); font-weight:700; flex:none;}
+.count-up{font-variant-numeric:tabular-nums;}
+@media (max-width:640px){
+  .hero-visual{aspect-ratio:1/1.1;}
+  .hero-card{width:92%; bottom:16px; padding:14px 15px;}
+}
+
+/* ==========================================================================
+   2. LOGO CAROUSEL — true recycling marquee (see landing.js)
+   Items are physically moved from the head of the track to the tail as they
+   leave the left edge, so the strip never resets/jumps: it just keeps
+   reintroducing the logos that scrolled off.
+   ========================================================================== */
+.logos{padding:14px 0 70px;}
+.logos-label{
+  text-align:center; font-family:'JetBrains Mono', monospace; font-size:11px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:26px;
+}
+.logo-marquee{
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  mask-image:linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+}
+.logo-track{display:flex; align-items:center; gap:64px; width:max-content; will-change:transform;}
+.logo-chip{
+  /* padding:4px 0 clears the 24px touch-target minimum (the bare text line
+     rendered at 22px) without visibly changing the chip's size or the
+     marquee track's centered alignment */
+  display:inline-block; padding:4px 0; font-size:23px; font-weight:900; letter-spacing:-.02em; color:var(--muted-large);
+  white-space:nowrap; flex:none; transition:color .3s var(--ease), transform .3s var(--ease);
+  font-family:'Satoshi', sans-serif;
+}
+.logo-chip:hover, .logo-chip:focus-visible{color:var(--accent); transform:scale(1.06);}
+.logo-chip:focus-visible{outline:2px solid var(--accent); outline-offset:4px; border-radius:4px;}
+@media (max-width:640px){ .logo-track{gap:44px;} .logo-chip{font-size:19px;} .logos{padding-bottom:52px;} }
+
+/* ==========================================================================
+   3 + 4. SPECTRUM SPLIT — Featured challenges | Success stories
+   A tall wrapper with a sticky 100vh stage. Scrolling in fades the white
+   veil away (page background dissolves) and drops the viewer into the
+   light-spectrum wave; scrolling out fades it back so the section returns
+   cleanly to the white page rather than cutting.
+   ========================================================================== */
+/* 260vh (110vh of nothing-visibly-moving pin time) read as too much scroll
+   for too little payoff; 170vh keeps the veil-dissolve entrance/exit intact
+   with roughly a third the dead scroll distance. */
+.spectrum-split{position:relative; height:170vh;}
+/* Blended left-to-right, not flat black. The stripe sits in its own flex
+   slot beside the panels (not on top of their tinted backgrounds), and the
+   bars shear at different offsets per index — so any gap the shear opens up,
+   or the mask's fade at the bar edges, has to expose a colour that already
+   belongs to that side. Flat #08080a there read as a stray black box behind
+   the spectrum bars instead of blending into the scene. */
+.ss-stage{
+  position:sticky; top:0; height:100vh; overflow:hidden;
+  background:linear-gradient(90deg, #1c0a05 0%, #0d0705 42%, #05070f 58%, #070c22 100%);
+  display:flex; align-items:stretch;
+}
+/* the white veil that "disappears" as you scroll in — opacity driven by JS */
+.ss-veil{position:absolute; inset:0; background:var(--paper); z-index:8; pointer-events:none; will-change:opacity;}
+
+.ss-panel{
+  position:relative; z-index:3; flex:1 1 0; min-width:0;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:0 clamp(24px,4.2vw,72px);
+  transition:flex-grow .85s var(--ease), background-color .85s var(--ease);
+  cursor:pointer; color:#fff;
+}
+/* Extra clearance on the seam side. The bars are deliberately wider than the
+   band so they fan past it — that overhang has to land on empty panel margin,
+   not on copy, or the headline and stats end up sitting underneath the wave. */
+.ss-panel--challenges{padding-right:clamp(40px,7vw,120px);}
+.ss-panel--stories{padding-left:clamp(40px,7vw,120px);}
+/* each side carries the spectrum end nearest it */
+.ss-panel--challenges{background:linear-gradient(135deg, rgba(255,91,36,.22), rgba(199,62,16,.06));}
+.ss-panel--stories{background:linear-gradient(225deg, rgba(47,107,255,.22), rgba(12,22,56,.1));}
+
+/* default rests on Featured challenges — it is the primary action.
+   1.5/1 rather than a harder ratio: the inactive side still has to be
+   readable, since it is real content and not just a teaser for the click. */
+.ss-stage[data-active="challenges"] .ss-panel--challenges{flex-grow:1.5;}
+.ss-stage[data-active="challenges"] .ss-panel--stories{flex-grow:1;}
+.ss-stage[data-active="stories"] .ss-panel--stories{flex-grow:1.5;}
+.ss-stage[data-active="stories"] .ss-panel--challenges{flex-grow:1;}
+
+.ss-inner{max-width:520px; transition:opacity .6s var(--ease);}
+.ss-panel--stories .ss-inner{margin-left:auto;}
+/* the inactive side dims so the active one reads as chosen, not just wider */
+.ss-stage[data-active="challenges"] .ss-panel--stories .ss-inner{opacity:.62;}
+.ss-stage[data-active="stories"] .ss-panel--challenges .ss-inner{opacity:.62;}
+
+.ss-eyebrow{
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600;
+  letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.72);
+  display:inline-flex; align-items:center; margin-bottom:18px;
+}
+.ss-inner h2{font-size:clamp(30px,3.9vw,52px); margin-bottom:16px;}
+.ss-lede{font-size:16.5px; line-height:1.6; color:rgba(255,255,255,.82); margin-bottom:26px;}
+
+/* live countdown to the top featured challenge's close (placeholder deadline
+   — see the HTML comment above .ss-countdown) */
+.ss-countdown{
+  display:inline-flex; align-items:center; gap:11px; flex-wrap:wrap;
+  margin-bottom:22px; padding:10px 16px; border-radius:999px;
+  background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.18);
+}
+.ss-countdown-label{
+  font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55);
+}
+.ss-countdown-val{
+  font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;
+  color:#fff; font-variant-numeric:tabular-nums;
+}
+
+/* featured-challenge mini cards */
+.ss-cards{display:flex; flex-direction:column; gap:10px; margin-bottom:28px;}
+.ss-card{
+  background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.16);
+  border-radius:13px; padding:14px 16px; backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  transition:background .25s var(--ease), transform .25s var(--ease);
+}
+.ss-card:hover{
+  background:rgba(255,255,255,.15); transform:translateX(4px) translateY(-2px);
+  box-shadow:0 14px 30px -16px rgba(0,0,0,.55);
+}
+.ss-view-all{
+  /* block, not inline-block — needs to sit on its own line below the
+     "Sign up to compete" button, not beside it. padding:6px 0 pads the tap
+     target past the 24px touch-target minimum (the bare text line rendered
+     at 15px) without visually enlarging the link itself. */
+  display:block; width:fit-content; margin-top:8px; padding:6px 0;
+  font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:700;
+  color:#fff; text-decoration:underline; text-underline-offset:4px;
+  transition:color .2s var(--ease);
+}
+.ss-view-all:hover{color:#ffb191;}
+.ss-card-t{font-weight:700; font-size:14.5px; margin-bottom:3px;}
+.ss-card-m{font-family:'JetBrains Mono', monospace; font-size:11px; color:rgba(255,255,255,.6);}
+.ss-card-pill{
+  font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  padding:5px 10px; border-radius:999px; white-space:nowrap; flex:none;
+  background:rgba(255,91,36,.25); border:1px solid rgba(255,91,36,.5); color:#ffb191;
+}
+
+/* problem-validation stats on the stories side */
+.ss-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:28px;}
+.ss-stats--three{grid-template-columns:repeat(3,1fr);}
+/* Below ~1200px the inactive panel is only ~285px wide, so three columns left
+   each caption at roughly one word per line ("hires / made / off the / back /
+   of it"). The panel's width animates, so a container query would be the
+   precise tool here; stacking below this width is the robust equivalent and
+   stays legible in BOTH the active and inactive states. */
+@media (max-width:1200px){ .ss-stats--three{grid-template-columns:1fr;} }
+@media (max-width:520px){ .ss-stats--three{grid-template-columns:1fr;} }
+.ss-stat{background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-radius:13px; padding:15px 16px;}
+.ss-stat b{display:block; font-family:'JetBrains Mono', monospace; font-size:25px; font-weight:700; color:#fff; margin-bottom:4px;}
+.ss-stat span{font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.7);}
+.ss-note{font-size:12px; color:rgba(255,255,255,.5); margin-top:-14px; margin-bottom:12px;}
+.ss-story{font-size:13.5px; color:rgba(255,255,255,.72); line-height:1.5; margin-bottom:22px;}
+
+/* --- the light spectrum wave band (the seam) --- */
+.ss-stripe{
+  --stripe-w:clamp(78px,7.4vw,124px);
+  /* 1.7x, not 2.5x — the fan has to clear the band without reaching the copy
+     (see the seam-side padding on .ss-panel above) */
+  --bar-w:calc(var(--stripe-w) * 1.7);
+  position:relative; z-index:5; flex:0 0 var(--stripe-w);
+  align-self:stretch; overflow:visible; pointer-events:none;
+}
+/* Rich, fully-saturated tint confined to the narrow stripe itself — spread
+   across the whole page width (the earlier attempt, on .ss-stage) the same
+   colours read as near-black by the time they reached this band, since the
+   transition zone landed on the gradient's darkest stops. Continues each
+   side's own hue (warm orange left, cool blue right) so any gap the bar
+   shear/mask opens up reads as part of the same scene instead of a stray
+   black rectangle behind the spectrum slivers. */
+.ss-stripe-inner{
+  position:absolute; inset:0;
+  background:linear-gradient(90deg, #3d160a 0%, #241030 50%, #0d1442 100%);
+  transition:filter .8s var(--ease);
+}
+.ss-stage[data-active="stories"] .ss-stripe-inner{filter:saturate(1.16) brightness(1.12);}
+.ss-bar{
+  position:absolute; left:50%;
+  width:var(--bar-w);
+  height:calc(100vh / var(--n) + 1px);          /* +1px kills sub-pixel seams */
+  top:calc(var(--i) * 100vh / var(--n));
+  background-image:var(--img-spectrum);
+  /* --zx/--ox (set per bar in landing.js) zoom into and re-centre on just
+     that row's colourful diagonal band. The source image is mostly black
+     margin either side of the band, and — because it's a diagonal — the
+     band's own centre drifts by most of the image's width between the top
+     and bottom bars, so no single fixed crop/zoom works for every bar; each
+     one needs its own, precomputed by sampling the actual image. Without
+     this, most of each bar showed flat black instead of colour. */
+  background-size:calc(var(--bar-w) * var(--zx, 1)) 100vh;
+  background-position:calc(var(--bar-w) * var(--ox, 0)) calc(-1 * var(--i) * 100vh / var(--n));
+  background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  mask-image:linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  transform:translateX(-50%);
+  transition:transform .85s var(--ease);
+  transition-delay:var(--delay, 0ms);
+  will-change:transform;
+}
+/* the shear: bars slide away from the active side, each by its own amplitude */
+.ss-stage[data-active="challenges"] .ss-bar{transform:translateX(calc(-50% + var(--amp, 24px)));}
+.ss-stage[data-active="stories"]    .ss-bar{transform:translateX(calc(-50% - var(--amp, 24px)));}
+
+/* explicit tabs — hover alone is unreachable on touch and by keyboard */
+/* Centred, which is exactly where the spectrum band's brightest passage runs —
+   near-white text on it was washing out mid-string. Given the same translucent
+   dark pill the countdown and the toggle below it already use, so it stays
+   legible over any part of the band and reads as part of the same control set
+   rather than loose text floating on the artwork. */
+.ss-hint{
+  position:absolute; z-index:9; left:50%; bottom:82px; transform:translateX(-50%);
+  font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.04em;
+  color:rgba(255,255,255,.82); white-space:nowrap;
+  padding:7px 14px; border-radius:999px;
+  background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(10px);
+  opacity:1; transition:opacity .6s var(--ease); pointer-events:none;
+}
+.ss-hint.is-hidden{opacity:0;}
+
+.ss-tabs{
+  position:absolute; z-index:9; left:50%; bottom:26px; transform:translateX(-50%);
+  display:flex; gap:6px; padding:5px; border-radius:999px;
+  background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(10px);
+}
+.ss-tab{
+  padding:9px 18px; border-radius:999px; border:none; background:transparent; cursor:pointer;
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600; letter-spacing:.04em;
+  color:rgba(255,255,255,.66); white-space:nowrap; transition:background .25s var(--ease), color .25s var(--ease);
+}
+.ss-tab:hover{color:#fff;}
+.ss-tab:focus-visible{color:#fff; outline:2px solid #fff; outline-offset:2px;}
+/* aria-pressed, not aria-selected — these are toggle buttons, not tabs; both
+   panels stay visible, so there are no tabpanels to select (see index.html) */
+.ss-tab[aria-pressed="true"]{background:#fff; color:var(--ink);}
+
+@media (max-width:900px){
+  /* stacked: the band turns into a horizontal divider between two full cards,
+     and both sides show their content outright — a hover-to-expand split has
+     no meaning on a touch screen that can only show one column anyway. */
+  .spectrum-split{height:auto;}
+  .ss-stage{position:static; height:auto; flex-direction:column; padding:64px 0;}
+  .ss-veil{display:none;}
+  .ss-panel{flex:none !important; padding:40px 20px; cursor:default;}
+  .ss-inner{opacity:1 !important; max-width:none; margin:0 !important;}
+  .ss-stripe{
+    flex:none; height:clamp(64px,11vh,92px); width:100%;
+    overflow:hidden; align-self:auto;
+  }
+  .ss-bar{
+    left:0; top:50%; width:100%; height:auto;
+    /* band rotates: bars stack across the screen instead of down it */
+    transform:none !important;
+  }
+  .ss-stripe-inner{
+    background-image:var(--img-spectrum); background-size:cover; background-position:center;
+    transform:rotate(180deg);
+  }
+  .ss-stripe .ss-bar{display:none;}
+  .ss-tabs{display:none;}
+  .ss-hint{display:none;}
+  .ss-stats{grid-template-columns:1fr 1fr;}
+  /* Below 900px the hover/veil mechanic is gone entirely (see above), so
+     without this the whole split would render as flat static text the moment
+     it's on screen. Scoped inside this media query on purpose — it must
+     never touch desktop, where the pin/veil dissolve already is the entrance
+     motion. Revealed via IntersectionObserver in landing.js. */
+  .ss-card, .ss-stat{opacity:0; transform:translateY(16px); transition:opacity .55s var(--ease), transform .55s var(--ease);}
+  .ss-card.revealed, .ss-stat.revealed{opacity:1; transform:none;}
+  .no-js .ss-card, .no-js .ss-stat{opacity:1; transform:none;}
+}
+@media (max-width:900px) and (prefers-reduced-motion:reduce){
+  .ss-card, .ss-stat{opacity:1; transform:none;}
+}
+@media (max-width:420px){ .ss-stats{grid-template-columns:1fr;} }
+
+/* ==========================================================================
+   Generic section wrapper — used by How it works (and available for any
+   future plain content section that doesn't need its own bespoke layout).
+   ========================================================================== */
+.section{padding:96px 0;}
+@media (max-width:640px){ .section{padding:64px 0;} }
+.section-head{max-width:640px; margin-bottom:44px;}
+.section-head h2{font-size:clamp(28px,3.6vw,42px); margin-top:12px;}
+
+/* ==========================================================================
+   5. HOW IT WORKS — Fluid Flow Steps, restored (animation library #3)
+   Was rebuilt as a static 4-card grid when the defense/rubric content was
+   dropped, then the user asked specifically to bring this scroll-scrub back
+   for the current 4 steps — "STEP" is dropped from the badge (bare number
+   only, per that earlier ask), and the Rubric Spectrum Bar stays gone (it
+   was tied to content that's no longer here). One continuous journey
+   through fluid-full.webp: background-position moves with scroll progress
+   across the whole pinned section, so the four steps read as one flow
+   rather than four separate blocks. Ships as fluid-full.webp (78KB,
+   ffmpeg -q:v 82 — the same convention already used for hero-visual.webp),
+   not the 1.19MB fluid-full.png master; visually identical since it's an
+   opaque RGBA source with no real transparency.
+   ========================================================================== */
+/* 540vh, was 368vh. At 368 each of the 4 steps got only ~92vh of scroll (one
+   screen-height), and the user reported a step finished "before I even
+   process" it. Now ~135vh per step, roughly 1.4 screens of scrolling each,
+   so there is real dwell time on a headline before it crossfades out.
+   Desktop only: below 900px .flow collapses to height:auto and a static
+   stacked list, so this never lengthens the mobile page. */
+.flow{position:relative; height:540vh;}
+.flow-inner{
+  position:sticky; top:0; height:100vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:#0a0a0c;
+}
+.flow-fluid{
+  position:absolute; inset:0;
+  background-image:var(--img-fluid-full);
+  /* ZOOM: was `220% 220%`, which had two problems.
+     1. It sized each axis to 220% of the CONTAINER independently, so the
+        artwork's own 1080x611 aspect ratio was ignored — at 1440x900 that
+        stretched it 10.5% vertically.
+     2. 220% of the viewport meant a 2.9x (1440px) to 5.2x (2560px) upscale
+        of a 1080px-wide source, which is what read as "low resolution":
+        past ~2x, no amount of encoding quality can help.
+     Now: scale to COVER (preserving aspect via the artwork's own ratio),
+     then multiply by --fluid-zoom for the pannable overhang the scroll
+     scrub needs. max() picks whichever axis has to drive the cover. This
+     cuts magnification to 1.8x/2.2x/3.0x at those same widths and removes
+     the distortion entirely. Height is `auto` so aspect is never forced. */
+  --fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
+  --fluid-zoom:1.4;
+  background-size:calc(max(100vw, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
+  background-position:0% 100%;
+  opacity:.58; will-change:background-position;
+}
+/* Heavy in the CENTRE, not just at the edges: the step copy sits dead centre,
+   which is exactly where the fluid's bright cream/orange passages run. A
+   vignette-style scrim (dark rim, light middle) put the artwork's brightest
+   region directly behind the white text and made it unreadable. */
+.flow-scrim{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at center, rgba(8,8,10,.5) 0%, rgba(8,8,10,.28) 60%, rgba(8,8,10,.48) 100%),
+    linear-gradient(180deg, rgba(8,8,10,.36), rgba(8,8,10,.16) 45%, rgba(8,8,10,.4));
+}
+.flow-stage{position:relative; z-index:2; text-align:center; padding:0 24px; max-width:820px; width:100%;}
+.flow-head{margin-bottom:40px;}
+.flow-head .eyebrow{color:#ffb191;}
+.flow-head h2{color:#fff; font-size:clamp(26px,3.2vw,38px); margin-top:12px;}
+.flow-head-sub{color:rgba(255,255,255,.68); font-size:14.5px; margin-top:10px; max-width:52ch; margin-inline:auto;}
+
+.flow-steps{position:relative; min-height:270px;}
+/* Asymmetric timing: the outgoing step clears fast (.24s) while the incoming
+   one waits a beat (.14s delay) before fading in. All four steps are stacked
+   at the same absolute position, so a symmetric crossfade renders two
+   headlines legibly on top of each other for a third of a second. */
+.flow-step{
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:14px;
+  opacity:0; transform:translateY(22px) scale(.97); pointer-events:none;
+  transition:opacity .24s var(--ease), transform .24s var(--ease);
+}
+.flow-step.is-active{
+  opacity:1; transform:none; pointer-events:auto;
+  transition:opacity .5s var(--ease) .14s, transform .5s var(--ease) .14s;
+}
+.flow-step h3, .flow-step p{text-shadow:0 2px 18px rgba(0,0,0,.55);}
+/* bare number only, not "STEP 01" — asked and confirmed on the earlier
+   static-grid design, kept here */
+.flow-num{
+  font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; letter-spacing:.1em;
+  color:#ffb191; width:38px; height:38px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,177,145,.4); background:rgba(255,91,36,.14);
+}
+.flow-step h3{color:#fff; font-size:clamp(30px,5vw,60px); line-height:1.04;}
+.flow-step p{color:rgba(255,255,255,.76); font-size:16.5px; line-height:1.6; max-width:52ch;}
+.flow-step-link{
+  /* padding:6px 0 pads the tap target past the 24px touch-target minimum
+     (the bare text line rendered at 15px) without enlarging the link visually */
+  margin-top:0; padding:6px 0; font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:700;
+  color:#fff; text-decoration:underline; text-underline-offset:4px; text-shadow:none;
+}
+.flow-step-link:hover{color:#ffb191;}
+
+.flow-dots{display:flex; justify-content:center; gap:9px; margin-top:42px;}
+.flow-dot{
+  width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.24);
+  transition:background .4s var(--ease), width .4s var(--ease);
+}
+.flow-dot.is-active{background:var(--orange); width:30px;}
+
+/* Under 900px / no-js / reduced motion the pin collapses to a plain stacked
+   list. Sticky-scrubbing a short viewport reads as broken, and a scroll-gated
+   step that never activates would hide content outright. */
+@media (max-width:900px){
+  .flow{height:auto;}
+  /* relative, not static — .flow-fluid is absolutely positioned and needs this
+     as its containing block. It must NOT be position:fixed here: overflow:hidden
+     does not clip fixed descendants, so a fixed layer escapes the section and
+     paints over the spectrum split above it. */
+  .flow-inner{position:relative; height:auto; padding:64px 0; display:block;}
+  .flow-stage{max-width:none;}
+  .flow-steps{position:static; min-height:0; display:flex; flex-direction:column; gap:44px;}
+  .flow-step{position:static; opacity:1; transform:none; pointer-events:auto;}
+  .flow-step h3{font-size:clamp(26px,7vw,38px);}
+  .flow-dots{display:none;}
+}
+.no-js .flow, .reduced-motion .flow{height:auto;}
+/* relative (not static) for the same reason as the 900px block above — the
+   fluid layer is absolute and anchors to this */
+.no-js .flow-inner, .reduced-motion .flow-inner{position:relative; height:auto; padding:64px 0; display:block;}
+.no-js .flow-steps, .reduced-motion .flow-steps{position:static; min-height:0; display:flex; flex-direction:column; gap:44px;}
+.no-js .flow-step, .reduced-motion .flow-step{position:static; opacity:1; transform:none; pointer-events:auto;}
+.no-js .flow-dots, .reduced-motion .flow-dots{display:none;}
+
+/* ==========================================================================
+   6. TESTIMONIALS — recycling marquee wall (REBUILT again — was a pinned
+   scroll-scrub over hero-visual.webp). Didn't land well once live; user
+   asked for a fresh design that still holds the same content. This reuses
+   the logo carousel's proven recycling-marquee technique (see
+   buildMarqueeRow() in landing.js) instead of another pinned scroll-jack,
+   and is a LIGHT section on purpose — Featured challenges/Success stories
+   and How It Works are both dark, so this breaks up what was three dark
+   sections in a row before the final CTA.
+   ========================================================================== */
+.t-wall{background:var(--paper-warm); padding:104px 0 96px; overflow:hidden;}
+.t-wall .t-head{text-align:center; margin-bottom:50px;}
+.t-wall-row{overflow:hidden; padding:6px 0;}
+.t-wall-track{display:flex; gap:24px; width:max-content; will-change:transform;}
+
+/* fixed business/builder hues, independent of the audience-toggle --accent —
+   this tags who's speaking, not which mode you're browsing in. Students/
+   builders are orange, companies are blue — same pairing as the nav toggle
+   and the spectrum-split CTAs, kept consistent throughout the page. */
+.t-card{
+  position:relative; overflow:hidden; text-align:left;
+  flex:0 0 clamp(280px,30vw,380px);
+  background:#fff; border-radius:20px; padding:28px 26px;
+  box-shadow:0 14px 40px -20px rgba(20,19,15,.22);
+}
+/* Speaker side is tagged by .t-badge alone (text + colour) — no separate
+   top-edge accent bar. That bar used to duplicate the same information. */
+/* the "projet asset" bonus: Logo O Alone.png (the icon mark alone) as a
+   faint watermark standing in for a literal quotation mark, low enough
+   opacity that it never competes with the quote text sitting on top of it */
+.t-quote-mark{
+  position:absolute; top:22px; left:24px; width:52px; height:52px;
+  background:url('icon-mark.png') center/contain no-repeat;
+  opacity:.08; pointer-events:none;
+}
+.t-badge{
+  position:absolute; top:18px; right:18px;
+  font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
+  background:rgba(47,107,255,.12); color:var(--blue-deep);
+}
+.t-card[data-side="builder"] .t-badge{background:rgba(255,91,36,.12); color:var(--orange-deep);}
+.t-quote{position:relative; z-index:1; margin-top:10px; font-size:16px; line-height:1.55; margin-bottom:22px; margin-right:12px; font-weight:500;}
+.t-person{display:flex; align-items:center; gap:13px;}
+.t-avatar{width:44px; height:44px; border-radius:50%; flex:none; object-fit:cover;}
+.t-name{font-weight:700; font-size:14px;}
+.t-role{font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--muted); margin-top:2px;}
+
+@media (max-width:640px){
+  .t-wall{padding:70px 0 64px;}
+  .t-card{flex:0 0 82vw;}
+}
+
+/* Below reduced-motion: the marquee's own clone-fill still runs (see
+   buildMarqueeRow in landing.js — only the animation loop is skipped), so
+   the track keeps whatever clones it built before stopping. Hiding
+   everything past the 5th child shows just the real, original cards, wrapped
+   into a static grid instead of a frozen mid-scroll single row (which would
+   just overflow and clip past the viewport edge with no way to see the
+   rest).
+   Below no-js: the clone loop never runs at all (script never executes), so
+   only the 5 original cards exist — but `.t-wall-track{width:max-content}`
+   would still lay them out as one long unwrapped row wider than the
+   viewport, silently clipped by `.t-wall-row{overflow:hidden}` with no way
+   to reach the rest. Same wrap-into-a-grid fix, just without needing the
+   nth-child hide since there's nothing extra to hide. */
+.reduced-motion .t-wall-row, .no-js .t-wall-row{overflow:visible;}
+.reduced-motion .t-wall-track, .no-js .t-wall-track{
+  flex-wrap:wrap; width:auto; justify-content:center; transform:none !important;
+}
+.reduced-motion .t-card:nth-child(n+6){display:none;}
+
+/* ==========================================================================
+   FINAL CTA
+   ========================================================================== */
+.final-wrap{padding-top:96px; padding-bottom:96px;}
+.final{
+  position:relative; overflow:hidden; border-radius:28px;
+  padding:clamp(48px,7vw,96px) clamp(24px,5vw,72px); text-align:center; color:#fff;
+  background:var(--ink);
+}
+.final video, .final .final-tex{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85;}
+/* scrim: white copy vanishes into the artwork's bright cream/orange passages */
+.final::after{
+  content:''; position:absolute; inset:0; z-index:2;
+  background:linear-gradient(180deg, rgba(10,12,26,.62), rgba(10,12,26,.44) 46%, rgba(10,12,26,.74));
+}
+/* slow gradient pulse — a second layer above the fixed scrim so the readability
+   contrast in .final::after never changes, only this wash's warmth breathes.
+   The reduced-motion guard above collapses animation-duration to .01ms, and
+   0%/100% share the same values, so it just settles on the resting frame. */
+.final::before{
+  content:''; position:absolute; inset:-20%; z-index:1; pointer-events:none;
+  background:radial-gradient(circle at 30% 20%, rgba(255,91,36,.35), transparent 55%),
+    radial-gradient(circle at 75% 80%, rgba(12,22,56,.4), transparent 55%);
+  animation:finalPulse 9s ease-in-out infinite;
+}
+@keyframes finalPulse{
+  0%, 100%{opacity:.7; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.08);}
+}
+.final-inner{position:relative; z-index:3;}
+.final h2{font-size:clamp(28px,4.4vw,52px); margin-bottom:16px; max-width:19ch; margin-inline:auto;}
+.final p{font-size:16.5px; color:rgba(255,255,255,.82); margin-bottom:32px;}
+.final-btns{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+.final-fineprint{
+  font-size:12.5px; color:rgba(255,255,255,.55); margin:22px 0 0;
+  font-family:'JetBrains Mono', monospace; letter-spacing:.02em;
+}
+.btn-arrow::after{
+  content:'\2192'; display:inline-block; opacity:0; max-width:0;
+  margin-left:0; overflow:hidden; transition:opacity .22s var(--ease),
+    max-width .22s var(--ease), margin-left .22s var(--ease);
+}
+.btn-arrow:hover::after, .btn-arrow:focus-visible::after{
+  opacity:1; max-width:20px; margin-left:2px;
+}
+@media (max-width:640px){
+  .final-btns{flex-direction:column;}
+  .final-btns .btn{width:100%;}
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+footer{
+  position:relative; padding:60px 0 34px; background:var(--paper-warm);
+  border-top:1px solid var(--line);
+}
+/* accent-colored top edge — the same gradient identity as the hero headline
+   and the mode toggle it tracks (re-tints with --accent on the audience switch) */
+footer::before{
+  content:''; position:absolute; top:-1px; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--accent), var(--violet) 50%, var(--blue));
+}
+.footer-grid{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:44px;}
+@media (max-width:800px){ .footer-grid{grid-template-columns:1fr 1fr; gap:32px;} }
+@media (max-width:480px){ .footer-grid{grid-template-columns:1fr;} }
+.footer-brand p{font-size:14px; color:var(--ink-soft); line-height:1.6; margin-top:14px; max-width:34ch;}
+.footer-notify{margin-top:22px; max-width:34ch;}
+.footer-notify-label{
+  display:block; font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px;
+}
+.footer-notify-row{display:flex; gap:8px;}
+.footer-notify-row input{
+  /* 13px, not 10px, vertical padding — 10px rendered a 37px-tall tap target,
+     under the 44px touch-target minimum */
+  flex:1; min-width:0; padding:14px 13px; border-radius:999px; border:1px solid var(--line);
+  background:#fff; font-size:13.5px; color:var(--ink); font-family:inherit;
+  transition:border-color .2s var(--ease);
+}
+/* border-color alone was too weak a focus indicator (a 1px hue shift);
+   the box-shadow ring matches the same treatment already used on
+   site.css's auth-form inputs */
+.footer-notify-row input:focus-visible{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,91,36,.16);}
+.footer-notify-msg{font-size:12.5px; margin:9px 0 0; min-height:1.4em; color:var(--ink-soft);}
+.footer-notify-msg.is-pending{color:var(--accent-deep);}
+/* h3, not h6 (heading-order fix in index.html) — line-height is set explicitly
+   because the base `h1,h2,h3` rule's 1.03 is tuned for display type and would
+   otherwise crowd this 11px label. */
+.footer-col h3{
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; letter-spacing:.12em;
+  line-height:1.4; text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+}
+/* Destinations that don't exist yet. Same honesty convention as the auth
+   forms: name the destination, mark it as not live, don't fake a link. */
+.footer-pending{
+  display:flex; align-items:center; gap:8px;
+  font-size:14px; color:var(--muted); padding:6px 0; cursor:default;
+}
+.footer-pending em{
+  font-family:'JetBrains Mono', monospace; font-style:normal;
+  font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 7px; border-radius:999px;
+  background:var(--line); color:var(--muted);
+}
+.footer-col a{
+  display:flex; align-items:center; gap:0; font-size:14px; color:var(--ink-soft); padding:6px 0;
+  transition:color .2s var(--ease), gap .2s var(--ease);
+}
+.footer-col a:hover{color:var(--ink); gap:6px;}
+.footer-col a:focus-visible{color:var(--ink); gap:6px; outline:2px solid var(--ink); outline-offset:2px; border-radius:4px;}
+.footer-col a::after{
+  content:'\2192'; opacity:0; max-width:0; overflow:hidden; display:inline-block;
+  transition:opacity .2s var(--ease), max-width .2s var(--ease);
+}
+.footer-col a:hover::after{opacity:1; max-width:14px;}
+.footer-bottom{
+  display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+  padding-top:26px; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--muted);
+}
+@media (max-width:480px){
+  .footer-notify-row{flex-direction:column; align-items:stretch;}
+}
