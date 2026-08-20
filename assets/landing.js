@@ -393,6 +393,31 @@
       chip.addEventListener("mouseenter", function () { activate(chip); });
       chip.addEventListener("focus", function () { activate(chip); });
     });
+
+    /* Quotes differ in length, so swapping which one is in the spotlight
+       used to change #tSpot's own height and jolt the whole section on
+       every hover. Measure every chip's quote against the spotlight's
+       real layout (min-height cleared first, so a stale reservation can't
+       skew the measurement) and reserve the tallest as min-height — the
+       swap only ever changes content after that, never layout. Re-measured
+       on resize since wrapping depends on viewport width. */
+    function stabilizeHeight() {
+      spot.style.minHeight = "";
+      var current = quoteEl.textContent;
+      var max = 0;
+      chips.forEach(function (chip) {
+        quoteEl.textContent = chip.getAttribute("data-quote") || "";
+        max = Math.max(max, spot.offsetHeight);
+      });
+      quoteEl.textContent = current;
+      spot.style.minHeight = max + "px";
+    }
+    stabilizeHeight();
+    var resizeTimer;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(stabilizeHeight, 150);
+    });
   })();
 
   /* ---------------- featured-challenge countdown ----------------
