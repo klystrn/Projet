@@ -269,7 +269,12 @@ nav.links a:hover{color:var(--ink);}
   .auth-aside .auth-stats{display:none;}
 }
 
-.auth-main{display:flex; align-items:center; justify-content:center; padding:48px 32px;}
+/* align-items:flex-start (not center) on purpose: the status message and
+   the per-field errors below change height when they appear, and a
+   center-aligned card recenters around its own growing height, which reads
+   as the whole form jumping. Anchoring from a fixed top offset means that
+   growth only ever extends downward from a point that never moves. */
+.auth-main{display:flex; align-items:flex-start; justify-content:center; padding:min(16vh,132px) 32px 48px;}
 @media (max-width:640px){ .auth-main{padding:34px 20px;} }
 .auth-card{width:100%; max-width:420px;}
 .auth-card h1{font-size:clamp(28px,3.4vw,38px); margin-bottom:10px;}
@@ -306,8 +311,15 @@ nav.links a:hover{color:var(--ink);}
 }
 .field input:focus{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(255,91,36,.16);}
 .field input[aria-invalid="true"]{border-color:var(--red-fail);}
-.field .err{display:none; font-size:12.5px; color:var(--red-fail); margin-top:5px; font-weight:600;}
-.field input[aria-invalid="true"] ~ .err{display:block;}
+/* max-height/opacity, not display:none/block — a field turning invalid on
+   submit used to snap the button and everything below it down instantly;
+   this animates the same reveal instead of jumping. */
+.field .err{
+  display:block; max-height:0; overflow:hidden; opacity:0; margin-top:0;
+  font-size:12.5px; color:var(--red-fail); font-weight:600;
+  transition:max-height .22s var(--ease), opacity .18s var(--ease), margin-top .22s var(--ease);
+}
+.field input[aria-invalid="true"] ~ .err{max-height:32px; opacity:1; margin-top:5px;}
 .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
 @media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
 
@@ -316,14 +328,18 @@ nav.links a:hover{color:var(--ink);}
 .auth-alt a{font-weight:700; color:var(--ink); text-decoration:underline; text-underline-offset:3px;}
 .auth-fineprint{margin-top:18px; font-size:12px; color:var(--muted); line-height:1.5; text-align:center;}
 
-/* form-level status message (also the seam where the API result surfaces) */
+/* form-level status message (also the seam where the API result surfaces).
+   max-height/opacity, not display:none/block — see .field .err above, same
+   fix for the same "snaps everything below it down" jump. */
 .auth-status{
-  display:none; margin-bottom:18px; padding:13px 15px; border-radius:12px;
+  display:block; max-height:0; overflow:hidden; opacity:0; margin-bottom:0; pointer-events:none;
+  padding:13px 15px; border-radius:12px; border:1px solid transparent;
   font-size:13.5px; line-height:1.5; font-weight:600;
+  transition:max-height .3s var(--ease), opacity .22s var(--ease), margin-bottom .3s var(--ease);
 }
-.auth-status.show{display:block;}
-.auth-status.err{background:rgba(199,62,16,.08); border:1px solid rgba(199,62,16,.35); color:var(--orange-deep);}
-.auth-status.pending{background:var(--paper-warm); border:1px solid var(--line); color:var(--ink-soft);}
+.auth-status.show{max-height:120px; opacity:1; margin-bottom:18px; pointer-events:auto;}
+.auth-status.err{background:rgba(199,62,16,.08); border-color:rgba(199,62,16,.35); color:var(--orange-deep);}
+.auth-status.pending{background:var(--paper-warm); border-color:var(--line); color:var(--ink-soft);}
 .btn[aria-busy="true"]{opacity:.65; pointer-events:none;}
 
 /* ---------- MOBILE NAV (hamburger) ---------- */

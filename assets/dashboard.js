@@ -10,8 +10,10 @@
    BACKEND HOOKS (Andrei) — three seams, nothing else to rewire:
 
    1. WHICH VIEW.  Right now the view comes from ?view=student|company (or
-      the saved audience mode). Once auth exists, the account type should
-      decide it: call setView(roleFromSession) and hide #dpViewSwitch.
+      the saved audience mode, set via the nav's own For students/For
+      companies toggle — there is no dashboard-specific view switch any
+      more). Once auth exists, the account type should decide it: call
+      setView(roleFromSession) directly instead of reading ?view=/localStorage.
 
    2. PROFILE + LISTS.  Set data-endpoint on <body class="dash-page"> and
       this file will fetch it and fill the slots. Suggested shape — the

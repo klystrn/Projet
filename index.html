@@ -103,14 +103,11 @@
       <a href="#challenges" data-nav-link>Challenges</a>
       <a href="#how-it-works" data-nav-link>How it works</a>
       <a href="#testimonials" data-nav-link>Testimonials</a>
+      <a href="about.html" data-nav-link>About us</a>
+      <a href="faq.html" data-nav-link>FAQs</a>
     </nav>
     <div class="nav-cta">
-      <a class="nav-dash" id="navDash" href="dashboard.html?view=student">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-        <span id="navDashLabel">My dashboard</span>
-      </a>
-      <a href="login.html" class="nav-auth">Log in</a>
-      <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
+      <a href="login.html" class="btn btn-primary btn-sm">Log in</a>
     </div>
     <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
       <span class="nav-toggle-bars" aria-hidden="true"></span>
@@ -125,13 +122,10 @@
     <a class="m-link" href="#challenges">Challenges</a>
     <a class="m-link" href="#how-it-works">How it works</a>
     <a class="m-link" href="#testimonials">Testimonials</a>
-    <a class="nav-dash" id="navDashMobile" href="dashboard.html?view=student">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-      <span>My dashboard</span>
-    </a>
+    <a class="m-link" href="about.html">About us</a>
+    <a class="m-link" href="faq.html">FAQs</a>
     <div class="mobile-menu-ctas">
-      <a href="login.html" class="btn btn-ghost">Log in</a>
-      <a href="signup.html" class="btn btn-primary">Sign up</a>
+      <a href="login.html" class="btn btn-primary">Log in</a>
     </div>
   </div>
 </header>
@@ -175,19 +169,13 @@
         </div>
       </div>
 
-      <!-- ---- hero dashboard summary ----
-           v3 replaces the old static mock (and its cursor-tilt parallax,
-           removed on request) with a condensed version of the real
-           dashboard page. It swaps wholesale between the student and
-           company shape via data-mode-copy, same mechanism as the copy
-           above, so the toggle changes what the reader is looking at, not
-           just its colour.
-
-           BACKEND HOOK (Andrei): #heroDash carries data-endpoint. When it
-           points at a real route, landing.js should fetch the signed-in
-           user's summary and fill the same slots; while it is empty the
-           card renders sample values behind the signed-out gate below. -->
-      <div class="dash-card" id="heroDash" data-endpoint="" data-reveal style="transition-delay:.12s">
+      <!-- ---- hero graphic ----
+           A purely illustrative dashboard-styled graphic, not a live data
+           preview: no data-endpoint, nothing fetched, nothing to wire up.
+           It still swaps wholesale between the student and company shape
+           via data-mode-copy (same mechanism as the copy above) so the
+           mode toggle changes what the reader sees, not just its colour. -->
+      <div class="dash-card" id="heroDash" data-reveal style="transition-delay:.12s">
         <div class="dash-inner" data-mode-copy
              data-business='&lt;div class="dash-head"&gt;&lt;div class="dash-head-l"&gt;&lt;span class="dash-avatar"&gt;NW&lt;/span&gt;&lt;div&gt;&lt;div class="dash-who"&gt;Nordwave&lt;/div&gt;&lt;div class="dash-role"&gt;Hiring · 1 open brief&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-chip"&gt;38 ranked&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-body"&gt;&lt;div class="dash-metrics"&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;38&lt;/b&gt;&lt;span&gt;Submissions&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;12&lt;/b&gt;&lt;span&gt;Above bar&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;6d&lt;/b&gt;&lt;span&gt;Until close&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-rows"&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#ff5b24"&gt;01&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Tan Wei Jie&lt;/div&gt;&lt;div class="dash-row-meta"&gt;NUS · React, TypeScript&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;92%&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#c73e10"&gt;02&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Nur Aisyah Rahman&lt;/div&gt;&lt;div class="dash-row-meta"&gt;NTU · A11y, React&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;88%&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#2f6bff"&gt;03&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Rajesh Kumar&lt;/div&gt;&lt;div class="dash-row-meta"&gt;SMU · Node, Postgres&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;79%&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-foot"&gt;&lt;span class="dash-foot-note"&gt;Onboarding conversion&lt;/span&gt;&lt;a href="dashboard.html?view=company" class="btn btn-accent"&gt;Open dashboard&lt;/a&gt;&lt;/div&gt;'
              data-builder='&lt;div class="dash-head"&gt;&lt;div class="dash-head-l"&gt;&lt;span class="dash-avatar"&gt;CL&lt;/span&gt;&lt;div&gt;&lt;div class="dash-who"&gt;Chloe Lim&lt;/div&gt;&lt;div class="dash-role"&gt;SUTD · Year 3&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-chip"&gt;3 entries&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-body"&gt;&lt;div class="dash-metrics"&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;83&lt;/b&gt;&lt;span&gt;Avg. score&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;#2&lt;/b&gt;&lt;span&gt;Best rank&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;1&lt;/b&gt;&lt;span&gt;In review&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-rows"&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#ff5b24"&gt;04&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Onboarding conversion&lt;/div&gt;&lt;div class="dash-row-meta"&gt;Nordwave · Aug 2026&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;85&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#c73e10"&gt;02&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Cut onboarding drop-off&lt;/div&gt;&lt;div class="dash-row-meta"&gt;Fieldstone · Jul 2026&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;91&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#e6e3da;color:#726d5f"&gt;11&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Rebuild the pricing page flow&lt;/div&gt;&lt;div class="dash-row-meta"&gt;Anchorpoint · Jun 2026&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;72&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-foot"&gt;&lt;span class="dash-foot-note"&gt;Your last 3 challenges&lt;/span&gt;&lt;a href="dashboard.html?view=student" class="btn btn-accent"&gt;Open dashboard&lt;/a&gt;&lt;/div&gt;'>
@@ -218,40 +206,36 @@
             <a href="dashboard.html?view=student" class="btn btn-accent">Open dashboard</a>
           </div>
         </div>
-
-        <!-- Signed-out bar. The card shows sample data, so this states that
-             plainly rather than letting a logged-out visitor read the numbers
-             as their own. Deliberately a foot bar, not a cover-everything
-             scrim: the preview is the point of the section. landing.js
-             removes it once data-endpoint returns a real session. -->
-        <div class="dash-gate" id="dashGate">
-          <p>This is a preview<small>Sample data. Log in to see yours.</small></p>
-          <a href="login.html" class="btn btn-accent">Log in</a>
-        </div>
       </div>
     </div>
   </section>
 
-  <!-- ======================= 2. LOGO CAROUSEL ======================= -->
-  <section class="logos wrap">
+  <!-- ======================= 2. LOGO CAROUSEL =======================
+       data-carousel-enabled="true": the whole section's own on/off switch —
+       flip to "false" and assets/landing.css's [data-carousel-enabled="false"]
+       rule hides the section outright. Use this once there are too few real
+       partner logos to carry a row, rather than shipping a thin/empty-looking
+       marquee. No real logo image assets exist yet, so each chip is a
+       mark+name lockup (placeholder monogram, not a photo/vector logo)
+       rather than the old plain text wordmark; swap .logo-chip-mark's
+       content for a real <img> per partner when they exist. -->
+  <section class="logos wrap" data-carousel-enabled="true">
     <!-- PLACEHOLDER CONTENT: obviously-fictional names, labelled as such.
          Swap for real, permissioned partner logos before any public deploy. -->
     <p class="logos-label">Placeholder logos, pending real partners</p>
     <div class="logo-marquee">
       <div class="logo-track" id="logoTrack">
-        <a class="logo-chip" href="#challenges">Northwind</a>
-        <a class="logo-chip" href="#challenges">Acme Labs</a>
-        <a class="logo-chip" href="#challenges">Vertex Studio</a>
-        <a class="logo-chip" href="#challenges">Meridian Co.</a>
-        <a class="logo-chip" href="#challenges">Lumen Works</a>
-        <a class="logo-chip" href="#challenges">Cobalt &amp; Co</a>
-        <a class="logo-chip" href="#challenges">Fieldstone</a>
-        <a class="logo-chip" href="#challenges">Anchorpoint</a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">N</span><span class="logo-chip-name">Northwind</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">A</span><span class="logo-chip-name">Acme Labs</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">V</span><span class="logo-chip-name">Vertex Studio</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">M</span><span class="logo-chip-name">Meridian Co.</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">L</span><span class="logo-chip-name">Lumen Works</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">C</span><span class="logo-chip-name">Cobalt &amp; Co</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">F</span><span class="logo-chip-name">Fieldstone</span></a>
+        <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">A</span><span class="logo-chip-name">Anchorpoint</span></a>
       </div>
     </div>
   </section>
-
-  <hr class="rule">
 
   <!-- ======================= 3. FEATURED CHALLENGES =======================
        v3 option B: one spotlighted brief (the one closing soonest) beside a

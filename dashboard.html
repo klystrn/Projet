@@ -44,15 +44,12 @@
     <nav class="links">
       <a href="index.html#challenges">Challenges</a>
       <a href="index.html#how-it-works">How it works</a>
-      <a href="challenges.html">Browse</a>
+      <a href="index.html#testimonials">Testimonials</a>
+      <a href="about.html">About us</a>
+      <a href="faq.html">FAQs</a>
     </nav>
     <div class="nav-cta">
-      <a class="nav-dash" id="navDash" href="dashboard.html?view=student" aria-current="page">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-        <span id="navDashLabel">My dashboard</span>
-      </a>
-      <a href="login.html" class="nav-auth">Log in</a>
-      <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
+      <a href="login.html" class="btn btn-primary btn-sm">Log in</a>
     </div>
     <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
       <span class="nav-toggle-bars" aria-hidden="true"></span>
@@ -66,10 +63,11 @@
     </div>
     <a class="m-link" href="index.html#challenges">Challenges</a>
     <a class="m-link" href="index.html#how-it-works">How it works</a>
-    <a class="m-link" href="challenges.html">Browse challenges</a>
+    <a class="m-link" href="index.html#testimonials">Testimonials</a>
+    <a class="m-link" href="about.html">About us</a>
+    <a class="m-link" href="faq.html">FAQs</a>
     <div class="mobile-menu-ctas">
-      <a href="login.html" class="btn btn-ghost">Log in</a>
-      <a href="signup.html" class="btn btn-primary">Sign up</a>
+      <a href="login.html" class="btn btn-primary">Log in</a>
     </div>
   </div>
 </header>
@@ -83,15 +81,6 @@
           <span class="eyebrow" id="dpEyebrow">Student dashboard</span>
           <h1 id="dpHeading">Your proof, in one place.</h1>
           <p id="dpLede">Every challenge you have entered, what you scored, and where you ranked.</p>
-        </div>
-        <!-- The view switch. Until auth is wired this is manually toggleable
-             so both dashboards can be reviewed; once a real session exists
-             the account type decides it and this can become read-only or go
-             away entirely. Kept in sync with the nav audience toggle. -->
-        <div class="dp-viewswitch" id="dpViewSwitch" role="group" aria-label="Switch dashboard view">
-          <span class="mode-indicator" aria-hidden="true"></span>
-          <button class="dp-viewopt" data-view="student" aria-current="true">Student</button>
-          <button class="dp-viewopt" data-view="company" aria-current="false">Company</button>
         </div>
       </div>
       <p class="dp-notice">

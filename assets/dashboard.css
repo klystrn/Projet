@@ -18,21 +18,6 @@ body.dash-page{background:var(--paper-warm);}
 .dp-head-row{display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap;}
 .dp-title h1{font-size:clamp(28px,3.4vw,38px); margin:12px 0 8px;}
 .dp-title p{font-size:15px; color:var(--ink-soft);}
-/* the student/company view switch — same visual language as the audience
-   toggle in the nav, since it is the same choice in a different place */
-.dp-viewswitch{
-  position:relative; display:inline-flex; padding:3px; gap:2px;
-  background:#fff; border:1px solid var(--line); border-radius:999px; flex:none;
-}
-.dp-viewswitch .mode-indicator{background:var(--grad-accent);}
-.dp-viewopt{
-  position:relative; z-index:1; border:0; background:transparent; cursor:pointer;
-  padding:11px 18px; border-radius:999px;
-  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
-  color:var(--ink-soft); white-space:nowrap; transition:color .3s var(--ease);
-}
-.dp-viewopt[aria-current="true"]{color:#fff;}
-.dp-viewopt:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 
 /* front-end-only banner, same honesty convention as the auth forms */
 .dp-notice{
@@ -188,7 +173,5 @@ body.dash-page{background:var(--paper-warm);}
   .dp-card{flex-wrap:wrap;}
   .dp-chips, .dp-score, .dp-fit{order:3;}
   .dp-head-row{flex-direction:column;}
-  .dp-viewswitch{width:100%;}
-  .dp-viewopt{flex:1;}
   .dp-listfoot-actions .btn{flex:1;}
 }
