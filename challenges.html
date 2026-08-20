@@ -23,9 +23,6 @@
      able to fetch the page to see this tag. Remove when briefs are real, and
      add the URL to sitemap.xml at the same time. -->
 <meta name="robots" content="noindex">
-<!-- Social tags are still worth having on a noindex page: noindex keeps it out
-     of search results, but the URL can still be pasted into Slack, WhatsApp or
-     a DM, and these control how that unfurls. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Projet">
 <meta property="og:url" content="https://myprojet.co/challenges.html">
@@ -49,7 +46,7 @@
 <!-- ============================ NAV (shared with index.html) ============================
      Section links point back at index.html's anchors, since those sections
      live on the landing page, not here. -->
-<header class="nav">
+<header class="nav" id="siteNav">
   <div class="nav-inner">
     <div class="nav-left">
       <a href="index.html" class="logo" aria-label="Projet home">
@@ -65,14 +62,11 @@
       <a href="challenges.html" class="is-current" aria-current="page">Challenges</a>
       <a href="index.html#how-it-works">How it works</a>
       <a href="index.html#testimonials">Testimonials</a>
+      <a href="about.html">About us</a>
+      <a href="faq.html">FAQs</a>
     </nav>
     <div class="nav-cta">
-      <a class="nav-dash" id="navDash" href="dashboard.html?view=student">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-        <span id="navDashLabel">My dashboard</span>
-      </a>
-      <a href="login.html" class="nav-auth">Log in</a>
-      <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
+      <a href="login.html" class="btn btn-primary btn-sm">Log in</a>
     </div>
     <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
       <span class="nav-toggle-bars" aria-hidden="true"></span>
@@ -87,13 +81,10 @@
     <a class="m-link" href="challenges.html">Challenges</a>
     <a class="m-link" href="index.html#how-it-works">How it works</a>
     <a class="m-link" href="index.html#testimonials">Testimonials</a>
-    <a class="nav-dash" id="navDashMobile" href="dashboard.html?view=student">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-      <span>My dashboard</span>
-    </a>
+    <a class="m-link" href="about.html">About us</a>
+    <a class="m-link" href="faq.html">FAQs</a>
     <div class="mobile-menu-ctas">
-      <a href="login.html" class="btn btn-ghost">Log in</a>
-      <a href="signup.html" class="btn btn-primary">Sign up</a>
+      <a href="login.html" class="btn btn-primary">Log in</a>
     </div>
   </div>
 </header>
@@ -101,10 +92,10 @@
 <main id="top" tabindex="-1">
   <div class="wrap">
 
-    <div class="ch-head">
+    <div class="cl-head">
       <span class="eyebrow">Challenges</span>
       <h1>Real briefs, straight from the backlog.</h1>
-      <p class="ch-lede">
+      <p class="cl-lede">
         Every challenge here is an actual problem a team needs solved. Not
         take-home busywork invented to test you. Pick one, submit your best
         work, and get evaluated on what you actually built.
@@ -116,7 +107,7 @@
            not live listings and no company has posted them. Replace this
            whole block with real data (and drop the noindex in <head>) once
            the API is serving challenges. -->
-      <p class="ch-notice">
+      <p class="cl-notice">
         <b>Sample briefs, not live listings.</b>&nbsp;Projet is pre-launch.
         These six show what a real challenge looks like. Create an account and
         we'll tell you the moment live briefs open.
@@ -125,86 +116,144 @@
 
     <!-- Client-side filtering only; no data is fetched. Buttons are toggles,
          not tabs — nothing is being shown/hidden as a panel. -->
-    <div class="ch-filters" role="group" aria-label="Filter challenges by discipline">
-      <button class="ch-filter" data-filter="all" aria-pressed="true">All</button>
-      <button class="ch-filter" data-filter="product" aria-pressed="false">Product</button>
-      <button class="ch-filter" data-filter="design" aria-pressed="false">Design</button>
-      <button class="ch-filter" data-filter="engineering" aria-pressed="false">Engineering</button>
-      <button class="ch-filter" data-filter="data" aria-pressed="false">Data</button>
-      <p class="ch-count" id="chCount" aria-live="polite">6 challenges</p>
+    <div class="cl-filters" role="group" aria-label="Filter challenges by discipline">
+      <button class="cl-filter" data-filter="all" aria-pressed="true">All</button>
+      <button class="cl-filter" data-filter="product" aria-pressed="false">Product</button>
+      <button class="cl-filter" data-filter="design" aria-pressed="false">Design</button>
+      <button class="cl-filter" data-filter="engineering" aria-pressed="false">Engineering</button>
+      <button class="cl-filter" data-filter="data" aria-pressed="false">Data</button>
+      <p class="cl-count" id="clCount" aria-live="polite">6 challenges</p>
     </div>
 
-    <div class="ch-grid" id="chGrid">
-      <article class="ch-card" data-category="product">
-        <div class="ch-card-top">
-          <span class="ch-tag">Product</span>
-          <span class="ch-pill">OPEN</span>
+    <!-- Each card's progress fill + stats are read by challenges.js purely to
+         populate the "View brief" modal (data-brief-* attributes below) — the
+         card itself already shows the fill bar and counts directly, so
+         nothing here is hidden behind the modal, only expanded on by it. -->
+    <div class="cl-grid" id="clGrid">
+      <article class="cl-card" data-category="product"
+        data-brief-title="Rebuild the pricing page conversion flow"
+        data-brief-company="Nordwave" data-brief-discipline="Product"
+        data-brief-deadline="6 days left" data-brief-submitted="14" data-brief-spots="38"
+        data-brief-body="Visitors reach pricing and stall before they ever see checkout. Redesign the flow from plan choice through to checkout, and show your reasoning for why your version converts better than what's live today. Submissions are judged on the decisions you made and the evidence behind them, not visual polish alone.">
+        <div class="cl-card-top">
+          <span class="cl-tag">Product &middot; Nordwave</span>
+          <span class="cl-pill">OPEN</span>
         </div>
         <h2>Rebuild the pricing page conversion flow</h2>
         <p>Visitors reach pricing and stall. Redesign the flow from plan choice through to checkout, and show why your version converts better.</p>
-        <div class="ch-meta"><span class="ch-deadline">6 days left</span><span>Sample brief</span></div>
+        <div class="cl-fill"><div class="cl-fill-in" style="width:37%"></div></div>
+        <div class="cl-meta">
+          <span class="cl-deadline">6 days left</span>
+          <span>14 submitted &middot; 38 spots</span>
+        </div>
+        <button class="cl-view-brief" type="button">View brief</button>
       </article>
 
-      <article class="ch-card" data-category="design">
-        <div class="ch-card-top">
-          <span class="ch-tag">Design</span>
-          <span class="ch-pill">OPEN</span>
+      <article class="cl-card" data-category="design"
+        data-brief-title="Cut onboarding drop-off in the mobile app"
+        data-brief-company="Fieldstone" data-brief-discipline="Design"
+        data-brief-deadline="11 days left" data-brief-submitted="9" data-brief-spots="40"
+        data-brief-body="Most new users never finish setup, and the team doesn't have a clean read on where they give up. Rework the first-run experience so someone reaches their first real action without giving up, and walk through why each change should move that number.">
+        <div class="cl-card-top">
+          <span class="cl-tag">Design &middot; Fieldstone</span>
+          <span class="cl-pill">OPEN</span>
         </div>
         <h2>Cut onboarding drop-off in the mobile app</h2>
         <p>Most new users never finish setup. Rework the first-run experience so someone reaches their first real action without giving up.</p>
-        <div class="ch-meta"><span class="ch-deadline">11 days left</span><span>Sample brief</span></div>
+        <div class="cl-fill"><div class="cl-fill-in" style="width:23%"></div></div>
+        <div class="cl-meta">
+          <span class="cl-deadline">11 days left</span>
+          <span>9 submitted &middot; 40 spots</span>
+        </div>
+        <button class="cl-view-brief" type="button">View brief</button>
       </article>
 
-      <article class="ch-card" data-category="engineering">
-        <div class="ch-card-top">
-          <span class="ch-tag">Engineering</span>
-          <span class="ch-pill">OPEN</span>
+      <article class="cl-card" data-category="engineering"
+        data-brief-title="Ship a data pipeline for churn signals"
+        data-brief-company="Anchorpoint" data-brief-discipline="Engineering"
+        data-brief-deadline="4 days left" data-brief-submitted="23" data-brief-spots="38"
+        data-brief-body="Anchorpoint needs the handful of signals that actually predict a customer leaving, turned from raw product events into something their team can act on Monday morning. Build a pipeline that surfaces those signals, not a dashboard of everything that moved.">
+        <div class="cl-card-top">
+          <span class="cl-tag">Engineering &middot; Anchorpoint</span>
+          <span class="cl-pill">OPEN</span>
         </div>
         <h2>Ship a data pipeline for churn signals</h2>
         <p>Build a pipeline that turns raw product events into the handful of signals that actually predict a customer leaving.</p>
-        <div class="ch-meta"><span class="ch-deadline">4 days left</span><span>Sample brief</span></div>
+        <div class="cl-fill"><div class="cl-fill-in" style="width:61%"></div></div>
+        <div class="cl-meta">
+          <span class="cl-deadline">4 days left</span>
+          <span>23 submitted &middot; 38 spots</span>
+        </div>
+        <button class="cl-view-brief" type="button">View brief</button>
       </article>
 
-      <article class="ch-card" data-category="design">
-        <div class="ch-card-top">
-          <span class="ch-tag">Design</span>
-          <span class="ch-pill">OPEN</span>
+      <article class="cl-card" data-category="design"
+        data-brief-title="Design a stock-alert dashboard for warehouse staff"
+        data-brief-company="Cobalt &amp; Co" data-brief-discipline="Design"
+        data-brief-deadline="9 days left" data-brief-submitted="17" data-brief-spots="35"
+        data-brief-body="Floor staff need to see what is running out at a glance, on a shared screen, from several metres away. Design for that room, not a desk: think about type size, contrast, and what earns a place on a screen nobody is standing in front of.">
+        <div class="cl-card-top">
+          <span class="cl-tag">Design &middot; Cobalt &amp; Co</span>
+          <span class="cl-pill">OPEN</span>
         </div>
         <h2>Design a stock-alert dashboard for warehouse staff</h2>
         <p>Floor staff need to see what is running out at a glance, on a shared screen, from several metres away. Design for that room, not a desk.</p>
-        <div class="ch-meta"><span class="ch-deadline">9 days left</span><span>Sample brief</span></div>
+        <div class="cl-fill"><div class="cl-fill-in" style="width:49%"></div></div>
+        <div class="cl-meta">
+          <span class="cl-deadline">9 days left</span>
+          <span>17 submitted &middot; 35 spots</span>
+        </div>
+        <button class="cl-view-brief" type="button">View brief</button>
       </article>
 
-      <article class="ch-card" data-category="data">
-        <div class="ch-card-top">
-          <span class="ch-tag">Data</span>
-          <span class="ch-pill">OPEN</span>
+      <article class="cl-card" data-category="data"
+        data-brief-title="Automate the weekly ops reporting pack"
+        data-brief-company="Meridian Co" data-brief-discipline="Data"
+        data-brief-deadline="14 days left" data-brief-submitted="11" data-brief-spots="30"
+        data-brief-body="An analyst rebuilds the same report by hand every Monday, pulling from three systems that don't talk to each other. Automate it end to end and make the output something leadership will actually read, not just a bigger spreadsheet.">
+        <div class="cl-card-top">
+          <span class="cl-tag">Data &middot; Meridian Co</span>
+          <span class="cl-pill">OPEN</span>
         </div>
         <h2>Automate the weekly ops reporting pack</h2>
         <p>An analyst rebuilds the same report by hand every Monday. Automate it end to end and make the output something leadership will actually read.</p>
-        <div class="ch-meta"><span class="ch-deadline">14 days left</span><span>Sample brief</span></div>
+        <div class="cl-fill"><div class="cl-fill-in" style="width:37%"></div></div>
+        <div class="cl-meta">
+          <span class="cl-deadline">14 days left</span>
+          <span>11 submitted &middot; 30 spots</span>
+        </div>
+        <button class="cl-view-brief" type="button">View brief</button>
       </article>
 
-      <article class="ch-card" data-category="product">
-        <div class="ch-card-top">
-          <span class="ch-tag">Product</span>
-          <span class="ch-pill">OPEN</span>
+      <article class="cl-card" data-category="product"
+        data-brief-title="Prototype a referral loop for a B2B tool"
+        data-brief-company="Vertex Studio" data-brief-discipline="Product"
+        data-brief-deadline="7 days left" data-brief-submitted="19" data-brief-spots="32"
+        data-brief-body="Referrals work well for consumer apps; this one sells to teams, where the person who'd refer it often isn't the one who can buy it. Design a loop that fits how buying decisions actually get made inside a company, and explain who it's for at each step.">
+        <div class="cl-card-top">
+          <span class="cl-tag">Product &middot; Vertex Studio</span>
+          <span class="cl-pill">OPEN</span>
         </div>
         <h2>Prototype a referral loop for a B2B tool</h2>
         <p>Referrals work for consumer apps; this one sells to teams. Design a loop that fits how buying decisions actually get made inside a company.</p>
-        <div class="ch-meta"><span class="ch-deadline">7 days left</span><span>Sample brief</span></div>
+        <div class="cl-fill"><div class="cl-fill-in" style="width:59%"></div></div>
+        <div class="cl-meta">
+          <span class="cl-deadline">7 days left</span>
+          <span>19 submitted &middot; 32 spots</span>
+        </div>
+        <button class="cl-view-brief" type="button">View brief</button>
       </article>
     </div>
 
-    <div class="ch-empty" id="chEmpty">
+    <div class="cl-empty" id="clEmpty">
       <b>No challenges in that discipline yet.</b>
       Try another filter, or create an account and we'll notify you when new briefs open.
     </div>
 
-    <section class="ch-cta">
+    <section class="cl-cta">
       <h2>Ready to build something real?</h2>
       <p>Free for builders. No card required.</p>
-      <div class="ch-cta-btns">
+      <div class="cl-cta-btns">
         <a href="signup.html?role=builder" class="btn btn-white btn-arrow">Sign up to compete</a>
         <a href="signup.html?role=business" class="btn btn-white btn-arrow">Post a challenge</a>
       </div>
@@ -212,6 +261,33 @@
 
   </div>
 </main>
+
+<!-- ============================ BRIEF MODAL ============================
+     Native <dialog>: showModal()/close() give us focus-trapping, ESC-to-
+     close and a real ::backdrop for free, no hand-rolled ARIA needed.
+     Populated from the clicked card's data-brief-* attributes — see
+     assets/challenges.js. Progressive enhancement only: every card already
+     shows its own fill bar and counts inline, so a no-js visitor loses
+     nothing but the expanded body copy, same "inert without JS" contract
+     the filter buttons above already use on this page. -->
+<dialog class="cl-modal" id="clModal" aria-labelledby="cmTitle">
+  <div class="cl-modal-inner">
+    <button class="cl-modal-close" id="cmClose" type="button" aria-label="Close brief">&times;</button>
+    <div class="cl-card-top">
+      <span class="cl-tag" id="cmTag"></span>
+      <span class="cl-pill">OPEN</span>
+    </div>
+    <h2 id="cmTitle"></h2>
+    <p id="cmBody"></p>
+    <div class="cl-fill"><div class="cl-fill-in" id="cmFillIn"></div></div>
+    <div class="cl-modal-stats">
+      <div><b id="cmSubmitted"></b><span>Submitted</span></div>
+      <div><b id="cmSpots"></b><span>Spots</span></div>
+      <div><b id="cmDeadline"></b><span>Left</span></div>
+    </div>
+    <a href="signup.html?role=builder" class="btn btn-primary cl-modal-submit">Sign up to compete</a>
+  </div>
+</dialog>
 
 <!-- ============================ FOOTER (shared with index.html) ============================ -->
 <footer id="footer">
@@ -228,11 +304,10 @@
         <a href="index.html#testimonials">Testimonials</a>
         <a href="dashboard.html?view=student">Dashboard</a>
       </div>
-      <!-- Not yet built — shown as pending rather than as links to nowhere,
-           matching index.html and the auth forms' honesty convention. -->
       <div class="footer-col">
         <h3>Company</h3>
-        <span class="footer-pending">About<em>soon</em></span>
+        <a href="about.html">About us</a>
+        <a href="faq.html">FAQs</a>
         <span class="footer-pending">Careers<em>soon</em></span>
         <span class="footer-pending">Contact<em>soon</em></span>
       </div>
@@ -253,7 +328,7 @@
 
 <!-- landing.js owns the shared chrome (mobile menu, audience toggle, nav
      compaction); its index-only effects self-skip when their elements are
-     absent. challenges.js adds only this page's filter. -->
+     absent. challenges.js adds this page's filter and brief modal. -->
 <script src="assets/landing.js"></script>
 <script src="assets/challenges.js"></script>
 </body>
