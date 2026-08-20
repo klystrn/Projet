@@ -35,6 +35,8 @@
   --navy-deep:#0c1638;
   --muted:#726d5f;
   --muted-large:#8f8874;
+  --blue-tint:#bcd0ff;          /* light blue text-on-dark, e.g. tag pills over --grad-dark */
+  --orange-tint:#ffcbb3;        /* light orange text-on-dark, the builder-side counterpart */
 
   --radius:14px;
   --radius-lg:20px;
@@ -573,9 +575,9 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .t-spot-tag{
   margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
   letter-spacing:.06em; text-transform:uppercase; padding:5px 11px; border-radius:999px;
-  background:rgba(47,107,255,.28); color:#bcd0ff; white-space:nowrap;
+  background:rgba(47,107,255,.28); color:var(--blue-tint); white-space:nowrap;
 }
-.t-spot[data-side="builder"] .t-spot-tag{background:rgba(255,91,36,.28); color:#ffcbb3;}
+.t-spot[data-side="builder"] .t-spot-tag{background:rgba(255,91,36,.28); color:var(--orange-tint);}
 
 .t-strip{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:14px;}
 .t-chip{
