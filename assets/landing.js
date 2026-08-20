@@ -5,9 +5,12 @@
    drive all three pages.
 
    Retired in v3 (do not reinstate without a fresh instruction):
-     - the pinned How-it-works scroll-scrub
      - the spectrum-split (Featured challenges / Success stories) stage
      - the hero cursor-tilt parallax
+   The How-it-works pinned scroll-scrub was on this list too, but has since
+   been reinstated (reshaped: cropped to the right 5/8, title fixed left,
+   step-by-step with a final all-4 recap before it unpins) — see that
+   section below.
    The hard rule from v2 still stands: every effect renders its END STATE when
    motion is off or JS never runs. Nothing is gated behind a scroll effect.
    ========================================================================== */
@@ -66,37 +69,51 @@
     });
   })();
 
-  /* ---------------- how-it-works: pinned scroll-highlight ----------------
-     .flow-scroll is a tall (300vh, desktop-only via CSS) wrapper; .flow-stage
-     sticks inside it. As the reader scrolls through that range, progress
-     maps to which .flow-step carries .is-active — nothing is ever hidden,
-     only which step is emphasised moves, so it can't get "stuck" on the
-     first one. --flow-progress drives the rail fill via scaleY (compositor
-     -only) rather than animating height, so this never thrashes layout in
-     a scroll loop. Steps are re-queried live each frame rather than cached,
-     since [data-mode-copy] replaces .flow-tl's innerHTML wholesale on every
+  /* ---------------- how-it-works: pinned fluid-scrub ----------------
+     .flow-scroll is a tall (650vh, desktop-only via CSS) wrapper; .flow-stage
+     sticks inside it, split 3/8 (title) : 5/8 (scrub). Scroll progress maps
+     to one of 5 beats — the 4 steps, then a final recap showing all 4
+     together — and only the current beat's step carries .is-active (unlike
+     the old always-all-dimmed timeline, this really does show one at a
+     time). Steps/rail items are re-queried live each frame rather than
+     cached, since [data-mode-copy] replaces these nodes wholesale on every
      audience switch. Desktop + motion-ok only: mobile and reduced-motion
      render the plain flat list from CSS alone, no JS needed there. */
   (function () {
     var scrollWrap = document.getElementById("flowScroll");
-    var tl = document.getElementById("flowTl");
-    if (!scrollWrap || !tl) return;
+    var stepsWrap = document.getElementById("flowSteps");
+    var rail = document.getElementById("flowRail");
+    var recap = document.getElementById("flowRecap");
+    var fluid = document.getElementById("flowFluid");
+    if (!scrollWrap || !stepsWrap) return;
     if (reducedMotion) return;
     if (window.matchMedia && window.matchMedia("(max-width:900px)").matches) return;
 
     scrollUpdaters.push(function () {
-      var steps = tl.querySelectorAll(".flow-step");
+      var steps = stepsWrap.querySelectorAll(".flow-step");
       if (!steps.length) return;
+      var railItems = rail ? rail.querySelectorAll(".flow-rail-item") : [];
       var rect = scrollWrap.getBoundingClientRect();
       var scrollable = scrollWrap.offsetHeight - window.innerHeight;
       var progress = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
-      var idx = clamp(Math.floor(progress * steps.length), 0, steps.length - 1);
+
+      // steps.length beats for the steps themselves, +1 for the recap
+      var segments = steps.length + 1;
+      var beat = clamp(Math.floor(progress * segments), 0, segments - 1);
+      var isRecap = beat === steps.length;
+      var stepIdx = Math.min(beat, steps.length - 1);
+
       // re-applied every tick rather than only on change: [data-mode-copy]
       // replaces these nodes wholesale on an audience swap, which would
       // otherwise silently lose .is-active until progress next changed.
-      for (var i = 0; i < steps.length; i++) steps[i].classList.toggle("is-active", i === idx);
-      var fill = document.getElementById("flowFill");
-      if (fill) fill.style.setProperty("--flow-progress", progress);
+      for (var i = 0; i < steps.length; i++) steps[i].classList.toggle("is-active", i === stepIdx && !isRecap);
+      for (var j = 0; j < railItems.length; j++) {
+        railItems[j].classList.toggle("is-active", j === stepIdx);
+        railItems[j].classList.toggle("is-done", j < stepIdx || isRecap);
+      }
+      stepsWrap.classList.toggle("is-recap", isRecap);
+      if (recap) recap.classList.toggle("is-active", isRecap);
+      if (fluid) fluid.style.backgroundPosition = (progress * 100).toFixed(2) + "% " + (100 - progress * 100).toFixed(2) + "%";
     });
   })();
 

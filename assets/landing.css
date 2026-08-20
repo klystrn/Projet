@@ -5,9 +5,11 @@
 
    v2 is archived whole at archive/v2/. Retired in this rewrite, deliberately:
      - the "light spectrum wave" split (Featured challenges / Success stories)
-     - the pinned How-it-works scroll-scrub
      - the hero cursor-tilt parallax
-   None of those should come back without a fresh instruction.
+   Neither should come back without a fresh instruction. The pinned
+   How-it-works scroll-scrub WAS on this list but has since been reinstated
+   (reshaped: cropped to the right 5/8, title fixed left) — see "4. HOW IT
+   WORKS" below.
 
    GRADIENT SYSTEM (new in v3, asked for explicitly). Gradients are declared
    once here as tokens and reused, rather than hand-rolled per component, so
@@ -83,15 +85,30 @@ html[data-audience="business"]{
   --accent-glow-shadow:0 26px 60px -30px rgba(47,107,255,.6);
 }
 
+/* How-it-works fluid artwork. AVIF-primary/WebP-fallback via image-set(),
+   same two-layer fallback pattern as the rest of the site's zoomed gradient
+   art (see CLAUDE.md "Known issues #3") — image-set() itself falls back to
+   the plain url() below, and image-set() without an AVIF decoder falls back
+   to its own WebP entry. Both files must stay on disk. */
+:root{
+  --img-fluid-full:url("fluid-full.webp");
+}
+@supports (background-image:image-set(url("x.avif") type("image/avif"))){
+  :root{
+    --img-fluid-full:image-set(url("fluid-full.avif") type("image/avif"),
+                               url("fluid-full.webp") type("image/webp"));
+  }
+}
+
 /* every accent-carrying surface eases between modes rather than snapping */
 html{transition:none;}
-.nav, .hero, .btn, .eyebrow, .dash-card, .tl-node, .ch-spot, .final{
+.nav, .hero, .btn, .eyebrow, .dash-card, .flow-rail-dot, .ch-spot, .final{
   transition:background .45s var(--ease), border-color .45s var(--ease),
              color .45s var(--ease), box-shadow .45s var(--ease);
 }
 
 *{box-sizing:border-box;}
-html{scroll-behavior:smooth; overflow-x:hidden;}
+html{scroll-behavior:smooth;}
 body{
   margin:0;
   font-family:'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -281,7 +298,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   background:var(--grad-soft);
 }
 .hero::after{
-  content:''; position:absolute; inset:-10% -20% auto auto; width:80%; height:120%;
+  content:''; position:absolute; top:-10%; left:auto; bottom:auto;
+  /* -20% of .hero's own width (its usual bleed) capped at however much
+     margin actually exists between .hero's edge and the true viewport edge
+     — plain -20% overflowed the real page by ~148px at viewport widths
+     close to --maxw, where that margin is thinner than the bleed wants.
+     Confirmed via window.scrollTo(9999,0) actually moving scrollX off 0. */
+  right:calc(-1 * min(var(--maxw) * .2, (100vw - var(--maxw)) / 2));
+  width:80%; height:120%;
   z-index:0; pointer-events:none; background:var(--grad-glow);
 }
 .hero-grid{
@@ -469,75 +493,132 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .ch-note{margin-top:18px; font-size:13px; color:var(--muted);}
 
 /* ==========================================================================
-   4. HOW IT WORKS — pinned scroll-highlight timeline (all 4 steps are
-   always rendered and readable; scrolling through the pinned stage only
-   moves which one is emphasised, it never hides the other three).
-   ========================================================================== */
-.flow{padding:88px 0 92px; position:relative;}
-.flow-head{max-width:56ch; margin-bottom:44px;}
-.flow-head h2{font-size:clamp(30px,3.8vw,44px); margin:14px 0 12px;}
-.flow-head p{font-size:16.5px; line-height:1.6; color:var(--ink-soft);}
+   4. HOW IT WORKS — pinned fluid-scrub, cropped to the right 5/8
+   Reinstated (was fully retired in the v3 rewrite, then partially brought
+   back in v3.1 as a scroll-highlight timeline with no image — see the note
+   at the top of this file). Fresh, explicit instruction: the fluid-artwork
+   scrub comes back, but reshaped rather than restored verbatim — full-bleed
+   became a 3/8 (title) : 5/8 (scrub) split, one step visible at a time
+   rather than all four dimmed-but-present, and a final "recap" beat shows
+   all four together right before the section releases the pin. */
+.flow{position:relative;}
+.flow-left{
+  padding:64px 56px; display:flex; flex-direction:column; justify-content:center;
+  background:var(--paper);
+}
+.flow-left .eyebrow{margin-bottom:14px;}
+.flow-left h2{font-size:clamp(27px,2.6vw,36px); margin:0 0 14px; max-width:13ch;}
+.flow-left p{font-size:15px; line-height:1.6; color:var(--ink-soft); max-width:36ch;}
 
-/* .flow-scroll only gets scroll-room + a sticky child on desktop; below
-   900px (and reduced-motion/no-js, via the same rules further down) it
-   collapses back to a plain block so nothing ever pins on a screen too
-   short to make that legible. */
-.flow-tl{position:relative; max-width:820px;}
-/* the connector: a static faint line under the animated fill below */
-.flow-tl::before{
-  content:''; position:absolute; left:26px; top:18px; bottom:26px; width:2px;
-  background:var(--line);
+/* the left-column filler: a vertical step rail, doubling as a design element
+   (fills the space under the title) and a progress readout that mirrors the
+   scrub on the right — landing.js toggles .is-active/.is-done on it in
+   lockstep with the step currently showing in the right-hand panel. */
+.flow-rail{margin-top:36px; display:flex; flex-direction:column;}
+.flow-rail-item{position:relative; display:flex; align-items:flex-start; gap:14px; padding-bottom:26px;}
+.flow-rail-item:last-child{padding-bottom:0;}
+.flow-rail-item::before{
+  content:''; position:absolute; left:15px; top:32px; bottom:-4px; width:2px; background:var(--line);
 }
-/* the fill draws down the same rail as the reader scrolls through the
-   pinned stage — this is the "highlighted text changes as they scroll"
-   progress readout. landing.js sets --flow-progress (0-1) every scroll
-   frame; scaleY is compositor-only, so this never touches layout the way
-   animating height in a scroll loop would. */
-.flow-fill{
-  position:absolute; left:26px; top:18px; bottom:26px; width:2px;
-  background:linear-gradient(180deg, var(--accent) 0%, var(--accent-lift) 100%);
-  transform:scaleY(var(--flow-progress, 0)); transform-origin:top;
-}
-.flow-step{position:relative; display:flex; gap:26px; padding-bottom:38px; opacity:.55; transition:opacity .4s var(--ease);}
-.flow-step:last-child{padding-bottom:0;}
-.tl-node{
+.flow-rail-item:last-child::before{display:none;}
+.flow-rail-dot{
   position:relative; z-index:1; flex:none;
-  width:54px; height:54px; border-radius:16px;
+  width:32px; height:32px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700;
-  background:#fff; border:2px solid var(--line); color:var(--muted);
-  transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), box-shadow .3s var(--ease), transform .3s var(--ease);
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  background:var(--paper); border:2px solid var(--line); color:var(--muted);
+  transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
 }
-/* the active node carries a flat accent-deep fill (not the raw gradient —
-   white text on the gradient's lighter stop fails WCAG AA, see the same
-   fix already applied to the dashboard rank badges) */
-.flow-step.is-active{opacity:1;}
-.flow-step.is-active .tl-node{
-  background:var(--accent-deep); border-color:transparent; color:#fff;
-  box-shadow:var(--accent-glow-shadow); transform:scale(1.04);
+.flow-rail-label{padding-top:6px; font-size:13.5px; font-weight:600; color:var(--muted); line-height:1.35; transition:color .3s var(--ease);}
+.flow-rail-item.is-active .flow-rail-dot{background:var(--accent-deep); border-color:transparent; color:#fff;}
+.flow-rail-item.is-active .flow-rail-label{color:var(--ink);}
+.flow-rail-item.is-done .flow-rail-dot{border-color:var(--accent); color:var(--accent-deep);}
+.flow-rail-item.is-done .flow-rail-label{color:var(--ink-soft);}
+
+/* the scrub panel: cropped to the right column, not full-bleed. Same fluid
+   artwork / cover-then-zoom math as the old full-width version (see
+   CLAUDE.md "Known issues #3"), just measured against the column's own box
+   (100%) instead of 100vw. */
+.flow-right{position:relative; overflow:hidden; background:var(--ink);}
+.flow-fluid{
+  position:absolute; inset:0;
+  background-image:var(--img-fluid-full);
+  --fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
+  --fluid-zoom:1.4;
+  background-size:calc(max(100%, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
+  background-position:0% 100%;
+  opacity:.5; will-change:background-position;
 }
-.flow-body{padding-top:5px; min-width:0;}
-.flow-body h3{font-size:21px; margin-bottom:9px;}
-.flow-body p{font-size:14.5px; line-height:1.62; color:var(--ink-soft); max-width:54ch;}
-.flow-link{
-  display:inline-flex; align-items:center; gap:6px; margin-top:12px;
-  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
-  color:var(--accent-deep); padding:6px 0;
+/* heaviest at centre, not just the edges — the step copy sits left-aligned
+   in this narrower column but still over the artwork's brightest passages */
+.flow-scrim{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 70% at 40% 50%, rgba(20,19,15,.5) 0%, rgba(20,19,15,.28) 55%, rgba(20,19,15,.5) 100%),
+    linear-gradient(180deg, rgba(20,19,15,.38), rgba(20,19,15,.16) 45%, rgba(20,19,15,.42));
 }
-.flow-link:focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:4px;}
-.flow-tag{
-  display:inline-flex; align-items:center; gap:7px; margin-top:13px;
-  padding:7px 13px; border-radius:999px; background:var(--paper-warm);
-  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
+.flow-steps{position:relative; z-index:2; height:100%; display:flex; align-items:center; padding:0 clamp(28px,4vw,56px); transition:opacity .35s var(--ease);}
+.flow-steps.is-recap{opacity:0; pointer-events:none;}
+/* asymmetric crossfade: outgoing clears fast, incoming waits a beat, so a
+   symmetric fade never renders two headlines legibly on top of each other */
+.flow-step{
+  position:absolute; left:clamp(28px,4vw,56px); right:clamp(28px,4vw,56px);
+  display:flex; flex-direction:column; align-items:flex-start; gap:14px;
+  opacity:0; transform:translateY(18px); pointer-events:none;
+  transition:opacity .24s var(--ease), transform .24s var(--ease);
 }
-/* the pin: desktop only. .flow-scroll is tall enough to give ~1 screen-height
-   of scroll per step; .flow-stage sticks for that distance while landing.js
-   maps scroll progress to which .flow-step carries .is-active. 96px top
-   clears the sticky nav (76px expanded, less compact) with a little room
-   to spare. */
+.flow-step.is-active{
+  opacity:1; transform:none; pointer-events:auto;
+  transition:opacity .5s var(--ease) .14s, transform .5s var(--ease) .14s;
+}
+.flow-step h3, .flow-step p{text-shadow:0 2px 18px rgba(0,0,0,.5);}
+.flow-num{
+  font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; letter-spacing:.08em;
+  color:var(--accent-lift); width:38px; height:38px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,.32); background:rgba(255,255,255,.1);
+}
+.flow-step h3{color:#fff; font-size:clamp(26px,3.2vw,42px); line-height:1.1;}
+.flow-step p{color:rgba(255,255,255,.8); font-size:15px; line-height:1.6; max-width:46ch;}
+.flow-step-link{
+  margin-top:2px; padding:6px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700;
+  color:#fff; text-decoration:underline; text-underline-offset:4px; text-shadow:none;
+}
+.flow-step-link:hover{color:var(--accent-lift);}
+.flow-step-link:focus-visible{outline:2px solid #fff; outline-offset:3px; border-radius:4px;}
+.flow-step-tag{
+  display:inline-flex; align-items:center; gap:7px; margin-top:2px;
+  padding:7px 13px; border-radius:999px; background:rgba(255,255,255,.12);
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(255,255,255,.82);
+}
+
+/* the recap: before the pin releases, all four steps surface together for
+   one beat — "users should be able to see the whole progression before
+   scrolling to the next section." Content is the same num+h3 already in
+   each .flow-step (kept in the HTML alongside it, not synthesised by JS,
+   so the two can never drift out of sync). */
+.flow-recap{
+  position:absolute; inset:0; z-index:3;
+  display:grid; grid-template-columns:1fr 1fr; gap:14px; align-content:center;
+  padding:0 clamp(28px,4vw,56px); opacity:0; pointer-events:none;
+  transition:opacity .5s var(--ease);
+}
+.flow-recap.is-active{opacity:1; pointer-events:auto;}
+.flow-recap-item{
+  display:flex; align-items:center; gap:12px; padding:16px;
+  border-radius:var(--radius-lg); background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+}
+.flow-recap-item .flow-num{width:32px; height:32px; font-size:11px; flex:none;}
+.flow-recap-title{color:#fff; font-size:13.5px; font-weight:700; line-height:1.3;}
+
+/* the pin: desktop only. .flow-scroll gives ~130vh of scroll per beat (4
+   steps + the recap = 5 beats); .flow-stage sticks for the whole range
+   while landing.js maps scroll progress to which beat is showing. top:0
+   (not offset for the nav) matches the nav's own always-opaque background
+   — it stays legible over the pinned stage without a gap above it. */
 @media (min-width:901px){
-  .flow-scroll{height:300vh;}
-  .flow-stage{position:sticky; top:96px;}
+  .flow-scroll{height:650vh;}
+  .flow-stage{position:sticky; top:0; height:100vh; display:grid; grid-template-columns:3fr 5fr; overflow:hidden;}
 }
 
 /* ==========================================================================
@@ -700,17 +781,42 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
 /* ---------- how-it-works pin fallbacks ----------
    Reduced motion and no-js both get the plain stacked list rather than a
    scroll-jacked pin: nothing here is ever a scroll effect someone can get
-   stuck inside without motion or without JS to drive it. */
+   stuck inside without motion or without JS to drive it. The dark
+   fluid-image treatment is dropped too, not just the pin — it was tuned as
+   an image background behind crossfading white text, and re-flowed as a
+   static list that pairing would just be a contrast problem with no payoff;
+   the collapsed list matches the rest of the page instead (light
+   background, ink text, the same .flow-num circle the pinned version uses). */
 @media (prefers-reduced-motion: reduce){
   .flow-scroll{height:auto !important;}
-  .flow-stage{position:static !important;}
-  .flow-step{opacity:1 !important;}
-  .flow-fill{display:none !important;}
+  .flow-stage{display:block !important; height:auto !important;}
+  .flow-left{padding:56px 32px 8px !important; background:none !important;}
+  .flow-rail{display:none !important;}
+  .flow-right{background:none !important; padding:8px 32px 56px !important;}
+  .flow-fluid, .flow-scrim, .flow-recap{display:none !important;}
+  .flow-steps{position:static !important; height:auto !important; display:flex !important; flex-direction:column; gap:34px; padding:0 !important; opacity:1 !important; pointer-events:auto !important;}
+  .flow-step{position:static !important; left:auto !important; right:auto !important; opacity:1 !important; transform:none !important; pointer-events:auto !important;}
+  .flow-step h3, .flow-step p{text-shadow:none !important;}
+  .flow-num{border-color:var(--line) !important; background:var(--paper-warm) !important; color:var(--muted) !important;}
+  .flow-step h3{color:var(--ink) !important; font-size:clamp(22px,5vw,28px) !important;}
+  .flow-step p{color:var(--ink-soft) !important;}
+  .flow-step-link{color:var(--accent-deep) !important; text-shadow:none !important;}
+  .flow-step-tag{background:var(--paper-warm) !important; color:var(--muted) !important;}
 }
 .no-js .flow-scroll{height:auto;}
-.no-js .flow-stage{position:static;}
-.no-js .flow-step{opacity:1;}
-.no-js .flow-fill{display:none;}
+.no-js .flow-stage{display:block; height:auto;}
+.no-js .flow-left{padding:56px 32px 8px; background:none;}
+.no-js .flow-rail{display:none;}
+.no-js .flow-right{background:none; padding:8px 32px 56px;}
+.no-js .flow-fluid, .no-js .flow-scrim, .no-js .flow-recap{display:none;}
+.no-js .flow-steps{position:static; height:auto; display:flex; flex-direction:column; gap:34px; padding:0; opacity:1; pointer-events:auto;}
+.no-js .flow-step{position:static; left:auto; right:auto; opacity:1; transform:none; pointer-events:auto;}
+.no-js .flow-step h3, .no-js .flow-step p{text-shadow:none;}
+.no-js .flow-num{border-color:var(--line); background:var(--paper-warm); color:var(--muted);}
+.no-js .flow-step h3{color:var(--ink); font-size:clamp(22px,5vw,28px);}
+.no-js .flow-step p{color:var(--ink-soft);}
+.no-js .flow-step-link{color:var(--accent-deep); text-shadow:none;}
+.no-js .flow-step-tag{background:var(--paper-warm); color:var(--muted);}
 
 /* ==========================================================================
    RESPONSIVE
@@ -737,15 +843,23 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
   .mobile-menu-ctas{display:flex; gap:10px; margin-top:16px;}
   .mobile-menu-ctas .btn{flex:1;}
   .footer-grid{grid-template-columns:1fr 1fr; gap:32px;}
-  .flow-tl::before{left:22px;}
-  .tl-node{width:46px; height:46px; font-size:13px;}
-  .flow-step{gap:20px;}
-  /* no room to pin a screen-height stage below 900px: fall back to the
-     plain stacked list, every step fully visible and equally weighted */
+  /* no room to pin a screen-height, two-column stage below 900px: fall back
+     to the plain stacked list (same treatment as the reduced-motion/no-js
+     fallback above — light background, every step fully visible). */
   .flow-scroll{height:auto;}
-  .flow-stage{position:static;}
-  .flow-step{opacity:1;}
-  .flow-fill{display:none;}
+  .flow-stage{display:block; height:auto;}
+  .flow-left{padding:56px 32px 8px; background:none;}
+  .flow-rail{display:none;}
+  .flow-right{background:none; padding:8px 32px 56px;}
+  .flow-fluid, .flow-scrim, .flow-recap{display:none;}
+  .flow-steps{position:static; height:auto; display:flex; flex-direction:column; gap:34px; padding:0; opacity:1; pointer-events:auto;}
+  .flow-step{position:static; left:auto; right:auto; opacity:1; transform:none; pointer-events:auto;}
+  .flow-step h3, .flow-step p{text-shadow:none;}
+  .flow-num{border-color:var(--line); background:var(--paper-warm); color:var(--muted);}
+  .flow-step h3{color:var(--ink); font-size:clamp(22px,5vw,28px);}
+  .flow-step p{color:var(--ink-soft);}
+  .flow-step-link{color:var(--accent-deep); text-shadow:none;}
+  .flow-step-tag{background:var(--paper-warm); color:var(--muted);}
 }
 @media (max-width:640px){
   .hero h1{font-size:clamp(34px,9vw,44px);}
