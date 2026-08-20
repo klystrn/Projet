@@ -120,7 +120,94 @@ shipped code — always download/export the actual asset file locally (as
 was done for `projet-split-hero/assets/spectrum.jpg`) rather than linking
 the API URL directly.
 
-## Site architecture — v3 IN PROGRESS (Aug 2026). Read this first.
+## Site architecture — v3 (Aug 2026). Read this first.
+
+**v3 has LANDED for sections 1-3.** What follows immediately below describes
+the current live site; the long v2 documentation further down is retained as
+history and is explicitly marked where it has been superseded.
+
+```
+index.html          v3 landing page
+challenges.html     full challenge listing (nav updated for v3)
+dashboard.html      NEW in v3 — student + company dashboards
+login.html          front-end-only auth
+signup.html         front-end-only auth (?role= still prefills)
+assets/             landing.css/js + challenges.css/js + dashboard.css/js + site.css
+archive/v2/         the complete v2 site, verified-rendering snapshot
+```
+
+**What v3 changed, per founder direction:**
+
+1. **Gradient system.** `landing.css` declares gradient tokens once
+   (`--grad-accent`, `--grad-soft`, `--grad-glow`, `--grad-rule`,
+   `--grad-dark`, plus `--accent-wash`/`--accent-edge`/
+   `--accent-glow-shadow`) and every component reads them, so the whole page
+   re-tints together on a mode flip. Asked for explicitly ("incorporate
+   gradients wherever you can"). **One deliberate carve-out:** gradients go
+   on SURFACES, never on text. Gradient *text* was removed earlier in the
+   same project as a documented AI tell (see "Known issues" #9) and was not
+   reinstated — flagged to the user at the time, not silently decided.
+2. **Company mode now actually reads blue.** Previously only `--accent`
+   swapped, so company mode was an orange page with blue buttons. Now the
+   wash, the radial glow, the dark-section base and the accent shadow all
+   swap too under `html[data-audience="business"]`.
+3. **Nav has a dashboard link** (`.nav-dash`, an accent chip rather than
+   another section anchor, because it is an account destination). `landing.js`
+   repoints its href and relabels it per mode.
+4. **Hero card is now a dashboard summary**, not the old static progress
+   mock, and it **no longer has the cursor-tilt parallax** (removed on
+   request). A signed-out gate (`#dashGate`) sits over it so a logged-out
+   visitor cannot read the sample numbers as their own.
+5. **Section 2 is Featured challenges only** (spotlight + list, "option B"
+   from the review canvas). The light-spectrum split and its Success-stories
+   half are **retired**; `#stories` no longer exists anywhere, and the dead
+   anchors that pointed at it were removed from `challenges.html`.
+6. **Section 3 is a static vertical timeline** ("option B"), all four steps
+   visible at all times. The pinned scroll-scrub is **retired**.
+
+**Retired in v3 — do not reinstate without a fresh instruction:** the
+light-spectrum wave split, the How-it-works pinned scroll-scrub, and the
+hero cursor-tilt parallax. The `BAND_ZOOM` table, `spectrum.*` assets and
+`fluid-full.*` assets are no longer referenced by any live page (they remain
+on disk and in `archive/v2/`).
+
+**The review canvas is a deliverable, keep it.** The v3 direction was chosen
+from a multi-artboard design canvas (hero, both dashboards, 3 Featured-
+challenges layouts, 3 How-it-works layouts). The user asked to keep it for
+presenting later, so it must not be overwritten or repurposed:
+`https://claude.ai/code/artifact/c96ff5f2-8c90-4d60-a0c0-87e9557d33e8`
+(working files: `scratchpad/v3-canvas/*.dc.html` + `canvas.json`).
+
+**Two bugs caught by screenshot review, not by the Playwright assertion
+suite** (worth knowing if either area is touched again):
+- The hero's signed-out gate (`#dashGate`) was first built as a full-cover
+  blurred scrim, which hid the exact dashboard content it was meant to show
+  off. Rebuilt as a slim bottom bar (`.dash-gate`, `position:absolute;
+  bottom:0`), with `.dash-card:has(.dash-gate) .dash-foot{display:none}` and
+  matching `padding-bottom` on `.dash-body` so the bar doesn't overlap the
+  card's own footer or last data row.
+- `#dpNoMatch` (`dashboard.html`'s "no candidates match that filter" banner)
+  rendered even while `hidden`, because `.dp-empty{display:flex}` is author
+  CSS and beats the UA `[hidden]{display:none}` rule regardless of
+  specificity. Fixed with an explicit `.dp-empty[hidden]{display:none}`
+  override in `assets/dashboard.css`. **General lesson**: any element that
+  is toggled via the bare `hidden` attribute needs an explicit
+  `[hidden]{display:none}` rule the moment its own class sets `display` to
+  anything other than `none` — the attribute alone isn't reliable once a
+  class-level `display` declaration exists for that element.
+
+**Backend seams for Andrei** (front end is done, nothing else to rewire):
+- `#heroDash[data-endpoint]` on index.html — hero summary card
+- `body.dash-page[data-endpoint]` on dashboard.html — full dashboard
+- `window.ProjetDashboard.setView(role)` / `.showEmpty(bool)` — drive the
+  view from a real session instead of `?view=`
+- `#footerNotify[data-endpoint]`, and the auth forms' own `data-endpoint`
+- Expected response shapes are documented in comment headers in
+  `assets/landing.js` and `assets/dashboard.js`
+
+---
+
+## Site architecture — v2 history (superseded above)
 
 **The single-page rebuild described in most of this file is now "v2" —
 archived whole, at `archive/v2/` (a complete, self-contained, verified-
@@ -209,7 +296,13 @@ page deliberately does *not* use them; it has its own `assets/landing.css`
 and `assets/landing.js` so it can evolve without inheriting the old pages'
 layout baggage.
 
-## "Light spectrum wave" — the house name for the signature animation
+## "Light spectrum wave" — RETIRED IN v3 (kept as history)
+
+> **This entire mechanic is gone from the live site.** Section 2 is now a
+> plain Featured-challenges block (spotlight + list). Kept below only because
+> the `BAND_ZOOM` regeneration notes are the sort of thing that is painful to
+> reconstruct if the split is ever revived. Nothing here describes v3.
+
 
 The user named this. It refers to the bar-shear mechanic first built for the
 old audience chooser and now used in the Featured challenges / Success
@@ -470,7 +563,12 @@ keyboard focus (`mouseenter`/`focusin` on the track), not just when
 scrolled off-screen — needed once the chips became focusable links, so a
 keyboard user tabbing through them isn't fighting a moving target.
 
-### 3 + 4. Featured challenges | Success stories
+### 3 + 4. Featured challenges | Success stories — SUPERSEDED BY v3
+
+> v3 replaced this whole split with a single Featured-challenges section
+> (spotlight + compact list), identical for both audiences, and dropped
+> Success stories entirely. See the v3 architecture section at the top.
+
 One "light spectrum wave" stage, split down the middle, exactly as
 specified: **featured challenges + sign-up CTA on the left, success stories
 + problem validation on the right, defaulting to featured challenges.**
@@ -566,7 +664,13 @@ return to the white page is a transition rather than a cut.
   render the end state (`opacity:1`) directly, same rule as everywhere
   else on the page.
 
-### 5. How it works — Fluid Flow Steps pinned scrub (RESTORED, 4 steps)
+### 5. How it works — SUPERSEDED BY v3
+
+> v3 replaced the pinned scroll-scrub with a static vertical timeline; all
+> four steps are visible at all times and there is no scroll gating. The
+> scrub history below is kept because this section flip-flopped three times
+> and the reasoning is worth not relearning.
+
 **This flipped a third time — read carefully before touching it again.**
 The first build ran a 5-step pinned scroll-scrub (Post/Apply → Async
 submission → Live defense → Rubric scoring → Hire decision) through

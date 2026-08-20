@@ -31,14 +31,6 @@
 <meta property="og:locale" content="en_SG">
 <meta name="theme-color" content="#14130f">
 
-<!--
-  Structured data. Deliberately limited to facts that are already stated
-  publicly on this page or in the footer: name, site URL, logo, what the
-  product does, and the country. No founder names, email, phone, funding or
-  founding date, none of which appear anywhere on the public site. Do not pad
-  this out with invented values just to fill more schema fields, since
-  structured data that contradicts the visible page is worse than none.
--->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -86,23 +78,21 @@
 </head>
 <body>
 
-<!-- Keyboard users land here first: the nav + mode toggle is ~10 tab stops
-     before the page content, and the logo marquee adds more. Visually hidden
-     until focused (see .skip-link in landing.css). -->
 <a class="skip-link" href="#top">Skip to main content</a>
-
 <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
-<!-- ============================ NAV (universal) ============================ -->
-<header class="nav">
+<!-- ============================ NAV ============================
+     v3 adds .nav-dash: a link to the reader's dashboard, pointed at the
+     student or company view depending on the audience mode (landing.js
+     rewrites its href + label on every toggle). It is styled as an
+     accent chip rather than another nav link because it is an account
+     destination, not a page section. -->
+<header class="nav" id="siteNav">
   <div class="nav-inner">
     <div class="nav-left">
       <a href="#top" class="logo" aria-label="Projet home">
         <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
       </a>
-      <!-- Audience mode toggle — re-tints --accent (orange<->blue) across the
-           page and remembers the choice; doesn't navigate anywhere, since this
-           is one shared page, not two separate audience pages. -->
       <div class="mode-switch" id="modeSwitch" role="group" aria-label="Switch audience">
         <span class="mode-indicator" aria-hidden="true"></span>
         <button class="mode-opt" data-audience="builder" aria-current="true">For students</button>
@@ -111,11 +101,14 @@
     </div>
     <nav class="links">
       <a href="#challenges" data-nav-link>Challenges</a>
-      <a href="#stories" data-nav-link>Success stories</a>
       <a href="#how-it-works" data-nav-link>How it works</a>
       <a href="#testimonials" data-nav-link>Testimonials</a>
     </nav>
     <div class="nav-cta">
+      <a class="nav-dash" id="navDash" href="dashboard.html?view=student">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span id="navDashLabel">My dashboard</span>
+      </a>
       <a href="login.html" class="nav-auth">Log in</a>
       <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
     </div>
@@ -130,9 +123,12 @@
       <button class="mode-opt" data-audience="business" aria-current="false">For companies</button>
     </div>
     <a class="m-link" href="#challenges">Challenges</a>
-    <a class="m-link" href="#stories">Success stories</a>
     <a class="m-link" href="#how-it-works">How it works</a>
     <a class="m-link" href="#testimonials">Testimonials</a>
+    <a class="nav-dash" id="navDashMobile" href="dashboard.html?view=student">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span>My dashboard</span>
+    </a>
     <div class="mobile-menu-ctas">
       <a href="login.html" class="btn btn-ghost">Log in</a>
       <a href="signup.html" class="btn btn-primary">Sign up</a>
@@ -140,350 +136,244 @@
   </div>
 </header>
 
-<!-- tabindex="-1" so the skip link above can actually move focus here, not
-     just scroll the viewport (a plain #anchor doesn't reposition focus). -->
 <main id="top" tabindex="-1">
 
-  <!-- ======================= 1. HERO & CALL TO ACTION ======================= -->
+  <!-- ======================= 1. HERO ======================= -->
   <section class="hero wrap">
     <div class="hero-grid">
       <div>
-        <!-- no leading bullet dot here specifically (kept on other section
-             eyebrows) — asked and confirmed. Each child below staggers in on
-             load via [data-reveal] + an incremental transition-delay — the
-             hero sits above the fold so IntersectionObserver fires almost
-             immediately, but without the stagger all five would still pop
-             in as one flat block instead of a cascade. -->
         <span class="eyebrow" data-reveal style="transition-delay:.02s">Where real work is the strongest hiring signal</span>
-        <!-- Mode-aware copy: data-business/data-builder hold each mode's
-             full markup; landing.js's applyModeCopy() swaps .innerHTML on
-             toggle. What's inline below is the builder/student (default)
-             version, also what a no-js visitor sees. -->
+        <!-- Mode-aware copy. data-business/data-builder hold each mode's full
+             markup; landing.js swaps .innerHTML on toggle with a short
+             crossfade. What is inline is the student default, which is also
+             exactly what a no-js visitor sees. -->
         <h1 data-reveal data-mode-copy
             data-business='Hire on proof,<br><span class="accent">not paper.</span>'
             data-builder='Prove your skills,<br><span class="accent">not your resume.</span>'
             style="transition-delay:.09s">Prove your skills,<br><span class="accent">not your resume.</span></h1>
         <p class="hero-sub" data-reveal data-mode-copy
-           data-business="Companies post real challenges from their backlog. Builders submit their best work and get evaluated on what they actually built, not a resume."
+           data-business="Post a real challenge from your backlog. Builders submit real work, ranked and scored, so you know who is worth an hour of your time before you book one."
            data-builder="Take on real challenges from real companies. Submit your best work and get noticed for what you actually built, not your resume."
            style="transition-delay:.16s">
           Take on real challenges from real companies. Submit your best work
           and get noticed for what you actually built, not your resume.
         </p>
-
-        <!-- the two calls to action: one per side of the marketplace. Only
-             the primary swaps text/role per mode ("Post a challenge" <->
-             "Participate"); "Browse challenges" stays constant since
-             browsing is relevant regardless of which side you're on. -->
         <div class="hero-ctas" data-reveal data-mode-copy
-             data-business='<a href="signup.html?role=business" class="btn btn-orange">Post a challenge</a><a href="challenges.html" class="btn btn-ghost">Browse challenges</a>'
-             data-builder='<a href="signup.html?role=builder" class="btn btn-orange">Participate</a><a href="challenges.html" class="btn btn-ghost">Browse challenges</a>'
+             data-business='<a href="signup.html?role=business" class="btn btn-accent">Post a challenge</a><a href="challenges.html" class="btn btn-ghost">Browse challenges</a>'
+             data-builder='<a href="signup.html?role=builder" class="btn btn-accent">Participate</a><a href="challenges.html" class="btn btn-ghost">Browse challenges</a>'
              style="transition-delay:.23s">
-          <a href="signup.html?role=builder" class="btn btn-orange">Participate</a>
+          <a href="signup.html?role=builder" class="btn btn-accent">Participate</a>
           <a href="challenges.html" class="btn btn-ghost">Browse challenges</a>
         </div>
-
-        <!-- statistic below the CTAs — real Hack &amp; Hire pilot figures -->
-        <div class="hero-stat" data-reveal style="transition-delay:.3s">
-          <!-- the "+" lives INSIDE the <b>, not as a bare text node after it:
-               .hero-stat-row span is a flex row, so its gap would otherwise
-               land between the number and the plus ("120 + builders") -->
+        <div data-reveal style="transition-delay:.3s">
           <div class="hero-stat-row">
-            <span><b><span class="count-up" data-count-to="120">120</span>+</b> builders</span>
-            <span><b class="count-up" data-count-to="7">7</b> companies</span>
-            <span><b class="count-up" data-count-to="2">2</b> hires</span>
+            <span><b>120+</b>builders</span>
+            <span><b>7</b>companies</span>
+            <span><b>2</b>hires</span>
           </div>
           <p class="hero-stat-cap">Hack &amp; Hire pilot at Block71 @ NUS</p>
         </div>
       </div>
 
-      <!-- hero-visual.webp (from "Logo Background 2.png", converted + compressed
-           92KB) sits behind the card as a static background-image — no <img>/<video>,
-           so it still doesn't change on scroll like the earlier removed hero handoff
-           did. A gentle cursor-tilt (desktop pointer only, see landing.js) is the one
-           interaction it keeps. -->
-      <div class="hero-visual" id="heroVisual" data-reveal style="transition-delay:.12s">
-        <div class="hero-card" data-mode-copy
-             data-business='<div class="hero-card-top"><span class="tag">YOUR CHALLENGE</span><span class="tag hero-card-live">LIVE</span></div><div class="hero-card-title">Rebuild the pricing page conversion flow</div><div class="hc-row"><span class="hc-rank">01</span><span>Challenge live &middot; 6 days open</span></div><div class="hc-row"><span class="hc-rank">02</span><span>42 submissions</span></div><div class="hc-row"><span class="hc-rank">03</span><span>Top 5 shortlisted</span></div><div class="hc-row"><span class="hc-rank">04</span><span>Invite to interview</span></div>'
-             data-builder='<div class="hero-card-top"><span class="tag">YOUR SUBMISSION</span><span class="tag hero-card-live">LIVE</span></div><div class="hero-card-title">Rebuild the pricing page conversion flow</div><div class="hc-row"><span class="hc-rank">01</span><span>Challenge joined</span></div><div class="hc-row"><span class="hc-rank">02</span><span>Solution submitted</span></div><div class="hc-row"><span class="hc-rank">03</span><span>Ranked top 8%</span></div><div class="hc-row"><span class="hc-rank">04</span><span>Company noticed</span></div>'>
-          <div class="hero-card-top">
-            <span class="tag">YOUR SUBMISSION</span>
-            <span class="tag hero-card-live">LIVE</span>
+      <!-- ---- hero dashboard summary ----
+           v3 replaces the old static mock (and its cursor-tilt parallax,
+           removed on request) with a condensed version of the real
+           dashboard page. It swaps wholesale between the student and
+           company shape via data-mode-copy, same mechanism as the copy
+           above, so the toggle changes what the reader is looking at, not
+           just its colour.
+
+           BACKEND HOOK (Andrei): #heroDash carries data-endpoint. When it
+           points at a real route, landing.js should fetch the signed-in
+           user's summary and fill the same slots; while it is empty the
+           card renders sample values behind the signed-out gate below. -->
+      <div class="dash-card" id="heroDash" data-endpoint="" data-reveal style="transition-delay:.12s">
+        <div class="dash-inner" data-mode-copy
+             data-business='&lt;div class="dash-head"&gt;&lt;div class="dash-head-l"&gt;&lt;span class="dash-avatar"&gt;NW&lt;/span&gt;&lt;div&gt;&lt;div class="dash-who"&gt;Nordwave&lt;/div&gt;&lt;div class="dash-role"&gt;Hiring · 1 open brief&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-chip"&gt;38 ranked&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-body"&gt;&lt;div class="dash-metrics"&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;38&lt;/b&gt;&lt;span&gt;Submissions&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;12&lt;/b&gt;&lt;span&gt;Above bar&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;6d&lt;/b&gt;&lt;span&gt;Until close&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-rows"&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#ff5b24"&gt;01&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Tan Wei Jie&lt;/div&gt;&lt;div class="dash-row-meta"&gt;NUS · React, TypeScript&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;92%&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#c73e10"&gt;02&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Nur Aisyah Rahman&lt;/div&gt;&lt;div class="dash-row-meta"&gt;NTU · A11y, React&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;88%&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#2f6bff"&gt;03&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Rajesh Kumar&lt;/div&gt;&lt;div class="dash-row-meta"&gt;SMU · Node, Postgres&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;79%&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-foot"&gt;&lt;span class="dash-foot-note"&gt;Onboarding conversion&lt;/span&gt;&lt;a href="dashboard.html?view=company" class="btn btn-accent"&gt;Open dashboard&lt;/a&gt;&lt;/div&gt;'
+             data-builder='&lt;div class="dash-head"&gt;&lt;div class="dash-head-l"&gt;&lt;span class="dash-avatar"&gt;CL&lt;/span&gt;&lt;div&gt;&lt;div class="dash-who"&gt;Chloe Lim&lt;/div&gt;&lt;div class="dash-role"&gt;SUTD · Year 3&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-chip"&gt;3 entries&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-body"&gt;&lt;div class="dash-metrics"&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;83&lt;/b&gt;&lt;span&gt;Avg. score&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;#2&lt;/b&gt;&lt;span&gt;Best rank&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-metric"&gt;&lt;b&gt;1&lt;/b&gt;&lt;span&gt;In review&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-rows"&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#ff5b24"&gt;04&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Onboarding conversion&lt;/div&gt;&lt;div class="dash-row-meta"&gt;Nordwave · Aug 2026&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;85&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#c73e10"&gt;02&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Cut onboarding drop-off&lt;/div&gt;&lt;div class="dash-row-meta"&gt;Fieldstone · Jul 2026&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;91&lt;/span&gt;&lt;/div&gt;&lt;div class="dash-row"&gt;&lt;span class="dash-rank" style="background:#e6e3da;color:#726d5f"&gt;11&lt;/span&gt;&lt;div class="dash-row-body"&gt;&lt;div class="dash-row-title"&gt;Rebuild the pricing page flow&lt;/div&gt;&lt;div class="dash-row-meta"&gt;Anchorpoint · Jun 2026&lt;/div&gt;&lt;/div&gt;&lt;span class="dash-row-val"&gt;72&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="dash-foot"&gt;&lt;span class="dash-foot-note"&gt;Your last 3 challenges&lt;/span&gt;&lt;a href="dashboard.html?view=student" class="btn btn-accent"&gt;Open dashboard&lt;/a&gt;&lt;/div&gt;'>
+          <div class="dash-head">
+            <div class="dash-head-l">
+              <span class="dash-avatar">CL</span>
+              <div>
+                <div class="dash-who">Chloe Lim</div>
+                <div class="dash-role">SUTD · Year 3</div>
+              </div>
+            </div>
+            <span class="dash-chip">3 entries</span>
           </div>
-          <div class="hero-card-title">Rebuild the pricing page conversion flow</div>
-          <div class="hc-row"><span class="hc-rank">01</span><span>Challenge joined</span></div>
-          <div class="hc-row"><span class="hc-rank">02</span><span>Solution submitted</span></div>
-          <div class="hc-row"><span class="hc-rank">03</span><span>Ranked top 8%</span></div>
-          <div class="hc-row"><span class="hc-rank">04</span><span>Company noticed</span></div>
+          <div class="dash-body">
+            <div class="dash-metrics">
+              <div class="dash-metric"><b>83</b><span>Avg. score</span></div>
+              <div class="dash-metric"><b>#2</b><span>Best rank</span></div>
+              <div class="dash-metric"><b>1</b><span>In review</span></div>
+            </div>
+            <div class="dash-rows">
+              <div class="dash-row"><span class="dash-rank" style="background:#ff5b24">04</span><div class="dash-row-body"><div class="dash-row-title">Onboarding conversion</div><div class="dash-row-meta">Nordwave · Aug 2026</div></div><span class="dash-row-val">85</span></div>
+              <div class="dash-row"><span class="dash-rank" style="background:#c73e10">02</span><div class="dash-row-body"><div class="dash-row-title">Cut onboarding drop-off</div><div class="dash-row-meta">Fieldstone · Jul 2026</div></div><span class="dash-row-val">91</span></div>
+              <div class="dash-row"><span class="dash-rank" style="background:#e6e3da;color:#726d5f">11</span><div class="dash-row-body"><div class="dash-row-title">Rebuild the pricing page flow</div><div class="dash-row-meta">Anchorpoint · Jun 2026</div></div><span class="dash-row-val">72</span></div>
+            </div>
+          </div>
+          <div class="dash-foot">
+            <span class="dash-foot-note">Your last 3 challenges</span>
+            <a href="dashboard.html?view=student" class="btn btn-accent">Open dashboard</a>
+          </div>
+        </div>
+
+        <!-- Signed-out bar. The card shows sample data, so this states that
+             plainly rather than letting a logged-out visitor read the numbers
+             as their own. Deliberately a foot bar, not a cover-everything
+             scrim: the preview is the point of the section. landing.js
+             removes it once data-endpoint returns a real session. -->
+        <div class="dash-gate" id="dashGate">
+          <p>This is a preview<small>Sample data. Log in to see yours.</small></p>
+          <a href="login.html" class="btn btn-accent">Log in</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ========================= 2. LOGO CAROUSEL =========================
-       PLACEHOLDER CONTENT — generic, obviously-fictional company names
-       standing in so the carousel can be reviewed at realistic visual
-       weight, with zero risk of implying a real client list or any
-       trademark issue. The label below says "placeholder logos" rather
-       than "trusted by" for the same reason. Swap for real partner logos
-       before any public launch. Marquee recycles items in JS (landing.js)
-       so it never rewinds.
-
-       Chips are real <a> links (asked for explicitly, "clickable links once
-       it's real") pointing at #stories for now — once a real partner exists,
-       point that specific chip at its case study or site instead. -->
-  <section class="logos" data-reveal>
-    <div class="wrap">
-      <p class="logos-label">Placeholder logos, pending real partners</p>
-    </div>
+  <!-- ======================= 2. LOGO CAROUSEL ======================= -->
+  <section class="logos wrap">
+    <!-- PLACEHOLDER CONTENT: obviously-fictional names, labelled as such.
+         Swap for real, permissioned partner logos before any public deploy. -->
+    <p class="logos-label">Placeholder logos, pending real partners</p>
     <div class="logo-marquee">
       <div class="logo-track" id="logoTrack">
-        <a class="logo-chip" href="#stories">Northwind</a>
-        <a class="logo-chip" href="#stories">Acme Labs</a>
-        <a class="logo-chip" href="#stories">Vertex Studio</a>
-        <a class="logo-chip" href="#stories">Meridian Co.</a>
-        <a class="logo-chip" href="#stories">Lumen Works</a>
-        <a class="logo-chip" href="#stories">Cobalt &amp; Co</a>
-        <a class="logo-chip" href="#stories">Fieldstone</a>
-        <a class="logo-chip" href="#stories">Anchorpoint</a>
+        <a class="logo-chip" href="#challenges">Northwind</a>
+        <a class="logo-chip" href="#challenges">Acme Labs</a>
+        <a class="logo-chip" href="#challenges">Vertex Studio</a>
+        <a class="logo-chip" href="#challenges">Meridian Co.</a>
+        <a class="logo-chip" href="#challenges">Lumen Works</a>
+        <a class="logo-chip" href="#challenges">Cobalt &amp; Co</a>
+        <a class="logo-chip" href="#challenges">Fieldstone</a>
+        <a class="logo-chip" href="#challenges">Anchorpoint</a>
       </div>
     </div>
   </section>
 
-  <!-- ============ 3 + 4. FEATURED CHALLENGES | SUCCESS STORIES ============
-       One "light spectrum wave" stage split down the middle. Scrolling in
-       dissolves the white veil so the viewer drops into the spectrum; the
-       bars along the seam shear away from whichever side is active. Rests on
-       Featured challenges by default. -->
-  <div class="spectrum-split" id="spectrumSplit">
-    <div class="ss-stage" id="ssStage" data-active="challenges">
-      <div class="ss-veil" id="ssVeil" aria-hidden="true"></div>
+  <hr class="rule">
 
-      <!-- LEFT: featured challenges + sign-up CTA -->
-      <section class="ss-panel ss-panel--challenges" data-side="challenges" id="challenges">
-        <div class="ss-inner">
-          <span class="ss-eyebrow">Featured challenges</span>
-          <h2>Real briefs, straight from the backlog.</h2>
-          <p class="ss-lede">
-            Not take-home busywork. Actual problems teams need solved. Pick one
-            and show what you can build.
-          </p>
-          <!-- Live countdown to the top featured challenge's close — a real
-               ticking clock, but tied to a PLACEHOLDER deadline (6h from page
-               load, matching the "6 days left" on the card below it) since
-               there's no live challenge data yet. data-countdown-hours is the
-               only thing to change once a real deadline exists; the initial
-               "06d 00h 00m 00s" pre-rendered in the spans is what a no-js
-               visitor sees, so nothing here depends on JS to show a value. -->
-          <div class="ss-countdown" data-countdown-hours="144">
-            <span class="ss-countdown-label">Next challenge closes in</span>
-            <span class="ss-countdown-val"><span data-cd="d">06</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</span>
-          </div>
-          <!-- PLACEHOLDER: sample briefs, not live listings -->
-          <div class="ss-cards">
-            <div class="ss-card">
-              <div>
-                <div class="ss-card-t">Rebuild the pricing page conversion flow</div>
-                <div class="ss-card-m">Product &middot; 6 days left</div>
-              </div>
-              <span class="ss-card-pill">OPEN</span>
-            </div>
-            <div class="ss-card">
-              <div>
-                <div class="ss-card-t">Cut onboarding drop-off in the mobile app</div>
-                <div class="ss-card-m">Design &middot; 11 days left</div>
-              </div>
-              <span class="ss-card-pill">OPEN</span>
-            </div>
-            <div class="ss-card">
-              <div>
-                <div class="ss-card-t">Ship a data pipeline for churn signals</div>
-                <div class="ss-card-m">Engineering &middot; 4 days left</div>
-              </div>
-              <span class="ss-card-pill">OPEN</span>
-            </div>
-          </div>
-          <!-- This is a brief overview of a few featured challenges, not a
-               full listing — challenges.html (a separate page, not yet
-               built) will hold the complete, filterable list. -->
-          <a href="signup.html?role=builder" class="btn btn-solid-orange">Sign up to compete</a>
-          <a href="challenges.html" class="ss-view-all">View all challenges &#8594;</a>
-        </div>
-      </section>
-
-      <!-- the light spectrum wave band -->
-      <div class="ss-stripe" aria-hidden="true">
-        <div class="ss-stripe-inner" id="ssBars"></div>
-      </div>
-
-      <!-- RIGHT: success stories + problem validation -->
-      <section class="ss-panel ss-panel--stories" data-side="stories" id="stories">
-        <div class="ss-inner">
-          <span class="ss-eyebrow">Success stories</span>
-          <h2>Proof that outlasts the resume.</h2>
-          <p class="ss-lede">
-            AI can write a CV and finish a take-home. It can't ship the actual
-            work a real team needs done.
-          </p>
-          <div class="ss-stats ss-stats--three">
-            <div class="ss-stat"><b>120+</b><span>student builders took part</span></div>
-            <div class="ss-stat"><b>7</b><span>companies posted real briefs</span></div>
-            <div class="ss-stat"><b>2</b><span>hires made off the back of it</span></div>
-          </div>
-          <p class="ss-note">Hack &amp; Hire pilot &middot; Block71 @ NUS</p>
-          <!-- A narrative line grounded strictly in the stats already stated
-               above (not a new invented claim) — turns the bare numbers
-               into an outcome. -->
-          <p class="ss-story">Two of those companies hired directly off the back of a challenge submission.</p>
-          <a href="signup.html?role=business" class="btn btn-solid-blue">Post a challenge</a>
-        </div>
-      </section>
-
-      <!-- A quiet cue that this side is interactive — fades out permanently
-           after the first hover/tab interaction (see landing.js), desktop
-           only (mobile already shows both sides outright). -->
-      <p class="ss-hint" id="ssHint" aria-hidden="true">Hover to explore &#8226; tap to switch</p>
-
-      <!-- Explicit control: hover is unreachable on touch and by keyboard.
-           NOT role="tablist"/"tab" — a tab implies its panel is the only one
-           shown, but both panels here stay fully visible and readable; the
-           control only shifts which side is emphasised/widened. Toggle
-           buttons with aria-pressed describe that honestly, and avoid
-           promising screen-reader users tabpanels that don't exist. -->
-      <div class="ss-tabs" role="group" aria-label="Emphasise a panel">
-        <button class="ss-tab" data-side="challenges" aria-pressed="true">Featured challenges</button>
-        <button class="ss-tab" data-side="stories" aria-pressed="false">Success stories</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======================== 5. HOW IT WORKS ========================
-       Fluid Flow Steps, restored: one continuous scroll-scrub through
-       fluid-full.webp while the 4 current steps advance (no live defense/
-       rubric step — dropped on the user's explicit call; see CLAUDE.md).
-       Bare step numbers, no "STEP" prefix, per feedback on an earlier
-       design. Content swaps per audience mode via data-mode-copy (see
-       landing.js applyModeCopy) — the business/builder attributes below
-       hold each mode's full step markup; what's inline is the builder/student
-       (default) version, also what a no-js visitor sees. -->
-  <div class="flow" id="flow">
-    <div class="flow-inner">
-      <div class="flow-fluid" aria-hidden="true"></div>
-      <div class="flow-scrim" aria-hidden="true"></div>
-      <div class="flow-stage">
-        <div class="flow-head" id="how-it-works">
-          <span class="eyebrow">How it works</span>
-          <h2>One pipeline. Two sides. Real outcomes.</h2>
-          <p class="flow-head-sub">The same pipeline behind 7 companies hiring from 120+ builders in the Hack &amp; Hire pilot.</p>
-        </div>
-
-        <div class="flow-steps"
-             data-mode-copy
-             data-business='<div class="flow-step">
-            <span class="flow-num">01</span>
-            <h3>Business posts a challenge</h3>
-            <p>Companies publish real business or technical problems for builders to solve.</p>
-            <a href="signup.html?role=business" class="flow-step-link">Post a challenge &#8594;</a>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">02</span>
-            <h3>Builders compete</h3>
-            <p>Builders tackle the challenge and submit their best work.</p>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">03</span>
-            <h3>Top performers get evaluated</h3>
-            <p>Businesses review real output, not resumes, and shortlist standouts.</p>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">04</span>
-            <h3>Interviews, internships &amp; recognition</h3>
-            <p>Top talent advances to opportunities; builders earn rankings and visibility.</p>
-          </div>'
-             data-builder='<div class="flow-step">
-            <span class="flow-num">01</span>
-            <h3>Find a challenge</h3>
-            <p>Browse real business or technical problems posted by companies looking to hire.</p>
-            <a href="challenges.html" class="flow-step-link">Browse challenges &#8594;</a>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">02</span>
-            <h3>Submit your best work</h3>
-            <p>Tackle the challenge on your own time and submit your solution.</p>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">03</span>
-            <h3>Get evaluated on merit</h3>
-            <p>Companies review your actual output, not your resume.</p>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">04</span>
-            <h3>Earn interviews &amp; recognition</h3>
-            <p>Stand out, get noticed, and unlock real opportunities.</p>
-          </div>'>
-          <div class="flow-step">
-            <span class="flow-num">01</span>
-            <h3>Find a challenge</h3>
-            <p>Browse real business or technical problems posted by companies looking to hire.</p>
-            <a href="challenges.html" class="flow-step-link">Browse challenges &#8594;</a>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">02</span>
-            <h3>Submit your best work</h3>
-            <p>Tackle the challenge on your own time and submit your solution.</p>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">03</span>
-            <h3>Get evaluated on merit</h3>
-            <p>Companies review your actual output, not your resume.</p>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">04</span>
-            <h3>Earn interviews &amp; recognition</h3>
-            <p>Stand out, get noticed, and unlock real opportunities.</p>
-          </div>
-        </div>
-
-        <div class="flow-dots" aria-hidden="true">
-          <span class="flow-dot"></span><span class="flow-dot"></span>
-          <span class="flow-dot"></span><span class="flow-dot"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================= 6. TESTIMONIALS =========================
-       PLACEHOLDER CONTENT — quotes, names and avatars are all stand-ins so
-       the carousel can be reviewed. Avatars are illustrated silhouettes
-       (a clipped head-and-shoulders shape over a gradient), not photographs
-       of real people. Replace with real, permissioned quotes and portraits
-       before launch. -->
-  <!-- REBUILT again — the pinned scroll-scrub over hero-visual.webp (right
-       to left pan, per an earlier ask) didn't land well once live, and the
-       user asked for a fresh design, "bonus points if it uses a projet
-       asset." This is a continuous recycling marquee of quote cards — same
-       proven mechanic as the logo carousel (`buildMarqueeRow()` below is a
-       generalised twin of that IIFE, not a rewrite of it), not another
-       pinned scroll-scrub. A light warm section on purpose: Featured
-       challenges/Success stories and How It Works are both dark, so a light
-       Testimonials breaks up what was three dark sections in a row before
-       the final CTA. The "projet asset" bonus is `Logo O Alone.png` (the
-       icon mark alone) as a faint watermark on every card, standing in for
-       a literal quotation mark. -->
-  <section class="t-wall" id="testimonials">
+  <!-- ======================= 3. FEATURED CHALLENGES =======================
+       v3 option B: one spotlighted brief (the one closing soonest) beside a
+       compact list. Identical for both audiences, per the v3 direction: the
+       old audience-split spectrum stage is retired. -->
+  <section class="challenges" id="challenges">
     <div class="wrap">
-      <div class="t-head" data-reveal>
-        <span class="eyebrow">Testimonials</span>
-        <h2>What the pilot sounded like.</h2>
+      <div class="ch-head" data-reveal>
+        <span class="eyebrow">Featured challenges</span>
+        <h2>Real briefs, straight from the backlog.</h2>
+        <p>Not take-home busywork. Actual problems teams need solved, and the same list whether you are posting one or picking one up.</p>
       </div>
+
+      <!-- PLACEHOLDER: relative countdown from page load, not a real deadline.
+           Point data-countdown-hours at a real timestamp with live data. -->
+      <div class="ch-countdown" data-countdown-hours="96" data-reveal>
+        Next challenge closes in
+        <b><span data-cd="d">04</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</b>
+      </div>
+
+      <div class="ch-layout">
+        <article class="ch-spot" data-reveal>
+          <span class="ch-spot-badge">Closes in 4 days</span>
+          <h3>Ship a data pipeline for churn signals</h3>
+          <p>Anchorpoint needs the handful of signals that actually predict a customer leaving, turned from raw product events into something their team can act on Monday morning.</p>
+          <div class="ch-spot-meter">
+            <div class="ch-meter"><div class="ch-meter-fill" style="width:61%"></div></div>
+            <div class="ch-meter-cap"><span>23 submitted</span><span>38 spots</span></div>
+          </div>
+          <div class="ch-spot-foot">
+            <div class="ch-spot-stats">
+              <div class="ch-spot-stat"><b>Eng</b><span>Discipline</span></div>
+              <div class="ch-spot-stat"><b>4d</b><span>Left</span></div>
+            </div>
+            <a href="challenges.html" class="btn btn-white btn-arrow">View brief <span class="arw" aria-hidden="true">&#8594;</span></a>
+          </div>
+        </article>
+
+        <div class="ch-list" data-reveal style="transition-delay:.1s">
+          <a class="ch-item" href="challenges.html">
+            <span class="ch-item-idx">02</span>
+            <span class="ch-item-body"><span class="ch-item-title">Rebuild the pricing page conversion flow</span><span class="ch-item-meta">Nordwave · Product · 6d left</span></span>
+            <span class="ch-item-go">Open</span>
+          </a>
+          <a class="ch-item" href="challenges.html">
+            <span class="ch-item-idx">03</span>
+            <span class="ch-item-body"><span class="ch-item-title">Cut onboarding drop-off in the mobile app</span><span class="ch-item-meta">Fieldstone · Design · 11d left</span></span>
+            <span class="ch-item-go">Open</span>
+          </a>
+          <a class="ch-item" href="challenges.html">
+            <span class="ch-item-idx">04</span>
+            <span class="ch-item-body"><span class="ch-item-title">Design a stock-alert dashboard for warehouse staff</span><span class="ch-item-meta">Cobalt &amp; Co · Design · 9d left</span></span>
+            <span class="ch-item-go">Open</span>
+          </a>
+          <a class="ch-item" href="challenges.html">
+            <span class="ch-item-idx">05</span>
+            <span class="ch-item-body"><span class="ch-item-title">Automate the weekly ops reporting pack</span><span class="ch-item-meta">Meridian Co · Data · 14d left</span></span>
+            <span class="ch-item-go">Open</span>
+          </a>
+          <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
+        </div>
+      </div>
+      <p class="ch-note">Sample briefs, not live listings. Real challenges appear here once the API is connected.</p>
+    </div>
+  </section>
+
+  <!-- ======================= 4. HOW IT WORKS =======================
+       v3 option B: a static vertical timeline. All four steps are visible at
+       all times. The v2 pinned scroll-scrub is retired and should not come
+       back without a fresh instruction. -->
+  <section class="flow wrap" id="how-it-works">
+    <div class="flow-head" data-reveal>
+      <span class="eyebrow">How it works</span>
+      <h2>One pipeline. Two sides. Real outcomes.</h2>
+      <p>The same four steps behind 7 companies hiring from 120+ builders in the Hack &amp; Hire pilot.</p>
     </div>
 
-    <!-- Avatar gradients + the shared circular clip live ONCE here, outside
-         .t-wall-track, rather than in a <defs> inside each card. The marquee
-         clones every card to fill the track, so per-card <defs> meant every
-         gradient/clipPath id existed twice in the document — invalid HTML,
-         and each clone's url(#...) silently resolved to the first match
-         anyway. Hoisting them out keeps the cloned cards id-free. -->
+    <div class="flow-tl" data-mode-copy
+         data-business='&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;01&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Post a challenge&lt;/h3&gt;&lt;p&gt;Take a real problem off your backlog and post it as a brief. No puzzle-writing, no invented take-home.&lt;/p&gt;&lt;a class="flow-link" href="signup.html?role=business"&gt;Post a challenge &amp;#8594;&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;02&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Builders compete&lt;/h3&gt;&lt;p&gt;Candidates work on it in their own time and submit real, reviewable output.&lt;/p&gt;&lt;div class="flow-tag"&gt;Avg. 38 submissions per brief&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;03&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Top performers surface&lt;/h3&gt;&lt;p&gt;Every submission is scored and ranked, so you see who is worth your time before you book a single call.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;04&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Interview the shortlist&lt;/h3&gt;&lt;p&gt;Unlock the candidates you want to meet and go straight to a conversation about work they already did.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;'
+         data-builder='&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;01&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Find a challenge&lt;/h3&gt;&lt;p&gt;Browse real business or technical problems posted by companies who are actively hiring.&lt;/p&gt;&lt;a class="flow-link" href="challenges.html"&gt;Browse challenges &amp;#8594;&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;02&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Submit your best work&lt;/h3&gt;&lt;p&gt;Tackle the challenge on your own time and submit your solution before it closes.&lt;/p&gt;&lt;div class="flow-tag"&gt;Most builders take about 6 days&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;03&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Get evaluated on merit&lt;/h3&gt;&lt;p&gt;Companies review your actual output, not your resume, and every entry gets a score and a rank.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="tl-node"&gt;04&lt;/div&gt;&lt;div class="flow-body"&gt;&lt;h3&gt;Earn interviews and recognition&lt;/h3&gt;&lt;p&gt;Stand out, get noticed, and hear back from companies who already saw exactly what you built.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;'>
+      <div class="flow-step" data-reveal>
+        <div class="tl-node">01</div>
+        <div class="flow-body">
+          <h3>Find a challenge</h3>
+          <p>Browse real business or technical problems posted by companies who are actively hiring.</p>
+          <a class="flow-link" href="challenges.html">Browse challenges &#8594;</a>
+        </div>
+      </div>
+      <div class="flow-step" data-reveal style="transition-delay:.06s">
+        <div class="tl-node">02</div>
+        <div class="flow-body">
+          <h3>Submit your best work</h3>
+          <p>Tackle the challenge on your own time and submit your solution before it closes.</p>
+          <div class="flow-tag">Most builders take about 6 days</div>
+        </div>
+      </div>
+      <div class="flow-step" data-reveal style="transition-delay:.12s">
+        <div class="tl-node">03</div>
+        <div class="flow-body">
+          <h3>Get evaluated on merit</h3>
+          <p>Companies review your actual output, not your resume, and every entry gets a score and a rank.</p>
+        </div>
+      </div>
+      <div class="flow-step" data-reveal style="transition-delay:.18s">
+        <div class="tl-node">04</div>
+        <div class="flow-body">
+          <h3>Earn interviews and recognition</h3>
+          <p>Stand out, get noticed, and hear back from companies who already saw exactly what you built.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= 5. TESTIMONIALS ======================= -->
+  <section class="testimonials" id="testimonials">
+    <div class="wrap t-head" data-reveal>
+      <span class="eyebrow">Testimonials</span>
+      <h2>What the pilot sounded like.</h2>
+    </div>
+
+    <!-- Avatar gradients + the shared clip live once here, outside the track,
+         so the marquee's cloned cards carry no duplicate ids. -->
     <svg class="t-avatar-defs" width="0" height="0" aria-hidden="true" focusable="false">
       <defs>
         <linearGradient id="avA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a5a"/><stop offset="1" stop-color="#c73e10"/></linearGradient>
@@ -497,6 +387,8 @@
 
     <div class="t-wall-row">
       <div class="t-wall-track" id="tWallTrack">
+        <!-- PLACEHOLDER: invented quotes, attributed to roles only, never a
+             named real person. Avatars are illustrated, not photographs. -->
         <article class="t-card" data-side="business">
           <span class="t-quote-mark" aria-hidden="true"></span>
           <span class="t-badge">Company</span>
@@ -506,7 +398,6 @@
             <div><div class="t-name">Engineering manager</div><div class="t-role">Early pilot company</div></div>
           </div>
         </article>
-
         <article class="t-card" data-side="builder">
           <span class="t-quote-mark" aria-hidden="true"></span>
           <span class="t-badge">Builder</span>
@@ -516,7 +407,6 @@
             <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
           </div>
         </article>
-
         <article class="t-card" data-side="business">
           <span class="t-quote-mark" aria-hidden="true"></span>
           <span class="t-badge">Company</span>
@@ -526,7 +416,6 @@
             <div><div class="t-name">Founder</div><div class="t-role">Early pilot company</div></div>
           </div>
         </article>
-
         <article class="t-card" data-side="builder">
           <span class="t-quote-mark" aria-hidden="true"></span>
           <span class="t-badge">Builder</span>
@@ -536,11 +425,10 @@
             <div><div class="t-name">Builder</div><div class="t-role">Hack &amp; Hire participant</div></div>
           </div>
         </article>
-
         <article class="t-card" data-side="business">
           <span class="t-quote-mark" aria-hidden="true"></span>
           <span class="t-badge">Company</span>
-          <p class="t-quote">&ldquo;Seeing the actual submissions told us more than three rounds of interviews ever did.&rdquo;</p>
+          <p class="t-quote">&ldquo;Faster than a take-home round, and we ended up with work we could actually use.&rdquo;</p>
           <div class="t-person">
             <svg class="t-avatar" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="23" fill="url(#avE)"/><g clip-path="url(#avClip)" fill="rgba(255,255,255,.92)"><circle cx="23" cy="18.5" r="7.5"/><ellipse cx="23" cy="43" rx="15" ry="14"/></g></svg>
             <div><div class="t-name">Hiring lead</div><div class="t-role">Early pilot company</div></div>
@@ -550,63 +438,50 @@
     </div>
   </section>
 
-  <!-- ============================ FINAL CTA ============================ -->
-  <section class="wrap final-wrap">
-    <div class="final" data-reveal>
-      <video class="final-tex" muted loop autoplay playsinline preload="none" poster="assets/fluid.webp" aria-hidden="true">
-        <source src="assets/fluid-loop.webm" type="video/webm">
-        <source src="assets/fluid-loop.mp4" type="video/mp4">
-      </video>
-      <div class="final-inner">
-        <h2>Stop reading resumes. Start seeing real work.</h2>
-        <p>Hire on proof, not paper.</p>
-        <div class="final-btns">
-          <a href="signup.html?role=business" class="btn btn-white btn-arrow">Post a challenge</a>
-          <a href="challenges.html" class="btn btn-white btn-arrow">Browse challenges</a>
-        </div>
-        <!-- grounded in the existing "Join free" builder-model fact, not a
-             new claim -->
-        <p class="final-fineprint">Free for builders. No card required.</p>
+  <!-- ======================= 6. FINAL CTA ======================= -->
+  <section class="final wrap">
+    <div class="final-wrap" data-reveal>
+      <h2 data-mode-copy
+          data-business="Stop reading resumes.<br>Start seeing real work."
+          data-builder="Stop sending resumes.<br>Start showing real work.">Stop sending resumes.<br>Start showing real work.</h2>
+      <p>Hire on proof, not paper.</p>
+      <div class="final-ctas" data-mode-copy
+           data-business='&lt;a href="signup.html?role=business" class="btn btn-white btn-arrow"&gt;Post a challenge &lt;span class="arw" aria-hidden="true"&gt;&amp;#8594;&lt;/span&gt;&lt;/a&gt;&lt;a href="challenges.html" class="btn btn-white btn-arrow"&gt;Browse challenges &lt;span class="arw" aria-hidden="true"&gt;&amp;#8594;&lt;/span&gt;&lt;/a&gt;'
+           data-builder='&lt;a href="signup.html?role=builder" class="btn btn-white btn-arrow"&gt;Participate &lt;span class="arw" aria-hidden="true"&gt;&amp;#8594;&lt;/span&gt;&lt;/a&gt;&lt;a href="challenges.html" class="btn btn-white btn-arrow"&gt;Browse challenges &lt;span class="arw" aria-hidden="true"&gt;&amp;#8594;&lt;/span&gt;&lt;/a&gt;'>
+        <a href="signup.html?role=builder" class="btn btn-white btn-arrow">Participate <span class="arw" aria-hidden="true">&#8594;</span></a>
+        <a href="challenges.html" class="btn btn-white btn-arrow">Browse challenges <span class="arw" aria-hidden="true">&#8594;</span></a>
       </div>
+      <p class="final-fineprint">Free for builders. No card required.</p>
     </div>
   </section>
 
 </main>
 
-<!-- ============================ FOOTER (universal) ============================ -->
+<!-- ============================ FOOTER ============================ -->
 <footer id="footer">
   <div class="wrap">
-    <div class="footer-grid" data-reveal>
+    <div class="footer-grid">
       <div class="footer-brand">
         <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
         <p>Proof-based hiring. Companies post real challenges, builders ship real work.</p>
-        <!-- Front end only, same honesty convention as login.html/signup.html:
-             an empty data-endpoint means it says so rather than faking success
-             (see assets/site.js's form handler / BACKEND-HANDOFF.md). -->
-        <form class="footer-notify" id="footerNotify" data-endpoint="" novalidate>
-          <label for="footerNotifyEmail" class="footer-notify-label">Get notified about new challenges</label>
+        <!-- FRONT END ONLY: empty data-endpoint makes this say the wiring is
+             pending rather than fake a success. Point it at a real route. -->
+        <form id="footerNotify" data-endpoint="">
+          <div class="footer-notify-label">Get notified about new challenges</div>
           <div class="footer-notify-row">
             <input type="email" id="footerNotifyEmail" name="email" autocomplete="email" placeholder="you@email.com" required>
-            <button type="submit" class="btn btn-orange btn-sm">Notify me</button>
+            <button type="submit" class="btn btn-accent">Notify me</button>
           </div>
-          <p class="footer-notify-msg" aria-live="polite"></p>
+          <p class="footer-notify-msg" role="status" aria-live="polite"></p>
         </form>
       </div>
-      <!-- h3, not h6: the page runs h1 -> h2 -> h3, and jumping straight to
-           h6 here skipped three levels, which reads as a broken outline to
-           screen readers. Styling is unchanged (see .footer-col h3). -->
       <div class="footer-col">
         <h3>Product</h3>
         <a href="#challenges">Challenges</a>
-        <a href="#stories">Success stories</a>
         <a href="#how-it-works">How it works</a>
         <a href="#testimonials">Testimonials</a>
+        <a href="dashboard.html?view=student">Dashboard</a>
       </div>
-      <!-- These pages don't exist yet. They were href="#", which silently
-           jumped the reader back to the top — the same dishonesty the auth
-           forms deliberately avoid. Same convention applied here: show the
-           destination, say it isn't live, don't pretend it navigates. Swap
-           each <span> back to an <a href="..."> as its page ships. -->
       <div class="footer-col">
         <h3>Company</h3>
         <span class="footer-pending">About<em>soon</em></span>
@@ -621,7 +496,7 @@
         <span class="footer-pending">Terms<em>soon</em></span>
       </div>
     </div>
-    <div class="footer-bottom" data-reveal>
+    <div class="footer-bottom">
       <span>&copy; 2026 Projet. All rights reserved.</span>
       <span>Singapore</span>
     </div>
