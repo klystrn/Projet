@@ -443,6 +443,33 @@ anonymous-scoring model, the Hack & Hire pilot numbers — no new claims
 about founders, funding, or anything this project has deliberately kept
 off the public site.
 
+**index.html's Featured Challenges list is now the deck-of-cards fan,
+v3.2** (closes out Task 42/"canvas explore deck-of-cards + iterations,
+then build chosen direction" — the canvas exploration alone didn't ship
+this; the chosen direction sat unbuilt on the live page for a while).
+`.ch-list`'s plain row of link items is now `.ch-fan`: below 1081px
+(`.ch-layout`'s own breakpoint) it's the identical plain stacked list, no
+JS involved; above it, a pure-CSS hover fan reusing the design canvas's
+proven technique (`Challenges-G-WideFan.dc.html` — shared rotation
+`transform-origin`, `:has()` sibling pushes). No JS at all: `.ch-fan-item`
+is a real `<a>`, so `:hover` and `:focus-visible` already give keyboard
+users the identical pop the mouse gets.
+
+**One thing the canvas mockup got away with that the shipped version
+couldn't: card width.** The canvas cards were narrower than their `.fan`
+container; the first pass here set `.ch-fan-item{width:100%}`, so only a
+rotated *corner* ever peeked out from under the top card — too thin a
+target to reliably aim a cursor at. Confirmed via
+`document.elementFromPoint()`: a screenshot that looked like a clean fan
+often resolved to the wrong card (or the section behind it) at the actual
+hover point. Fixed by narrowing cards to 80% width (`left:50%;
+margin-left:-40%`) and widening the rotation spread (±16°/±5° base, was
+±9°/±3°) so each card's own title is legibly exposed at rest, not just a
+sliver of white space. **If the canvas's fan mechanic is ever reused
+again, build cards narrower than their container from the start** — this
+isn't a corner case, it's why the mockup and the shipped page behaved
+differently on the very first real test.
+
 ---
 
 ## Site architecture — v2 history (superseded above)
