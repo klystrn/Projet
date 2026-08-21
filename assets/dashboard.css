@@ -19,17 +19,22 @@ body.dash-page{background:var(--paper-warm);}
 .dp-title h1{font-size:clamp(28px,3.4vw,38px); margin:12px 0 8px;}
 .dp-title p{font-size:15px; color:var(--ink-soft);}
 
-/* front-end-only banner, same honesty convention as the auth forms */
+/* front-end-only banner, same honesty convention as the auth forms.
+   position:relative + an absolute bullet (matching .cl-notice/.ch-notice),
+   NOT display:flex — flex made the bullet and the <b> lead-in each their
+   own flex item, so on a narrow row they got squeezed to min-content and
+   "Front end only." wrapped one word per line instead of flowing as normal
+   paragraph text. */
 .dp-notice{
-  display:flex; align-items:flex-start; gap:10px; margin:22px 0 0;
-  padding:13px 17px; border-radius:var(--radius);
+  position:relative; margin:22px 0 0;
+  padding:13px 17px 13px 34px; border-radius:var(--radius);
   background:#fff; border:1px solid var(--line);
   font-size:13.5px; line-height:1.55; color:var(--ink-soft);
 }
 .dp-notice b{color:var(--ink);}
 .dp-notice::before{
-  content:''; flex:none; width:8px; height:8px; margin-top:6px;
-  border-radius:50%; background:var(--accent);
+  content:''; position:absolute; left:17px; top:19px;
+  width:8px; height:8px; border-radius:50%; background:var(--accent);
 }
 
 /* ---------- layout ---------- */

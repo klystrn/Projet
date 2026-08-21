@@ -4,8 +4,15 @@
    buttons/tokens; this file only adds what those two pages need on top.
    ========================================================================== */
 
-/* ---------- generic page header, used by both pages ---------- */
-.page-hero{padding:64px 0 12px; max-width:70ch;}
+/* ---------- generic page header, used by both pages ----------
+   Vertical spacing only — this class is combined with .wrap on the same
+   element (<section class="page-hero wrap">), so it must never touch
+   horizontal padding or max-width: a 3-value padding shorthand or a max-width
+   here would silently override .wrap's own 32px side padding / var(--maxw),
+   leaving the hero indented far more than every section below it. Line
+   length for the intro paragraph is already handled on .page-hero-sub's own
+   max-width, not here. */
+.page-hero{padding-top:64px; padding-bottom:12px;}
 .page-hero h1{font-size:clamp(38px,5.4vw,58px); margin:14px 0 18px;}
 .page-hero-sub{font-size:17.5px; line-height:1.6; color:var(--ink-soft); max-width:56ch;}
 
