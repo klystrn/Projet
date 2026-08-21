@@ -238,75 +238,65 @@
   </section>
 
   <!-- ======================= 3. FEATURED CHALLENGES =======================
-       v3 option B: one spotlighted brief (the one closing soonest) beside a
-       compact list. Identical for both audiences, per the v3 direction: the
-       old audience-split spectrum stage is retired. -->
+       Rebuilt on request: three clear subsections (text, then the
+       countdown, then the challenges themselves), with the challenges
+       collapsed into ONE equally-weighted element rather than a spotlight
+       card beside a secondary list. No single brief is visually privileged
+       any more — the same deck-of-cards fan mechanic now carries all five,
+       each in an identical card, so "featured" describes the whole set,
+       not one entry singled out over the rest. -->
   <section class="challenges" id="challenges">
     <div class="wrap">
+      <!-- subsection 1: text -->
       <div class="ch-head" data-reveal>
         <span class="eyebrow">Featured challenges</span>
         <h2>Real briefs, straight from the backlog.</h2>
         <p>Not take-home busywork. Actual problems teams need solved, and the same list whether you are posting one or picking one up.</p>
       </div>
 
-      <!-- PLACEHOLDER: relative countdown from page load, not a real deadline.
+      <!-- subsection 2: countdown. General urgency framing for the set, not
+           tied to any one card now that nothing is individually spotlighted.
+           PLACEHOLDER: relative countdown from page load, not a real deadline.
            Point data-countdown-hours at a real timestamp with live data. -->
       <div class="ch-countdown" data-countdown-hours="96" data-reveal>
         Next challenge closes in
         <b><span data-cd="d">04</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</b>
       </div>
 
-      <div class="ch-layout">
-        <article class="ch-spot" data-reveal>
-          <span class="ch-spot-badge">Closes in 4 days</span>
-          <h3>Ship a data pipeline for churn signals</h3>
-          <p>Anchorpoint needs the handful of signals that actually predict a customer leaving, turned from raw product events into something their team can act on Monday morning.</p>
-          <div class="ch-spot-meter">
-            <div class="ch-meter"><div class="ch-meter-fill" style="width:61%"></div></div>
-            <div class="ch-meter-cap"><span>23 submitted</span><span>38 spots</span></div>
-          </div>
-          <div class="ch-spot-foot">
-            <div class="ch-spot-stats">
-              <div class="ch-spot-stat"><b>Eng</b><span>Discipline</span></div>
-              <div class="ch-spot-stat"><b>4d</b><span>Left</span></div>
-            </div>
-            <a href="challenges.html" class="btn btn-white btn-arrow">View brief <span class="arw" aria-hidden="true">&#8594;</span></a>
-          </div>
-        </article>
-
-        <!-- Deck of cards (canvas option G, "wide fan"): the plain link-row
-             list read as a static directory, not a stack of fresh briefs —
-             flagged explicitly. Below 1081px (.ch-layout's own breakpoint,
-             where there's no room to fan four cards sideways) this is a
-             plain stacked list, same markup as before; above it, a pure-CSS
-             hover fan — hovering or focusing any card straightens it,
-             pops it forward and lets its neighbours rotate further out of
-             the way. No JS: since these are real <a> links, :hover and
-             :focus-visible already give keyboard users the same pop the
-             mouse gets, for free. -->
-        <div class="ch-fan" data-reveal style="transition-delay:.1s">
-          <a class="ch-fan-item c1" href="challenges.html">
-            <span class="ch-fan-badge">6d left</span>
-            <span class="ch-fan-title">Rebuild the pricing page conversion flow</span>
-            <span class="ch-fan-meta">Nordwave &middot; Product</span>
-          </a>
-          <a class="ch-fan-item c2" href="challenges.html">
-            <span class="ch-fan-badge">11d left</span>
-            <span class="ch-fan-title">Cut onboarding drop-off in the mobile app</span>
-            <span class="ch-fan-meta">Fieldstone &middot; Design</span>
-          </a>
-          <a class="ch-fan-item c3" href="challenges.html">
-            <span class="ch-fan-badge">9d left</span>
-            <span class="ch-fan-title">Design a stock-alert dashboard for warehouse staff</span>
-            <span class="ch-fan-meta">Cobalt &amp; Co &middot; Design</span>
-          </a>
-          <a class="ch-fan-item c4" href="challenges.html">
-            <span class="ch-fan-badge">14d left</span>
-            <span class="ch-fan-title">Automate the weekly ops reporting pack</span>
-            <span class="ch-fan-meta">Meridian Co &middot; Data</span>
-          </a>
-          <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
-        </div>
+      <!-- subsection 3: the challenges, merged into one equally-weighted
+           deck. Below 1081px this is a plain stacked list, no JS; above it,
+           a pure-CSS hover fan (canvas option G) — hovering or focusing any
+           card straightens it, pops it forward and lets its neighbours
+           rotate further out of the way. No JS needed at all: since these
+           are real <a> links, :hover and :focus-visible already give
+           keyboard users the same pop the mouse gets. -->
+      <div class="ch-fan" data-reveal style="transition-delay:.1s">
+        <a class="ch-fan-item c1" href="challenges.html">
+          <span class="ch-fan-badge">Closes in 4 days</span>
+          <span class="ch-fan-title">Ship a data pipeline for churn signals</span>
+          <span class="ch-fan-meta">Anchorpoint &middot; Eng &middot; 23 submitted</span>
+        </a>
+        <a class="ch-fan-item c2" href="challenges.html">
+          <span class="ch-fan-badge">6d left</span>
+          <span class="ch-fan-title">Rebuild the pricing page conversion flow</span>
+          <span class="ch-fan-meta">Nordwave &middot; Product &middot; 14 submitted</span>
+        </a>
+        <a class="ch-fan-item c3" href="challenges.html">
+          <span class="ch-fan-badge">9d left</span>
+          <span class="ch-fan-title">Design a stock-alert dashboard for warehouse staff</span>
+          <span class="ch-fan-meta">Cobalt &amp; Co &middot; Design &middot; 17 submitted</span>
+        </a>
+        <a class="ch-fan-item c4" href="challenges.html">
+          <span class="ch-fan-badge">11d left</span>
+          <span class="ch-fan-title">Cut onboarding drop-off in the mobile app</span>
+          <span class="ch-fan-meta">Fieldstone &middot; Design &middot; 9 submitted</span>
+        </a>
+        <a class="ch-fan-item c5" href="challenges.html">
+          <span class="ch-fan-badge">14d left</span>
+          <span class="ch-fan-title">Automate the weekly ops reporting pack</span>
+          <span class="ch-fan-meta">Meridian Co &middot; Data &middot; 11 submitted</span>
+        </a>
+        <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
       </div>
       <p class="ch-note">Sample briefs, not live listings. Real challenges appear here once the API is connected.</p>
     </div>

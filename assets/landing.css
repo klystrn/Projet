@@ -102,7 +102,7 @@ html[data-audience="business"]{
 
 /* every accent-carrying surface eases between modes rather than snapping */
 html{transition:none;}
-.nav, .hero, .btn, .eyebrow, .dash-card, .flow-rail-dot, .ch-spot, .final{
+.nav, .hero, .btn, .eyebrow, .dash-card, .flow-rail-dot, .final{
   transition:background .45s var(--ease), border-color .45s var(--ease),
              color .45s var(--ease), box-shadow .45s var(--ease);
 }
@@ -422,47 +422,12 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .ch-head{max-width:60ch; margin-bottom:32px;}
 .ch-head h2{font-size:clamp(30px,3.8vw,44px); margin:14px 0 12px;}
 .ch-head p{font-size:16.5px; line-height:1.6; color:var(--ink-soft);}
-.ch-layout{display:grid; grid-template-columns:1.25fr 1fr; gap:22px; align-items:stretch;}
 
-/* the spotlight card: the one closing soonest, given real weight */
-.ch-spot{
-  position:relative; overflow:hidden; border-radius:var(--radius-xl);
-  padding:38px; color:#fff; background:var(--grad-dark);
-  display:flex; flex-direction:column;
-  box-shadow:0 40px 90px -46px rgba(20,19,15,.72);
-}
-.ch-spot::after{
-  content:''; position:absolute; inset:-30% -10% auto auto; width:76%; height:150%;
-  background:var(--grad-glow); opacity:.85; pointer-events:none;
-}
-.ch-spot > *{position:relative; z-index:1;}
-.ch-spot-badge{
-  align-self:flex-start; margin-bottom:22px;
-  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
-  letter-spacing:.07em; text-transform:uppercase; padding:7px 13px; border-radius:999px;
-  background:var(--accent-wash); border:1px solid var(--accent-edge); color:var(--accent-lift);
-}
-.ch-spot h3{font-size:clamp(24px,2.6vw,33px); margin-bottom:14px; color:#fff;}
-.ch-spot p{font-size:15px; line-height:1.65; color:rgba(255,255,255,.72); max-width:46ch;}
-.ch-spot-meter{margin-top:26px;}
-.ch-meter{height:6px; border-radius:99px; background:rgba(255,255,255,.14); overflow:hidden;}
-.ch-meter-fill{height:100%; border-radius:99px; background:var(--grad-accent);}
-.ch-meter-cap{
-  display:flex; justify-content:space-between; margin-top:9px;
-  font-family:'JetBrains Mono',monospace; font-size:11.5px; color:rgba(255,255,255,.6);
-}
-.ch-spot-foot{
-  display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
-  margin-top:26px; padding-top:22px; border-top:1px solid rgba(255,255,255,.14);
-}
-.ch-spot-stats{display:flex; gap:26px;}
-.ch-spot-stat b{display:block; font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700;}
-.ch-spot-stat span{font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.55);}
-
-/* the deck beside it — canvas option G, "wide fan". Mobile-first: a plain
-   stacked list of cards (identical markup, no JS) until there's room to
-   fan four of them sideways; the fan itself is added under the
-   min-width:1081px block below, matching .ch-layout's own breakpoint. */
+/* the challenges, merged into one equally-weighted deck — canvas option G,
+   "wide fan". No more spotlight card: every brief is the same .ch-fan-item,
+   same size, same treatment. Mobile-first: a plain stacked list (identical
+   markup, no JS) until there's room to fan five of them sideways; the fan
+   itself is added under the min-width:1081px block below. */
 .ch-fan{display:flex; flex-direction:column; gap:10px;}
 .ch-fan-item{
   display:flex; flex-direction:column; gap:5px; padding:15px 18px;
@@ -489,49 +454,60 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 
 /* the fan itself: desktop only. Pure rotation off one shared origin below
    the stack produces the arc — same technique proven in the design canvas
-   (Challenges-G-WideFan.dc.html). No JS: .ch-fan-item is a real <a>, so
-   :hover and :focus-visible already give keyboard users the identical
-   pop-forward state a mouse gets. */
+   (Challenges-G-WideFan.dc.html), scaled up to 5 equal cards now that the
+   fan has the section's full width to itself instead of half a two-column
+   grid. No JS: .ch-fan-item is a real <a>, so :hover and :focus-visible
+   already give keyboard users the identical pop-forward state a mouse gets. */
 @media (min-width:1081px){
-  .ch-fan{position:relative; height:250px; margin-bottom:14px;}
+  .ch-fan{position:relative; width:820px; max-width:100%; height:290px; margin:0 auto 14px;}
   /* .ch-viewall is a normal-flow child of .ch-fan, but every .ch-fan-item
      is absolutely positioned once the fan kicks in — without this it would
      render at the top of .ch-fan's box (absolute children don't contribute
      to flow height) and sit underneath the fanned cards instead of below them. */
-  .ch-fan .ch-viewall{margin-top:270px;}
-  /* narrower than the container (not 100% width) so each card's own
+  .ch-fan .ch-viewall{margin-top:310px;}
+  /* fixed width, narrower than the container (not 100%), so each card's own
      un-overlapped edge is a real, consistently-shaped sliver you can
      actually aim a cursor at — a full-width card only ever exposes a
      rotated corner, which is too thin and unpredictable to hover reliably
-     once four of them stack on the same origin. */
+     once five of them stack on the same origin. */
   .ch-fan-item{
-    position:absolute; top:0; left:50%; width:80%; margin-left:-40%; min-height:132px;
-    transform-origin:50% 320px;
+    position:absolute; top:0; left:50%; width:380px; margin-left:-190px; min-height:150px;
+    transform-origin:50% 380px;
     box-shadow:0 16px 34px -24px rgba(20,19,15,.26);
   }
-  .ch-fan-item.c1{transform:rotate(-16deg); z-index:1;}
-  .ch-fan-item.c2{transform:rotate(-5deg); z-index:2;}
-  .ch-fan-item.c3{transform:rotate(5deg); z-index:3;}
-  .ch-fan-item.c4{transform:rotate(16deg); z-index:4;}
+  .ch-fan-item.c1{transform:rotate(-24deg); z-index:1;}
+  .ch-fan-item.c2{transform:rotate(-12deg); z-index:2;}
+  .ch-fan-item.c3{transform:rotate(0deg); z-index:3;}
+  .ch-fan-item.c4{transform:rotate(12deg); z-index:4;}
+  .ch-fan-item.c5{transform:rotate(24deg); z-index:5;}
   .ch-fan-item:hover, .ch-fan-item:focus-visible{
-    transform:rotate(0deg) translateY(-26px) scale(1.04) !important;
+    transform:rotate(0deg) translateY(-30px) scale(1.05) !important;
     z-index:50; box-shadow:0 30px 54px -24px rgba(20,19,15,.36);
   }
-  .ch-fan:has(.c1:hover) .c2, .ch-fan:has(.c1:focus-visible) .c2{transform:rotate(7deg) translate(20px,-6px);}
-  .ch-fan:has(.c1:hover) .c3, .ch-fan:has(.c1:focus-visible) .c3{transform:rotate(17deg) translate(20px,-6px);}
-  .ch-fan:has(.c1:hover) .c4, .ch-fan:has(.c1:focus-visible) .c4{transform:rotate(28deg) translate(20px,-6px);}
+  .ch-fan:has(.c1:hover) .c2, .ch-fan:has(.c1:focus-visible) .c2{transform:rotate(4deg) translate(20px,-8px);}
+  .ch-fan:has(.c1:hover) .c3, .ch-fan:has(.c1:focus-visible) .c3{transform:rotate(16deg) translate(20px,-8px);}
+  .ch-fan:has(.c1:hover) .c4, .ch-fan:has(.c1:focus-visible) .c4{transform:rotate(28deg) translate(20px,-8px);}
+  .ch-fan:has(.c1:hover) .c5, .ch-fan:has(.c1:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
 
-  .ch-fan:has(.c2:hover) .c1, .ch-fan:has(.c2:focus-visible) .c1{transform:rotate(-28deg) translate(-20px,-6px);}
-  .ch-fan:has(.c2:hover) .c3, .ch-fan:has(.c2:focus-visible) .c3{transform:rotate(17deg) translate(20px,-6px);}
-  .ch-fan:has(.c2:hover) .c4, .ch-fan:has(.c2:focus-visible) .c4{transform:rotate(28deg) translate(20px,-6px);}
+  .ch-fan:has(.c2:hover) .c1, .ch-fan:has(.c2:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
+  .ch-fan:has(.c2:hover) .c3, .ch-fan:has(.c2:focus-visible) .c3{transform:rotate(16deg) translate(20px,-8px);}
+  .ch-fan:has(.c2:hover) .c4, .ch-fan:has(.c2:focus-visible) .c4{transform:rotate(28deg) translate(20px,-8px);}
+  .ch-fan:has(.c2:hover) .c5, .ch-fan:has(.c2:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
 
-  .ch-fan:has(.c3:hover) .c1, .ch-fan:has(.c3:focus-visible) .c1{transform:rotate(-28deg) translate(-20px,-6px);}
-  .ch-fan:has(.c3:hover) .c2, .ch-fan:has(.c3:focus-visible) .c2{transform:rotate(-17deg) translate(-20px,-6px);}
-  .ch-fan:has(.c3:hover) .c4, .ch-fan:has(.c3:focus-visible) .c4{transform:rotate(28deg) translate(20px,-6px);}
+  .ch-fan:has(.c3:hover) .c1, .ch-fan:has(.c3:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
+  .ch-fan:has(.c3:hover) .c2, .ch-fan:has(.c3:focus-visible) .c2{transform:rotate(-28deg) translate(-20px,-8px);}
+  .ch-fan:has(.c3:hover) .c4, .ch-fan:has(.c3:focus-visible) .c4{transform:rotate(28deg) translate(20px,-8px);}
+  .ch-fan:has(.c3:hover) .c5, .ch-fan:has(.c3:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
 
-  .ch-fan:has(.c4:hover) .c1, .ch-fan:has(.c4:focus-visible) .c1{transform:rotate(-28deg) translate(-20px,-6px);}
-  .ch-fan:has(.c4:hover) .c2, .ch-fan:has(.c4:focus-visible) .c2{transform:rotate(-17deg) translate(-20px,-6px);}
-  .ch-fan:has(.c4:hover) .c3, .ch-fan:has(.c4:focus-visible) .c3{transform:rotate(-7deg) translate(-20px,-6px);}
+  .ch-fan:has(.c4:hover) .c1, .ch-fan:has(.c4:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
+  .ch-fan:has(.c4:hover) .c2, .ch-fan:has(.c4:focus-visible) .c2{transform:rotate(-28deg) translate(-20px,-8px);}
+  .ch-fan:has(.c4:hover) .c3, .ch-fan:has(.c4:focus-visible) .c3{transform:rotate(-16deg) translate(-20px,-8px);}
+  .ch-fan:has(.c4:hover) .c5, .ch-fan:has(.c4:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
+
+  .ch-fan:has(.c5:hover) .c1, .ch-fan:has(.c5:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
+  .ch-fan:has(.c5:hover) .c2, .ch-fan:has(.c5:focus-visible) .c2{transform:rotate(-28deg) translate(-20px,-8px);}
+  .ch-fan:has(.c5:hover) .c3, .ch-fan:has(.c5:focus-visible) .c3{transform:rotate(-16deg) translate(-20px,-8px);}
+  .ch-fan:has(.c5:hover) .c4, .ch-fan:has(.c5:focus-visible) .c4{transform:rotate(-4deg) translate(-20px,-8px);}
 }
 .ch-countdown{
   display:inline-flex; align-items:center; gap:10px; margin-bottom:22px;
@@ -872,7 +848,6 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
    RESPONSIVE
    ========================================================================== */
 @media (max-width:1080px){
-  .ch-layout{grid-template-columns:1fr;}
   .hero-grid{grid-template-columns:1fr; gap:44px;}
   .hero{min-height:0; padding-top:48px; padding-bottom:56px;}
 }
@@ -914,9 +889,6 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
 @media (max-width:640px){
   .hero h1{font-size:clamp(34px,9vw,44px);}
   .hero-ctas .btn{flex:1; justify-content:center;}
-  .ch-spot{padding:28px 24px;}
-  .ch-spot-foot{flex-direction:column; align-items:stretch;}
-  .ch-spot-foot .btn{width:100%;}
   .footer-grid{grid-template-columns:1fr;}
   .dash-metrics{grid-template-columns:1fr 1fr;}
   .final-ctas .btn{width:100%;}
