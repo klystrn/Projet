@@ -274,26 +274,36 @@
           </div>
         </article>
 
-        <div class="ch-list" data-reveal style="transition-delay:.1s">
-          <a class="ch-item" href="challenges.html">
-            <span class="ch-item-idx">02</span>
-            <span class="ch-item-body"><span class="ch-item-title">Rebuild the pricing page conversion flow</span><span class="ch-item-meta">Nordwave · Product · 6d left</span></span>
-            <span class="ch-item-go">Open</span>
+        <!-- Deck of cards (canvas option G, "wide fan"): the plain link-row
+             list read as a static directory, not a stack of fresh briefs —
+             flagged explicitly. Below 1081px (.ch-layout's own breakpoint,
+             where there's no room to fan four cards sideways) this is a
+             plain stacked list, same markup as before; above it, a pure-CSS
+             hover fan — hovering or focusing any card straightens it,
+             pops it forward and lets its neighbours rotate further out of
+             the way. No JS: since these are real <a> links, :hover and
+             :focus-visible already give keyboard users the same pop the
+             mouse gets, for free. -->
+        <div class="ch-fan" data-reveal style="transition-delay:.1s">
+          <a class="ch-fan-item c1" href="challenges.html">
+            <span class="ch-fan-badge">6d left</span>
+            <span class="ch-fan-title">Rebuild the pricing page conversion flow</span>
+            <span class="ch-fan-meta">Nordwave &middot; Product</span>
           </a>
-          <a class="ch-item" href="challenges.html">
-            <span class="ch-item-idx">03</span>
-            <span class="ch-item-body"><span class="ch-item-title">Cut onboarding drop-off in the mobile app</span><span class="ch-item-meta">Fieldstone · Design · 11d left</span></span>
-            <span class="ch-item-go">Open</span>
+          <a class="ch-fan-item c2" href="challenges.html">
+            <span class="ch-fan-badge">11d left</span>
+            <span class="ch-fan-title">Cut onboarding drop-off in the mobile app</span>
+            <span class="ch-fan-meta">Fieldstone &middot; Design</span>
           </a>
-          <a class="ch-item" href="challenges.html">
-            <span class="ch-item-idx">04</span>
-            <span class="ch-item-body"><span class="ch-item-title">Design a stock-alert dashboard for warehouse staff</span><span class="ch-item-meta">Cobalt &amp; Co · Design · 9d left</span></span>
-            <span class="ch-item-go">Open</span>
+          <a class="ch-fan-item c3" href="challenges.html">
+            <span class="ch-fan-badge">9d left</span>
+            <span class="ch-fan-title">Design a stock-alert dashboard for warehouse staff</span>
+            <span class="ch-fan-meta">Cobalt &amp; Co &middot; Design</span>
           </a>
-          <a class="ch-item" href="challenges.html">
-            <span class="ch-item-idx">05</span>
-            <span class="ch-item-body"><span class="ch-item-title">Automate the weekly ops reporting pack</span><span class="ch-item-meta">Meridian Co · Data · 14d left</span></span>
-            <span class="ch-item-go">Open</span>
+          <a class="ch-fan-item c4" href="challenges.html">
+            <span class="ch-fan-badge">14d left</span>
+            <span class="ch-fan-title">Automate the weekly ops reporting pack</span>
+            <span class="ch-fan-meta">Meridian Co &middot; Data</span>
           </a>
           <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
         </div>
