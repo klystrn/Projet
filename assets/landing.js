@@ -418,6 +418,55 @@
     });
   })();
 
+  /* ---------------- featured-challenge ticket rail ----------------
+     Enhancement only. The rail itself is a native overflow-x:auto scroller,
+     so touch, trackpad and keyboard already work with none of this; all we
+     add is arrow buttons, a position bar, and disabled states at each end.
+     CSS hides the whole control row under .no-js rather than leaving dead
+     buttons on screen. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    var controls = document.getElementById("chRailControls");
+    var fill = document.getElementById("chRailFill");
+    if (!rail || !controls) return;
+    var btns = controls.querySelectorAll("[data-rail-dir]");
+
+    function maxScroll() { return rail.scrollWidth - rail.clientWidth; }
+
+    function sync() {
+      var max = maxScroll();
+      var x = rail.scrollLeft;
+      // a rail that doesn't overflow has nothing to drive: park the bar full
+      // and disable both arrows rather than dividing by zero
+      var p = max > 1 ? x / max : 1;
+      if (fill) fill.style.setProperty("--rail-progress", (max > 1 ? Math.max(p, .08) : 1).toFixed(3));
+      btns.forEach(function (b) {
+        var dir = Number(b.getAttribute("data-rail-dir"));
+        var atEnd = max <= 1 || (dir < 0 ? x <= 1 : x >= max - 1);
+        b.disabled = atEnd;
+      });
+    }
+
+    btns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        var dir = Number(b.getAttribute("data-rail-dir"));
+        var card = rail.querySelector(".ch-ticket");
+        // one card + one gap per press, so a click always lands the next
+        // ticket flush against the rail's padding edge
+        var step = card ? card.offsetWidth + 18 : rail.clientWidth * .8;
+        rail.scrollBy({ left: dir * step, behavior: reducedMotion ? "auto" : "smooth" });
+      });
+    });
+
+    rail.addEventListener("scroll", function () {
+      // passive read-only sync; cheap enough to run raw, and rAF-gating it
+      // would lag the bar behind the thumb on a trackpad flick
+      sync();
+    }, { passive: true });
+    window.addEventListener("resize", sync);
+    sync();
+  })();
+
   /* ---------------- featured-challenge countdown ----------------
      A real ticking clock against a PLACEHOLDER deadline: hours-from-page-load
      rather than a fixed calendar date, since there is no live challenge data

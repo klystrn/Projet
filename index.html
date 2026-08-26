@@ -238,13 +238,23 @@
   </section>
 
   <!-- ======================= 3. FEATURED CHALLENGES =======================
-       Rebuilt on request: three clear subsections (text, then the
-       countdown, then the challenges themselves), with the challenges
-       collapsed into ONE equally-weighted element rather than a spotlight
-       card beside a secondary list. No single brief is visually privileged
-       any more — the same deck-of-cards fan mechanic now carries all five,
-       each in an identical card, so "featured" describes the whole set,
-       not one entry singled out over the rest. -->
+       Three subsections: text, countdown, then the challenges themselves as
+       ONE equally-weighted element — no brief is visually privileged over
+       any other, so "featured" describes the whole set rather than singling
+       one out.
+
+       Canvas option N, "ticket rail": a horizontally scrolling row where
+       each brief is shaped like a torn ticket (body + perforated stub with
+       the countdown punched into it). The shape is doing real work beyond
+       decoration — it keeps this section from reading as a second copy of
+       challenges.html, whose card signature is a white tile with a pill
+       pair on top, a thin progress bar and a full-width "View brief"
+       button. None of those four appear here.
+
+       The rail is a native overflow-x:auto scroller with scroll-snap, so it
+       works with the keyboard, with touch, and with JS disabled; the arrows
+       and the position bar below are enhancement only and are hidden
+       outright when JS never runs. -->
   <section class="challenges" id="challenges">
     <div class="wrap">
       <!-- subsection 1: text -->
@@ -262,40 +272,112 @@
         Next challenge closes in
         <b><span data-cd="d">04</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</b>
       </div>
+    </div>
 
-      <!-- subsection 3: the challenges, merged into one equally-weighted
-           deck. Below 1081px this is a plain stacked list, no JS; above it,
-           a pure-CSS hover fan (canvas option G) — hovering or focusing any
-           card straightens it, pops it forward and lets its neighbours
-           rotate further out of the way. No JS needed at all: since these
-           are real <a> links, :hover and :focus-visible already give
-           keyboard users the same pop the mouse gets. -->
-      <div class="ch-fan" data-reveal style="transition-delay:.1s">
-        <a class="ch-fan-item c1" href="challenges.html">
-          <span class="ch-fan-badge">Closes in 4 days</span>
-          <span class="ch-fan-title">Ship a data pipeline for churn signals</span>
-          <span class="ch-fan-meta">Anchorpoint &middot; Eng &middot; 23 submitted</span>
-        </a>
-        <a class="ch-fan-item c2" href="challenges.html">
-          <span class="ch-fan-badge">6d left</span>
-          <span class="ch-fan-title">Rebuild the pricing page conversion flow</span>
-          <span class="ch-fan-meta">Nordwave &middot; Product &middot; 14 submitted</span>
-        </a>
-        <a class="ch-fan-item c3" href="challenges.html">
-          <span class="ch-fan-badge">9d left</span>
-          <span class="ch-fan-title">Design a stock-alert dashboard for warehouse staff</span>
-          <span class="ch-fan-meta">Cobalt &amp; Co &middot; Design &middot; 17 submitted</span>
-        </a>
-        <a class="ch-fan-item c4" href="challenges.html">
-          <span class="ch-fan-badge">11d left</span>
-          <span class="ch-fan-title">Cut onboarding drop-off in the mobile app</span>
-          <span class="ch-fan-meta">Fieldstone &middot; Design &middot; 9 submitted</span>
-        </a>
-        <a class="ch-fan-item c5" href="challenges.html">
-          <span class="ch-fan-badge">14d left</span>
-          <span class="ch-fan-title">Automate the weekly ops reporting pack</span>
-          <span class="ch-fan-meta">Meridian Co &middot; Data &middot; 11 submitted</span>
-        </a>
+    <!-- subsection 3: the rail itself. Deliberately OUTSIDE .wrap so the row
+         can run past the right edge of the content column and read as an
+         ongoing feed rather than a closed set of six; its own padding
+         re-aligns the first ticket with the content edge. -->
+    <div class="ch-rail" id="chRail" data-reveal style="transition-delay:.1s"
+         tabindex="0" role="group" aria-label="Featured challenges, scrollable">
+      <a class="ch-ticket" href="challenges.html">
+        <span class="ch-ticket-body">
+          <span class="ch-ticket-co">Anchorpoint</span>
+          <span class="ch-ticket-title">Ship a data pipeline for churn signals</span>
+          <span class="ch-ticket-desc">Turn raw product events into the handful of signals that actually predict a customer leaving.</span>
+          <span class="ch-ticket-subs">23 submitted</span>
+        </span>
+        <span class="ch-perf" aria-hidden="true"></span>
+        <span class="ch-stub">
+          <span class="ch-stub-num">04</span>
+          <span class="ch-stub-unit">days left</span>
+          <span class="ch-stub-disc" aria-hidden="true">Eng</span>
+        </span>
+      </a>
+
+      <a class="ch-ticket" href="challenges.html">
+        <span class="ch-ticket-body">
+          <span class="ch-ticket-co">Nordwave</span>
+          <span class="ch-ticket-title">Rebuild the pricing page conversion flow</span>
+          <span class="ch-ticket-desc">Visitors reach pricing and stall. Redesign the flow and show why your version converts better.</span>
+          <span class="ch-ticket-subs">14 submitted</span>
+        </span>
+        <span class="ch-perf" aria-hidden="true"></span>
+        <span class="ch-stub">
+          <span class="ch-stub-num">06</span>
+          <span class="ch-stub-unit">days left</span>
+          <span class="ch-stub-disc" aria-hidden="true">Product</span>
+        </span>
+      </a>
+
+      <a class="ch-ticket" href="challenges.html">
+        <span class="ch-ticket-body">
+          <span class="ch-ticket-co">Cobalt &amp; Co</span>
+          <span class="ch-ticket-title">Design a stock-alert dashboard for warehouse staff</span>
+          <span class="ch-ticket-desc">Floor staff need to see what is running out from several metres away. Design for that room.</span>
+          <span class="ch-ticket-subs">17 submitted</span>
+        </span>
+        <span class="ch-perf" aria-hidden="true"></span>
+        <span class="ch-stub">
+          <span class="ch-stub-num">09</span>
+          <span class="ch-stub-unit">days left</span>
+          <span class="ch-stub-disc" aria-hidden="true">Design</span>
+        </span>
+      </a>
+
+      <a class="ch-ticket" href="challenges.html">
+        <span class="ch-ticket-body">
+          <span class="ch-ticket-co">Fieldstone</span>
+          <span class="ch-ticket-title">Cut onboarding drop-off in the mobile app</span>
+          <span class="ch-ticket-desc">Most new users never finish setup. Rework the first run so they reach their first real action.</span>
+          <span class="ch-ticket-subs">9 submitted</span>
+        </span>
+        <span class="ch-perf" aria-hidden="true"></span>
+        <span class="ch-stub">
+          <span class="ch-stub-num">11</span>
+          <span class="ch-stub-unit">days left</span>
+          <span class="ch-stub-disc" aria-hidden="true">Design</span>
+        </span>
+      </a>
+
+      <a class="ch-ticket" href="challenges.html">
+        <span class="ch-ticket-body">
+          <span class="ch-ticket-co">Meridian Co</span>
+          <span class="ch-ticket-title">Automate the weekly ops reporting pack</span>
+          <span class="ch-ticket-desc">An analyst rebuilds the same report by hand every Monday. Automate it end to end.</span>
+          <span class="ch-ticket-subs">11 submitted</span>
+        </span>
+        <span class="ch-perf" aria-hidden="true"></span>
+        <span class="ch-stub">
+          <span class="ch-stub-num">14</span>
+          <span class="ch-stub-unit">days left</span>
+          <span class="ch-stub-disc" aria-hidden="true">Data</span>
+        </span>
+      </a>
+
+      <a class="ch-ticket" href="challenges.html">
+        <span class="ch-ticket-body">
+          <span class="ch-ticket-co">Vertex Studio</span>
+          <span class="ch-ticket-title">Prototype a referral loop for a B2B tool</span>
+          <span class="ch-ticket-desc">Referrals work for consumer apps; this one sells to teams. Design a loop that fits how teams buy.</span>
+          <span class="ch-ticket-subs">19 submitted</span>
+        </span>
+        <span class="ch-perf" aria-hidden="true"></span>
+        <span class="ch-stub">
+          <span class="ch-stub-num">07</span>
+          <span class="ch-stub-unit">days left</span>
+          <span class="ch-stub-disc" aria-hidden="true">Product</span>
+        </span>
+      </a>
+    </div>
+
+    <div class="wrap">
+      <!-- Enhancement only: the rail above already scrolls natively. .no-js
+           hides this whole row rather than leaving dead controls on screen. -->
+      <div class="ch-rail-controls" id="chRailControls">
+        <button class="ch-rail-btn" type="button" data-rail-dir="-1" aria-label="Previous challenges">&#8592;</button>
+        <button class="ch-rail-btn" type="button" data-rail-dir="1" aria-label="Next challenges">&#8594;</button>
+        <div class="ch-rail-track" aria-hidden="true"><i id="chRailFill"></i></div>
         <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
       </div>
       <p class="ch-note">Sample briefs, not live listings. Real challenges appear here once the API is connected.</p>

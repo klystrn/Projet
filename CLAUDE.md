@@ -443,32 +443,61 @@ anonymous-scoring model, the Hack & Hire pilot numbers — no new claims
 about founders, funding, or anything this project has deliberately kept
 off the public site.
 
-**index.html's Featured Challenges list is now the deck-of-cards fan,
-v3.2** (closes out Task 42/"canvas explore deck-of-cards + iterations,
-then build chosen direction" — the canvas exploration alone didn't ship
-this; the chosen direction sat unbuilt on the live page for a while).
-`.ch-list`'s plain row of link items is now `.ch-fan`: below 1081px
-(`.ch-layout`'s own breakpoint) it's the identical plain stacked list, no
-JS involved; above it, a pure-CSS hover fan reusing the design canvas's
-proven technique (`Challenges-G-WideFan.dc.html` — shared rotation
-`transform-origin`, `:has()` sibling pushes). No JS at all: `.ch-fan-item`
-is a real `<a>`, so `:hover` and `:focus-visible` already give keyboard
-users the identical pop the mouse gets.
+**index.html's Featured Challenges is the TICKET RAIL, v3.3 (canvas option
+N). This supersedes the deck-of-cards fan entirely** — the fan shipped
+briefly, then the whole section was reworked twice: first merged into one
+equally-weighted element (no spotlight card), then re-laid-out as a
+horizontal rail. Do not reinstate the fan, the `.ch-spot` spotlight card
+or the `.ch-layout` two-column split without a fresh instruction; all
+three are gone from the CSS, not just unused.
 
-**One thing the canvas mockup got away with that the shipped version
-couldn't: card width.** The canvas cards were narrower than their `.fan`
-container; the first pass here set `.ch-fan-item{width:100%}`, so only a
-rotated *corner* ever peeked out from under the top card — too thin a
-target to reliably aim a cursor at. Confirmed via
-`document.elementFromPoint()`: a screenshot that looked like a clean fan
-often resolved to the wrong card (or the section behind it) at the actual
-hover point. Fixed by narrowing cards to 80% width (`left:50%;
-margin-left:-40%`) and widening the rotation spread (±16°/±5° base, was
-±9°/±3°) so each card's own title is legibly exposed at rest, not just a
-sliver of white space. **If the canvas's fan mechanic is ever reused
-again, build cards narrower than their container from the start** — this
-isn't a corner case, it's why the mockup and the shipped page behaved
-differently on the very first real test.
+Current structure — three subsections, in this order:
+
+```
+.challenges > .wrap        .ch-head (eyebrow/h2/p) + .ch-countdown
+.challenges > .ch-rail     the tickets — OUTSIDE .wrap, deliberately
+.challenges > .wrap        .ch-rail-controls + .ch-note
+```
+
+Each brief is a `.ch-ticket`: `.ch-ticket-body` + `.ch-perf` + `.ch-stub`,
+shaped like a torn ticket with the countdown punched into the stub. **The
+shape is load-bearing, not decoration.** `challenges.html`'s own card
+signature is a white tile with a pill pair on top, a thin orange progress
+bar, and a full-width dark "View brief" button; the ask was explicitly
+that the homepage section not look like the listing page, so none of those
+four appear here. If this section is restyled again, check it against
+`.cl-card` before shipping.
+
+**The rail is a native `overflow-x:auto` scroller.** Touch, trackpad and
+keyboard all work with zero JS (the container carries `tabindex="0"`), and
+the arrows + position bar in `.ch-rail-controls` are pure enhancement.
+`.no-js` hides **only** `.ch-rail-btn` and `.ch-rail-track` — *not* the
+whole control row, which also carries the "View all challenges" link;
+that's real content and has to survive. The fill bar is driven by a
+`--rail-progress` custom property on `transform:scaleX()`, not `width`, so
+dragging the rail never triggers layout per frame.
+
+**Two gotchas this section hit, both worth not relearning:**
+
+- **`scroll-snap-align:start` fights the scroller's own padding.** The
+  rail is padded by `--rail-inset` so its first ticket lines up with
+  `.wrap`'s content edge while the row still runs to the true viewport
+  edges. But snap positions resolve against the *scrollport* edge, so on
+  load the browser silently scrolled the rail to `scrollLeft:132` to snap
+  the first card — the row arrived already nudged off its start. Fixed
+  with `scroll-padding-inline:var(--rail-inset)` matching the padding
+  exactly. **Any padded scroll-snap container needs both.**
+- **The inset is computed from `100%`, never `100vw`.** `vw` includes the
+  scrollbar gutter, which is the exact cause of the horizontal-overflow
+  bug documented under "the sticky/overflow-x gotcha" above. `100%` here
+  is the section's own width, which is what's actually wanted.
+
+`.ch-perf`'s two notches are circles filled with `var(--paper-warm)` and
+**no border of their own** — a full ring reads as a dot stuck to the edge
+rather than a bite taken out of it. They are hard-tied to
+`.challenges`'s background: **if that section ever stops being
+`--paper-warm`, the notches must follow or they will show as wrong-coloured
+blobs.**
 
 ---
 

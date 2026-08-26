@@ -423,92 +423,116 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .ch-head h2{font-size:clamp(30px,3.8vw,44px); margin:14px 0 12px;}
 .ch-head p{font-size:16.5px; line-height:1.6; color:var(--ink-soft);}
 
-/* the challenges, merged into one equally-weighted deck — canvas option G,
-   "wide fan". No more spotlight card: every brief is the same .ch-fan-item,
-   same size, same treatment. Mobile-first: a plain stacked list (identical
-   markup, no JS) until there's room to fan five of them sideways; the fan
-   itself is added under the min-width:1081px block below. */
-.ch-fan{display:flex; flex-direction:column; gap:10px;}
-.ch-fan-item{
-  display:flex; flex-direction:column; gap:5px; padding:15px 18px;
-  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+/* the challenges, as one equally-weighted horizontally scrolling rail —
+   canvas option N, "ticket rail". Every brief is the same .ch-ticket: a
+   body plus a perforated stub with the countdown punched into it.
+
+   The ticket shape is load-bearing, not decoration. challenges.html's own
+   card signature is a white tile with a pill pair on top, a thin orange
+   progress bar and a full-width dark "View brief" button; none of those
+   four appear here, so the homepage section and the listing page can never
+   read as the same component rendered twice.
+
+   The rail is a NATIVE overflow-x:auto scroller — it works with touch, with
+   a trackpad, with the keyboard (the container is focusable) and with JS
+   disabled. The arrow buttons and position bar are enhancement on top. */
+.ch-rail{
+  /* the gutter that re-aligns the rail's first ticket with .wrap's content
+     edge while the row itself still runs to the true viewport edges.
+     Computed from 100% (the section's own width) rather than 100vw
+     deliberately — vw includes the scrollbar gutter, which is exactly what
+     caused the horizontal-overflow bug documented in CLAUDE.md. */
+  --rail-inset:max(32px, calc((100% - var(--maxw)) / 2 + 32px));
+  display:flex; gap:18px; align-items:stretch;
+  overflow-x:auto; overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity; scroll-behavior:smooth;
+  padding:8px var(--rail-inset) 26px;
+  /* MUST match the padding. Without it, scroll-snap-align:start on the
+     first ticket resolves against the scrollport's padding edge, so the
+     browser silently scrolls the rail to scrollLeft:132 on load to "snap"
+     the first card — the row arrives already nudged off its start. */
+  scroll-padding-inline:var(--rail-inset);
+  /* the scrollbar itself is redundant next to the position bar below */
+  scrollbar-width:none;
+}
+.ch-rail::-webkit-scrollbar{display:none;}
+.ch-rail:focus-visible{outline:2px solid var(--ink); outline-offset:-4px; border-radius:var(--radius);}
+
+.ch-ticket{
+  position:relative; flex:0 0 clamp(290px, 27vw, 340px); display:flex;
+  scroll-snap-align:start;
+  background:#fff; border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 14px 30px -26px rgba(20,19,15,.3);
   transition:transform .22s var(--ease), box-shadow .22s var(--ease);
 }
-.ch-fan-item:hover, .ch-fan-item:focus-visible{transform:translateY(-2px); box-shadow:0 18px 38px -26px rgba(20,19,15,.34);}
-.ch-fan-item:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
-.ch-fan-badge{
-  width:fit-content; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
-  letter-spacing:.05em; text-transform:uppercase; color:var(--orange-deep);
-  background:rgba(199,62,16,.1); padding:3px 9px; border-radius:999px;
+.ch-ticket:hover{transform:translateY(-4px); box-shadow:0 26px 48px -28px rgba(20,19,15,.38);}
+.ch-ticket:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+
+.ch-ticket-body{display:flex; flex-direction:column; gap:10px; flex:1; min-width:0; padding:22px;}
+.ch-ticket-co{font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--muted);}
+.ch-ticket-title{font-size:17.5px; font-weight:800; line-height:1.26;}
+.ch-ticket-desc{font-size:12.5px; color:var(--ink-soft); line-height:1.5; flex:1;}
+.ch-ticket-subs{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted);}
+
+/* the perforation, and the two notches that make it read as a torn stub.
+   Each notch is a circle filled with the SECTION background, half in and
+   half out of the card — a circle with its own border all the way round
+   reads as a floating dot stuck to the edge rather than a bite taken out
+   of it. If .challenges ever stops being --paper-warm, these must follow. */
+.ch-perf{position:relative; width:0; border-left:2px dashed var(--line); margin:14px 0;}
+.ch-perf::before, .ch-perf::after{
+  content:''; position:absolute; left:-11px; width:20px; height:20px;
+  border-radius:50%; background:var(--paper-warm);
 }
-.ch-fan-title{font-size:14.5px; font-weight:700; line-height:1.3;}
-.ch-fan-meta{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted);}
+.ch-perf::before{top:-24px;}
+.ch-perf::after{bottom:-24px;}
+
+.ch-stub{
+  width:76px; flex:none; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:6px; padding:16px 6px;
+}
+.ch-stub-num{font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700; line-height:1; color:var(--accent-deep);}
+.ch-stub-unit{
+  font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  text-align:center; max-width:6ch; line-height:1.35;
+}
+.ch-stub-disc{
+  margin-top:4px; writing-mode:vertical-rl; transform:rotate(180deg);
+  font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+}
+
+/* rail controls: enhancement only, hidden outright with no JS (see the
+   .no-js block further down) rather than left on screen as dead buttons */
+.ch-rail-controls{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.ch-rail-btn{
+  width:44px; height:44px; flex:none; border-radius:50%; cursor:pointer;
+  border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color .2s var(--ease), background .2s var(--ease), opacity .2s var(--ease);
+}
+.ch-rail-btn:hover{border-color:var(--ink);}
+.ch-rail-btn:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.ch-rail-btn[disabled]{opacity:.35; cursor:default;}
+.ch-rail-btn[disabled]:hover{border-color:var(--line);}
+.ch-rail-track{flex:1; min-width:80px; height:3px; border-radius:99px; background:var(--line); position:relative; overflow:hidden;}
+/* driven by transform, not width — compositor-only, so dragging the rail
+   never triggers layout on every frame */
+.ch-rail-track i{
+  position:absolute; inset:0; border-radius:99px; background:var(--ink);
+  transform-origin:left center; transform:scaleX(var(--rail-progress,.3));
+  transition:transform .18s var(--ease);
+}
 .ch-viewall{
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  margin-top:2px; padding:15px; border-radius:var(--radius);
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:13px 20px; border-radius:999px;
   border:1px dashed var(--line); font-size:13.5px; font-weight:700; color:var(--ink);
   transition:border-color .22s var(--ease), background .22s var(--ease);
 }
 .ch-viewall:hover{border-color:var(--accent); background:var(--accent-wash);}
 .ch-viewall:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
 
-/* the fan itself: desktop only. Pure rotation off one shared origin below
-   the stack produces the arc — same technique proven in the design canvas
-   (Challenges-G-WideFan.dc.html), scaled up to 5 equal cards now that the
-   fan has the section's full width to itself instead of half a two-column
-   grid. No JS: .ch-fan-item is a real <a>, so :hover and :focus-visible
-   already give keyboard users the identical pop-forward state a mouse gets. */
-@media (min-width:1081px){
-  .ch-fan{position:relative; width:820px; max-width:100%; height:290px; margin:0 auto 14px;}
-  /* .ch-viewall is a normal-flow child of .ch-fan, but every .ch-fan-item
-     is absolutely positioned once the fan kicks in — without this it would
-     render at the top of .ch-fan's box (absolute children don't contribute
-     to flow height) and sit underneath the fanned cards instead of below them. */
-  .ch-fan .ch-viewall{margin-top:310px;}
-  /* fixed width, narrower than the container (not 100%), so each card's own
-     un-overlapped edge is a real, consistently-shaped sliver you can
-     actually aim a cursor at — a full-width card only ever exposes a
-     rotated corner, which is too thin and unpredictable to hover reliably
-     once five of them stack on the same origin. */
-  .ch-fan-item{
-    position:absolute; top:0; left:50%; width:380px; margin-left:-190px; min-height:150px;
-    transform-origin:50% 380px;
-    box-shadow:0 16px 34px -24px rgba(20,19,15,.26);
-  }
-  .ch-fan-item.c1{transform:rotate(-24deg); z-index:1;}
-  .ch-fan-item.c2{transform:rotate(-12deg); z-index:2;}
-  .ch-fan-item.c3{transform:rotate(0deg); z-index:3;}
-  .ch-fan-item.c4{transform:rotate(12deg); z-index:4;}
-  .ch-fan-item.c5{transform:rotate(24deg); z-index:5;}
-  .ch-fan-item:hover, .ch-fan-item:focus-visible{
-    transform:rotate(0deg) translateY(-30px) scale(1.05) !important;
-    z-index:50; box-shadow:0 30px 54px -24px rgba(20,19,15,.36);
-  }
-  .ch-fan:has(.c1:hover) .c2, .ch-fan:has(.c1:focus-visible) .c2{transform:rotate(4deg) translate(20px,-8px);}
-  .ch-fan:has(.c1:hover) .c3, .ch-fan:has(.c1:focus-visible) .c3{transform:rotate(16deg) translate(20px,-8px);}
-  .ch-fan:has(.c1:hover) .c4, .ch-fan:has(.c1:focus-visible) .c4{transform:rotate(28deg) translate(20px,-8px);}
-  .ch-fan:has(.c1:hover) .c5, .ch-fan:has(.c1:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
-
-  .ch-fan:has(.c2:hover) .c1, .ch-fan:has(.c2:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
-  .ch-fan:has(.c2:hover) .c3, .ch-fan:has(.c2:focus-visible) .c3{transform:rotate(16deg) translate(20px,-8px);}
-  .ch-fan:has(.c2:hover) .c4, .ch-fan:has(.c2:focus-visible) .c4{transform:rotate(28deg) translate(20px,-8px);}
-  .ch-fan:has(.c2:hover) .c5, .ch-fan:has(.c2:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
-
-  .ch-fan:has(.c3:hover) .c1, .ch-fan:has(.c3:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
-  .ch-fan:has(.c3:hover) .c2, .ch-fan:has(.c3:focus-visible) .c2{transform:rotate(-28deg) translate(-20px,-8px);}
-  .ch-fan:has(.c3:hover) .c4, .ch-fan:has(.c3:focus-visible) .c4{transform:rotate(28deg) translate(20px,-8px);}
-  .ch-fan:has(.c3:hover) .c5, .ch-fan:has(.c3:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
-
-  .ch-fan:has(.c4:hover) .c1, .ch-fan:has(.c4:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
-  .ch-fan:has(.c4:hover) .c2, .ch-fan:has(.c4:focus-visible) .c2{transform:rotate(-28deg) translate(-20px,-8px);}
-  .ch-fan:has(.c4:hover) .c3, .ch-fan:has(.c4:focus-visible) .c3{transform:rotate(-16deg) translate(-20px,-8px);}
-  .ch-fan:has(.c4:hover) .c5, .ch-fan:has(.c4:focus-visible) .c5{transform:rotate(40deg) translate(20px,-8px);}
-
-  .ch-fan:has(.c5:hover) .c1, .ch-fan:has(.c5:focus-visible) .c1{transform:rotate(-40deg) translate(-20px,-8px);}
-  .ch-fan:has(.c5:hover) .c2, .ch-fan:has(.c5:focus-visible) .c2{transform:rotate(-28deg) translate(-20px,-8px);}
-  .ch-fan:has(.c5:hover) .c3, .ch-fan:has(.c5:focus-visible) .c3{transform:rotate(-16deg) translate(-20px,-8px);}
-  .ch-fan:has(.c5:hover) .c4, .ch-fan:has(.c5:focus-visible) .c4{transform:rotate(-4deg) translate(-20px,-8px);}
-}
 .ch-countdown{
   display:inline-flex; align-items:center; gap:10px; margin-bottom:22px;
   padding:9px 16px; border-radius:999px;
@@ -786,6 +810,17 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
 .no-js [data-reveal]{opacity:1; transform:none;}
 @media (prefers-reduced-motion: reduce){
   [data-reveal]{opacity:1 !important; transform:none !important;}
+}
+
+/* ---------- ticket-rail fallbacks ----------
+   The rail scrolls natively, so no-js loses only the arrows and the
+   position bar. Hide exactly those — NOT the whole control row, which also
+   carries the "View all challenges" link; that is real content and has to
+   survive. Reduced motion keeps the rail but drops the smooth-scroll
+   easing, since an arrow press would otherwise animate a long glide. */
+.no-js .ch-rail-btn, .no-js .ch-rail-track{display:none;}
+@media (prefers-reduced-motion: reduce){
+  .ch-rail{scroll-behavior:auto;}
 }
 
 /* ---------- how-it-works pin fallbacks ----------
