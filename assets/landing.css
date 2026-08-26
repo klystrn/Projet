@@ -552,8 +552,16 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    rather than all four dimmed-but-present, and a final "recap" beat shows
    all four together right before the section releases the pin. */
 .flow{position:relative;}
+/* the left column is right-aligned and pulled tight to the divider (asked
+   explicitly). align-items:flex-end pushes the flex children — each of
+   which is only as wide as its own max-width — over to the seam, and
+   text-align:right turns the ragged edge inwards so the type stacks against
+   the divider rather than away from it. The asymmetric padding does the
+   "closer to the divider" half: generous on the outside, tight on the
+   seam side. */
 .flow-left{
-  padding:64px 56px; display:flex; flex-direction:column; justify-content:center;
+  padding:64px 40px 64px 56px; display:flex; flex-direction:column;
+  justify-content:center; align-items:flex-end; text-align:right;
   background:var(--paper);
 }
 .flow-left .eyebrow{margin-bottom:14px;}
@@ -564,11 +572,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    (fills the space under the title) and a progress readout that mirrors the
    scrub on the right — landing.js toggles .is-active/.is-done on it in
    lockstep with the step currently showing in the right-hand panel. */
-.flow-rail{margin-top:36px; display:flex; flex-direction:column;}
-.flow-rail-item{position:relative; display:flex; align-items:flex-start; gap:14px; padding-bottom:26px;}
+/* row-REVERSE, and the connector pinned to the right: with the column
+   right-aligned the dots have to run down the seam side, or the numbers
+   read backwards against the right-ragged labels beside them. */
+.flow-rail{margin-top:36px; display:flex; flex-direction:column; align-items:flex-end;}
+.flow-rail-item{position:relative; display:flex; flex-direction:row-reverse; align-items:flex-start; gap:14px; padding-bottom:26px;}
 .flow-rail-item:last-child{padding-bottom:0;}
 .flow-rail-item::before{
-  content:''; position:absolute; left:15px; top:32px; bottom:-4px; width:2px; background:var(--line);
+  content:''; position:absolute; right:15px; top:32px; bottom:-4px; width:2px; background:var(--line);
 }
 .flow-rail-item:last-child::before{display:none;}
 .flow-rail-dot{
@@ -590,11 +601,19 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    CLAUDE.md "Known issues #3"), just measured against the column's own box
    (100%) instead of 100vw. */
 .flow-right{position:relative; overflow:hidden; background:var(--ink);}
+/* Zoom retuned against a 2048px-wide source (was 1080px — the artwork was
+   being upscaled 2.06x at 1440x900, which is what made it look pixelated).
+   At --fluid-zoom:1.2 the painted width is ~1908px at that viewport, so
+   the 2048px source is DOWNscaled ~0.93x instead. The pan still has ~1000px
+   of horizontal and ~180px of vertical overhang to travel through, so the
+   scrub animation is unchanged — only the sampling is.
+   Raising this zoom trades sharpness back for pan distance; past ~1.3 the
+   source starts being upscaled again at common desktop sizes. */
 .flow-fluid{
   position:absolute; inset:0;
   background-image:var(--img-fluid-full);
-  --fluid-ar:1.7676;   /* 1080 / 611 — regenerate if the artwork changes */
-  --fluid-zoom:1.4;
+  --fluid-ar:1.7676;   /* 2048 / 1159 — regenerate if the artwork changes */
+  --fluid-zoom:1.2;
   background-size:calc(max(100%, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
   background-position:0% 100%;
   opacity:.5; will-change:background-position;
@@ -629,9 +648,10 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 }
 /* the description is this panel's lead line now, not a sub-line under a
    repeated title — the step's NAME is stated once, in the left rail, and
-   the h3 here is .sr-only on desktop (see index.html). Sized up to carry
-   the panel on its own. */
-.flow-step p{color:#fff; font-size:clamp(21px,2.3vw,30px); font-weight:500; line-height:1.32; letter-spacing:-.01em; max-width:22ch;}
+   the h3 here is .sr-only on desktop (see index.html). Sized up again on
+   request to carry the panel with real emphasis; 20ch keeps it to three or
+   four short lines at this size rather than one long run. */
+.flow-step p{color:#fff; font-size:clamp(26px,3vw,40px); font-weight:600; line-height:1.24; letter-spacing:-.015em; max-width:20ch;}
 .flow-step-link{
   margin-top:2px; padding:6px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700;
   color:#fff; text-decoration:underline; text-underline-offset:4px; text-shadow:none;
@@ -835,7 +855,12 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
 @media (prefers-reduced-motion: reduce){
   .flow-scroll{height:auto !important;}
   .flow-stage{display:block !important; height:auto !important;}
-  .flow-left{padding:56px 32px 8px !important; background:none !important;}
+  /* the stage is stacked here, so the right-aligned-to-the-divider
+     treatment has no divider to sit against — back to normal left flow */
+  .flow-left{padding:56px 32px 8px !important; background:none !important; align-items:stretch !important; text-align:left !important;}
+  .flow-rail{align-items:stretch !important;}
+  .flow-rail-item{flex-direction:row !important;}
+  .flow-rail-item::before{right:auto !important; left:15px !important;}
   .flow-rail{display:none !important;}
   .flow-right{background:none !important; padding:8px 32px 56px !important;}
   .flow-fluid, .flow-scrim{display:none !important;}
@@ -858,7 +883,10 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
 }
 .no-js .flow-scroll{height:auto;}
 .no-js .flow-stage{display:block; height:auto;}
-.no-js .flow-left{padding:56px 32px 8px; background:none;}
+.no-js .flow-left{padding:56px 32px 8px; background:none; align-items:stretch; text-align:left;}
+.no-js .flow-rail{align-items:stretch;}
+.no-js .flow-rail-item{flex-direction:row;}
+.no-js .flow-rail-item::before{right:auto; left:15px;}
 .no-js .flow-rail{display:none;}
 .no-js .flow-right{background:none; padding:8px 32px 56px;}
 .no-js .flow-fluid, .no-js .flow-scrim{display:none;}
@@ -905,7 +933,10 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
      fallback above — light background, every step fully visible). */
   .flow-scroll{height:auto;}
   .flow-stage{display:block; height:auto;}
-  .flow-left{padding:56px 32px 8px; background:none;}
+  .flow-left{padding:56px 32px 8px; background:none; align-items:stretch; text-align:left;}
+  .flow-rail{align-items:stretch;}
+  .flow-rail-item{flex-direction:row;}
+  .flow-rail-item::before{right:auto; left:15px;}
   .flow-rail{display:none;}
   .flow-right{background:none; padding:8px 32px 56px;}
   .flow-fluid, .flow-scrim{display:none;}

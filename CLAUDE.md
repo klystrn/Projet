@@ -321,21 +321,37 @@ pin releases. `--img-fluid-full` (AVIF/WebP via `image-set()`) is back in
 `landing.css`'s `:root`, same fallback pattern as before.
 
 ```
-.flow-scroll                     650vh, desktop-only scroll-room wrapper
+.flow-scroll                     520vh, desktop-only scroll-room wrapper
   .flow-stage                     sticky; top:0; height:100vh;
                                    grid-template-columns:3fr 5fr
     .flow-left                    static title (eyebrow/h2/p) + .flow-rail
+                                   RIGHT-ALIGNED and padded tight to the
+                                   divider (asked explicitly): align-items:
+                                   flex-end + text-align:right, and
+                                   asymmetric padding (56px outside / 40px
+                                   on the seam)
       .flow-rail                  data-mode-copy; 4 .flow-rail-item, the
                                    "design element" filling the space under
-                                   the title — doubles as a progress readout
+                                   the title — doubles as a progress readout.
+                                   flex-direction:row-reverse and the
+                                   connector at right:15px, so the dots run
+                                   down the SEAM side; left-to-right order
+                                   reads backwards against right-ragged text
     .flow-right                   overflow:hidden; background:var(--ink)
       .flow-fluid                 the scrub background (cropped to this column)
       .flow-scrim                 readability gradient over it
       .flow-steps                 data-mode-copy; 4 .flow-step, crossfade
                                    stacked, one .is-active at a time
-      .flow-recap                 data-mode-copy; all 4 steps' num+title
-                                   together, .is-active only for the final beat
 ```
+
+**The right-alignment is desktop-only and must stay that way.** Below
+900px, and in the reduced-motion and no-js fallbacks, the stage is stacked
+— there is no divider to align against — so all three of those blocks
+reset `align-items:stretch; text-align:left` on `.flow-left`,
+`flex-direction:row` on `.flow-rail-item`, and the connector back to
+`left:15px`. Without those resets the mobile heading and step rail come
+out right-aligned against nothing. Verified by reading computed style in
+all four states, not by eye.
 
 `landing.js`'s scroll updater divides `.flow-scroll`'s progress into
 `steps.length + 1` even segments (4 steps + 1 recap) rather than 4; the
@@ -1241,18 +1257,44 @@ vestigial now that the chooser is gone — harmless, just never populated.
    Encoding and magnification were two independent causes of the same
    complaint; both had to be fixed.)
 
-   **Still outstanding — the one thing that needs the user.** The true
-   original of the fluid artwork lives in Figma (`fileKey
-   KWwUgic3XjFfV5Xyz5VqDI`, nodes `1:22` background + `1:23` foreground,
-   composited — `fluid-full.png` is that composite at scale 1). The local
-   master is only **1080x611**, so even at the reduced zoom it is still
-   upscaled ~1.8x-3.0x. `download_assets` at `defaultScale:4` returns the
-   URLs fine, but **this environment's egress policy blocks
-   `www.figma.com` outright** (gateway 403 on CONNECT, confirmed via the
-   agent proxy's status endpoint — not something to route around), and
-   base64-through-context is not viable at that file size. A ~2560px-wide
-   PNG export of nodes 1:22+1:23 composited, dropped into `assets/`, is
-   the only remaining step; re-run the AVIF command below on it.
+   **Largely mitigated (Aug 2026) — the shipped `fluid-full.avif` /
+   `.webp` are now 2048x1159, not 1080x611.** The user reported the
+   How-it-works background still looked pixelated; measured, the browser
+   was upscaling the 1080px source to **2227px (2.06x)** at 1440x900,
+   which is what they were seeing. Two changes fixed it together:
+
+   - The delivered files were regenerated from a **Lanczos upscale** of
+     `fluid-full.png` to 2048px wide. This adds no real detail, but the
+     artwork is smooth gradient with no high-frequency content, so a
+     good offline resampler plus a full-resolution AVIF encode is
+     dramatically cleaner than letting the browser bilinear-scale a
+     1080px image at runtime. Regenerate with:
+
+     ```
+     python3 -c "from PIL import Image; im=Image.open('fluid-full.png').convert('RGB'); im.resize((2048,1159), Image.LANCZOS).save('/tmp/fl.png')"
+     ffmpeg -y -i /tmp/fl.png -c:v libaom-av1 -crf 8 -pix_fmt yuv444p -still-picture 1 -cpu-used 4 fluid-full.avif
+     ffmpeg -y -i /tmp/fl.png -c:v libwebp -quality 88 fluid-full.webp
+     ```
+
+     The 2048px intermediate is deliberately **not** committed — it is
+     2.6MB of derived weight reproducible from the above in one command.
+     `fluid-full.png` (1080px) stays as the true master.
+   - `--fluid-zoom` dropped 1.4 → **1.2**, so the painted width at
+     1440x900 is ~1908px and the 2048px source is *downscaled* ~0.93x
+     rather than upscaled. Cost: 160KB → 252KB AVIF, which is the honest
+     trade for killing a 2x upscale on a full-height background.
+
+   **Still ideal, not blocking.** The true original lives in Figma
+   (`fileKey KWwUgic3XjFfV5Xyz5VqDI`, nodes `1:22` background + `1:23`
+   foreground, composited — `fluid-full.png` is that composite at scale
+   1). A real ~2560px export would beat the Lanczos upscale, since it
+   would carry actual detail rather than interpolated. `download_assets`
+   at `defaultScale:4` returns the URLs fine, but **this environment's
+   egress policy blocks `www.figma.com` outright** (gateway 403 on
+   CONNECT, confirmed via the agent proxy's status endpoint — not
+   something to route around), and base64-through-context is not viable
+   at that file size. If a real export ever lands, drop it in and re-run
+   the two ffmpeg commands above on it directly (skip the upscale step).
 
    **The bug this caused, and the root cause:** the user reported the
    How-it-works background had "lost its quality." Measured against the
