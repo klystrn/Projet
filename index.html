@@ -305,12 +305,24 @@
   <!-- ======================= 4. HOW IT WORKS =======================
        Pinned fluid-scrub, cropped to the right 5/8 with the title fixed on
        the left (was a full-bleed pin in v2, then a static/scroll-highlight
-       timeline in v3/v3.1 — see the note at the top of landing.css). One
-       step shows at a time as the reader scrolls through .flow-scroll; a
-       final "recap" beat shows all four together right before the section
-       releases the pin. Below 900px / reduced-motion / no-js this collapses
-       to a plain stacked list, same "nothing gated behind a scroll effect"
-       rule as everywhere else on the page. -->
+       timeline in v3/v3.1 — see the note at the top of landing.css).
+
+       Each step is stated exactly ONCE on screen (flagged directly: the
+       section "shouldn't show the same thing twice"). Division of labour:
+       the left rail NAMES the steps — all four, always, with the active one
+       lit — and the right panel EXPLAINS whichever one is active, leading
+       with its description rather than repeating the name as a headline.
+       The old "recap" beat is gone too: it re-listed all four titles at the
+       end, which is exactly what the rail has been showing the whole time.
+       The rail also satisfies the earlier "see the whole progression before
+       leaving the section" ask better than that beat did, since it is
+       on screen continuously rather than for one dwell.
+
+       Below 900px / reduced-motion / no-js this collapses to a plain
+       stacked list, same "nothing gated behind a scroll effect" rule as
+       everywhere else on the page — and because the rail is dropped at
+       those sizes, the step name un-hides in the right panel there (see
+       .flow-step h3 in the fallback blocks) so it is never lost. -->
   <section class="flow" id="how-it-works">
     <div class="flow-scroll" id="flowScroll">
       <div class="flow-stage">
@@ -319,11 +331,11 @@
           <h2>One pipeline. Two sides. Real outcomes.</h2>
           <p>The same four steps behind 7 companies hiring from 120+ builders in the Hack &amp; Hire pilot.</p>
 
-          <!-- the design element filling the space under the title: a
-               vertical step rail that doubles as a progress readout,
-               mirroring whichever step is showing in the scrub on the
-               right. Redundant with the step copy itself for a screen
-               reader, so it's aria-hidden. -->
+          <!-- the design element filling the space under the title, and the
+               one place each step is NAMED on desktop. aria-hidden because
+               the right panel carries the same names as real (sr-only)
+               headings for assistive tech — so each step is announced once
+               there rather than twice here. -->
           <div class="flow-rail" id="flowRail" aria-hidden="true" data-mode-copy
                data-business='&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;01&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Post a challenge&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;02&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Builders compete&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;03&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Top performers surface&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;04&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Interview the shortlist&lt;/div&gt;&lt;/div&gt;'
                data-builder='&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;01&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Find a challenge&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;02&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Submit your best work&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;03&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Get evaluated on merit&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-rail-item"&gt;&lt;div class="flow-rail-dot"&gt;04&lt;/div&gt;&lt;div class="flow-rail-label"&gt;Earn interviews and recognition&lt;/div&gt;&lt;/div&gt;'>
@@ -338,27 +350,18 @@
           <div class="flow-fluid" id="flowFluid" aria-hidden="true"></div>
           <div class="flow-scrim" aria-hidden="true"></div>
 
+          <!-- Each step's NAME lives in the left rail; these h3s are the
+               same names kept as real headings for assistive tech only
+               (.sr-only), since the rail is aria-hidden. They un-hide
+               visually below 900px / reduced-motion / no-js, where the rail
+               is dropped and there is nothing to duplicate. -->
           <div class="flow-steps" id="flowSteps" data-mode-copy
-               data-business='&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;01&lt;/div&gt;&lt;h3&gt;Post a challenge&lt;/h3&gt;&lt;p&gt;Take a real problem off your backlog and post it as a brief. No puzzle-writing, no invented take-home.&lt;/p&gt;&lt;a class="flow-step-link" href="signup.html?role=business"&gt;Post a challenge &amp;#8594;&lt;/a&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;02&lt;/div&gt;&lt;h3&gt;Builders compete&lt;/h3&gt;&lt;p&gt;Candidates work on it in their own time and submit real, reviewable output.&lt;/p&gt;&lt;div class="flow-step-tag"&gt;Avg. 38 submissions per brief&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;03&lt;/div&gt;&lt;h3&gt;Top performers surface&lt;/h3&gt;&lt;p&gt;Every submission is scored and ranked, so you see who is worth your time before you book a single call.&lt;/p&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;04&lt;/div&gt;&lt;h3&gt;Interview the shortlist&lt;/h3&gt;&lt;p&gt;Unlock the candidates you want to meet and go straight to a conversation about work they already did.&lt;/p&gt;&lt;/div&gt;'
-               data-builder='&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;01&lt;/div&gt;&lt;h3&gt;Find a challenge&lt;/h3&gt;&lt;p&gt;Browse real business or technical problems posted by companies who are actively hiring.&lt;/p&gt;&lt;a class="flow-step-link" href="challenges.html"&gt;Browse challenges &amp;#8594;&lt;/a&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;02&lt;/div&gt;&lt;h3&gt;Submit your best work&lt;/h3&gt;&lt;p&gt;Tackle the challenge on your own time and submit your solution before it closes.&lt;/p&gt;&lt;div class="flow-step-tag"&gt;Most builders take about 6 days&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;03&lt;/div&gt;&lt;h3&gt;Get evaluated on merit&lt;/h3&gt;&lt;p&gt;Companies review your actual output, not your resume, and every entry gets a score and a rank.&lt;/p&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;04&lt;/div&gt;&lt;h3&gt;Earn interviews and recognition&lt;/h3&gt;&lt;p&gt;Stand out, get noticed, and hear back from companies who already saw exactly what you built.&lt;/p&gt;&lt;/div&gt;'>
-            <div class="flow-step"><div class="flow-num">01</div><h3>Find a challenge</h3><p>Browse real business or technical problems posted by companies who are actively hiring.</p><a class="flow-step-link" href="challenges.html">Browse challenges &#8594;</a></div>
-            <div class="flow-step"><div class="flow-num">02</div><h3>Submit your best work</h3><p>Tackle the challenge on your own time and submit your solution before it closes.</p><div class="flow-step-tag">Most builders take about 6 days</div></div>
-            <div class="flow-step"><div class="flow-num">03</div><h3>Get evaluated on merit</h3><p>Companies review your actual output, not your resume, and every entry gets a score and a rank.</p></div>
-            <div class="flow-step"><div class="flow-num">04</div><h3>Earn interviews and recognition</h3><p>Stand out, get noticed, and hear back from companies who already saw exactly what you built.</p></div>
-          </div>
-
-          <!-- the recap beat: all four steps together for one dwell before
-               the pin releases ("users should be able to see the whole
-               steps progression before scrolling to the next section").
-               Same num+title already in .flow-steps, kept alongside it
-               rather than built by JS so the two can't drift apart. -->
-          <div class="flow-recap" id="flowRecap" aria-hidden="true" data-mode-copy
-               data-business='&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;01&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Post a challenge&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;02&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Builders compete&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;03&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Top performers surface&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;04&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Interview the shortlist&lt;/div&gt;&lt;/div&gt;'
-               data-builder='&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;01&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Find a challenge&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;02&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Submit your best work&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;03&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Get evaluated on merit&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-recap-item"&gt;&lt;div class="flow-num"&gt;04&lt;/div&gt;&lt;div class="flow-recap-title"&gt;Earn interviews and recognition&lt;/div&gt;&lt;/div&gt;'>
-            <div class="flow-recap-item"><div class="flow-num">01</div><div class="flow-recap-title">Find a challenge</div></div>
-            <div class="flow-recap-item"><div class="flow-num">02</div><div class="flow-recap-title">Submit your best work</div></div>
-            <div class="flow-recap-item"><div class="flow-num">03</div><div class="flow-recap-title">Get evaluated on merit</div></div>
-            <div class="flow-recap-item"><div class="flow-num">04</div><div class="flow-recap-title">Earn interviews and recognition</div></div>
+               data-business='&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;01&lt;/div&gt;&lt;h3 class="sr-only"&gt;Post a challenge&lt;/h3&gt;&lt;p&gt;Take a real problem off your backlog and post it as a brief. No puzzle-writing, no invented take-home.&lt;/p&gt;&lt;a class="flow-step-link" href="signup.html?role=business"&gt;Post a challenge &amp;#8594;&lt;/a&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;02&lt;/div&gt;&lt;h3 class="sr-only"&gt;Builders compete&lt;/h3&gt;&lt;p&gt;Candidates work on it in their own time and submit real, reviewable output.&lt;/p&gt;&lt;div class="flow-step-tag"&gt;Avg. 38 submissions per brief&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;03&lt;/div&gt;&lt;h3 class="sr-only"&gt;Top performers surface&lt;/h3&gt;&lt;p&gt;Every submission is scored and ranked, so you see who is worth your time before you book a single call.&lt;/p&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;04&lt;/div&gt;&lt;h3 class="sr-only"&gt;Interview the shortlist&lt;/h3&gt;&lt;p&gt;Unlock the candidates you want to meet and go straight to a conversation about work they already did.&lt;/p&gt;&lt;/div&gt;'
+               data-builder='&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;01&lt;/div&gt;&lt;h3 class="sr-only"&gt;Find a challenge&lt;/h3&gt;&lt;p&gt;Browse real business or technical problems posted by companies who are actively hiring.&lt;/p&gt;&lt;a class="flow-step-link" href="challenges.html"&gt;Browse challenges &amp;#8594;&lt;/a&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;02&lt;/div&gt;&lt;h3 class="sr-only"&gt;Submit your best work&lt;/h3&gt;&lt;p&gt;Tackle the challenge on your own time and submit your solution before it closes.&lt;/p&gt;&lt;div class="flow-step-tag"&gt;Most builders take about 6 days&lt;/div&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;03&lt;/div&gt;&lt;h3 class="sr-only"&gt;Get evaluated on merit&lt;/h3&gt;&lt;p&gt;Companies review your actual output, not your resume, and every entry gets a score and a rank.&lt;/p&gt;&lt;/div&gt;&lt;div class="flow-step"&gt;&lt;div class="flow-num"&gt;04&lt;/div&gt;&lt;h3 class="sr-only"&gt;Earn interviews and recognition&lt;/h3&gt;&lt;p&gt;Stand out, get noticed, and hear back from companies who already saw exactly what you built.&lt;/p&gt;&lt;/div&gt;'>
+            <div class="flow-step"><div class="flow-num">01</div><h3 class="sr-only">Find a challenge</h3><p>Browse real business or technical problems posted by companies who are actively hiring.</p><a class="flow-step-link" href="challenges.html">Browse challenges &#8594;</a></div>
+            <div class="flow-step"><div class="flow-num">02</div><h3 class="sr-only">Submit your best work</h3><p>Tackle the challenge on your own time and submit your solution before it closes.</p><div class="flow-step-tag">Most builders take about 6 days</div></div>
+            <div class="flow-step"><div class="flow-num">03</div><h3 class="sr-only">Get evaluated on merit</h3><p>Companies review your actual output, not your resume, and every entry gets a score and a rank.</p></div>
+            <div class="flow-step"><div class="flow-num">04</div><h3 class="sr-only">Earn interviews and recognition</h3><p>Stand out, get noticed, and hear back from companies who already saw exactly what you built.</p></div>
           </div>
         </div>
       </div>

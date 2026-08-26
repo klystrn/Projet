@@ -584,9 +584,8 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
     linear-gradient(180deg, rgba(20,19,15,.38), rgba(20,19,15,.16) 45%, rgba(20,19,15,.42));
 }
 .flow-steps{position:relative; z-index:2; height:100%; display:flex; align-items:center; padding:0 clamp(28px,4vw,56px); transition:opacity .35s var(--ease);}
-.flow-steps.is-recap{opacity:0; pointer-events:none;}
 /* asymmetric crossfade: outgoing clears fast, incoming waits a beat, so a
-   symmetric fade never renders two headlines legibly on top of each other */
+   symmetric fade never renders two blocks of copy legibly on top of each other */
 .flow-step{
   position:absolute; left:clamp(28px,4vw,56px); right:clamp(28px,4vw,56px);
   display:flex; flex-direction:column; align-items:flex-start; gap:14px;
@@ -604,8 +603,11 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   display:flex; align-items:center; justify-content:center;
   border:1px solid rgba(255,255,255,.32); background:rgba(255,255,255,.1);
 }
-.flow-step h3{color:#fff; font-size:clamp(26px,3.2vw,42px); line-height:1.1;}
-.flow-step p{color:rgba(255,255,255,.8); font-size:15px; line-height:1.6; max-width:46ch;}
+/* the description is this panel's lead line now, not a sub-line under a
+   repeated title — the step's NAME is stated once, in the left rail, and
+   the h3 here is .sr-only on desktop (see index.html). Sized up to carry
+   the panel on its own. */
+.flow-step p{color:#fff; font-size:clamp(21px,2.3vw,30px); font-weight:500; line-height:1.32; letter-spacing:-.01em; max-width:22ch;}
 .flow-step-link{
   margin-top:2px; padding:6px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700;
   color:#fff; text-decoration:underline; text-underline-offset:4px; text-shadow:none;
@@ -618,32 +620,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(255,255,255,.82);
 }
 
-/* the recap: before the pin releases, all four steps surface together for
-   one beat — "users should be able to see the whole progression before
-   scrolling to the next section." Content is the same num+h3 already in
-   each .flow-step (kept in the HTML alongside it, not synthesised by JS,
-   so the two can never drift out of sync). */
-.flow-recap{
-  position:absolute; inset:0; z-index:3;
-  display:grid; grid-template-columns:1fr 1fr; gap:14px; align-content:center;
-  padding:0 clamp(28px,4vw,56px); opacity:0; pointer-events:none;
-  transition:opacity .5s var(--ease);
-}
-.flow-recap.is-active{opacity:1; pointer-events:auto;}
-.flow-recap-item{
-  display:flex; align-items:center; gap:12px; padding:16px;
-  border-radius:var(--radius-lg); background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
-}
-.flow-recap-item .flow-num{width:32px; height:32px; font-size:11px; flex:none;}
-.flow-recap-title{color:#fff; font-size:13.5px; font-weight:700; line-height:1.3;}
-
-/* the pin: desktop only. .flow-scroll gives ~130vh of scroll per beat (4
-   steps + the recap = 5 beats); .flow-stage sticks for the whole range
-   while landing.js maps scroll progress to which beat is showing. top:0
-   (not offset for the nav) matches the nav's own always-opaque background
-   — it stays legible over the pinned stage without a gap above it. */
+/* the pin: desktop only. .flow-scroll gives ~130vh of scroll per beat, now
+   4 beats rather than 5 (the recap beat is gone — see index.html), so
+   520vh; .flow-stage sticks for the whole range while landing.js maps
+   scroll progress to which beat is showing. top:0 (not offset for the nav)
+   matches the nav's own always-opaque background — it stays legible over
+   the pinned stage without a gap above it. */
 @media (min-width:901px){
-  .flow-scroll{height:650vh;}
+  .flow-scroll{height:520vh;}
   .flow-stage{position:sticky; top:0; height:100vh; display:grid; grid-template-columns:3fr 5fr; overflow:hidden;}
 }
 
@@ -819,13 +803,21 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
   .flow-left{padding:56px 32px 8px !important; background:none !important;}
   .flow-rail{display:none !important;}
   .flow-right{background:none !important; padding:8px 32px 56px !important;}
-  .flow-fluid, .flow-scrim, .flow-recap{display:none !important;}
+  .flow-fluid, .flow-scrim{display:none !important;}
   .flow-steps{position:static !important; height:auto !important; display:flex !important; flex-direction:column; gap:34px; padding:0 !important; opacity:1 !important; pointer-events:auto !important;}
   .flow-step{position:static !important; left:auto !important; right:auto !important; opacity:1 !important; transform:none !important; pointer-events:auto !important;}
   .flow-step h3, .flow-step p{text-shadow:none !important;}
   .flow-num{border-color:var(--line) !important; background:var(--paper-warm) !important; color:var(--muted) !important;}
+  /* the rail is gone here, so the step NAME has to come back visually —
+     nothing is duplicating it now, and without this the step would be a
+     bare number + sentence. Also drops the description back to body size,
+     since the h3 is the headline again rather than the p. */
+  .flow-step h3.sr-only{
+    position:static !important; width:auto !important; height:auto !important;
+    margin:0 !important; overflow:visible !important; clip:auto !important; white-space:normal !important;
+  }
   .flow-step h3{color:var(--ink) !important; font-size:clamp(22px,5vw,28px) !important;}
-  .flow-step p{color:var(--ink-soft) !important;}
+  .flow-step p{color:var(--ink-soft) !important; font-size:15px !important; font-weight:400 !important; line-height:1.6 !important; max-width:46ch !important;}
   .flow-step-link{color:var(--accent-deep) !important; text-shadow:none !important;}
   .flow-step-tag{background:var(--paper-warm) !important; color:var(--muted) !important;}
 }
@@ -834,13 +826,18 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
 .no-js .flow-left{padding:56px 32px 8px; background:none;}
 .no-js .flow-rail{display:none;}
 .no-js .flow-right{background:none; padding:8px 32px 56px;}
-.no-js .flow-fluid, .no-js .flow-scrim, .no-js .flow-recap{display:none;}
+.no-js .flow-fluid, .no-js .flow-scrim{display:none;}
 .no-js .flow-steps{position:static; height:auto; display:flex; flex-direction:column; gap:34px; padding:0; opacity:1; pointer-events:auto;}
 .no-js .flow-step{position:static; left:auto; right:auto; opacity:1; transform:none; pointer-events:auto;}
 .no-js .flow-step h3, .no-js .flow-step p{text-shadow:none;}
 .no-js .flow-num{border-color:var(--line); background:var(--paper-warm); color:var(--muted);}
+/* rail is hidden here too — un-hide the name, same reasoning as the
+   reduced-motion block above */
+.no-js .flow-step h3.sr-only{
+  position:static; width:auto; height:auto; margin:0; overflow:visible; clip:auto; white-space:normal;
+}
 .no-js .flow-step h3{color:var(--ink); font-size:clamp(22px,5vw,28px);}
-.no-js .flow-step p{color:var(--ink-soft);}
+.no-js .flow-step p{color:var(--ink-soft); font-size:15px; font-weight:400; line-height:1.6; max-width:46ch;}
 .no-js .flow-step-link{color:var(--accent-deep); text-shadow:none;}
 .no-js .flow-step-tag{background:var(--paper-warm); color:var(--muted);}
 
@@ -876,13 +873,18 @@ footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px
   .flow-left{padding:56px 32px 8px; background:none;}
   .flow-rail{display:none;}
   .flow-right{background:none; padding:8px 32px 56px;}
-  .flow-fluid, .flow-scrim, .flow-recap{display:none;}
+  .flow-fluid, .flow-scrim{display:none;}
   .flow-steps{position:static; height:auto; display:flex; flex-direction:column; gap:34px; padding:0; opacity:1; pointer-events:auto;}
   .flow-step{position:static; left:auto; right:auto; opacity:1; transform:none; pointer-events:auto;}
   .flow-step h3, .flow-step p{text-shadow:none;}
   .flow-num{border-color:var(--line); background:var(--paper-warm); color:var(--muted);}
+  /* rail is hidden below 900px — un-hide the name, same reasoning as the
+     reduced-motion/no-js blocks above */
+  .flow-step h3.sr-only{
+    position:static; width:auto; height:auto; margin:0; overflow:visible; clip:auto; white-space:normal;
+  }
   .flow-step h3{color:var(--ink); font-size:clamp(22px,5vw,28px);}
-  .flow-step p{color:var(--ink-soft);}
+  .flow-step p{color:var(--ink-soft); font-size:15px; font-weight:400; line-height:1.6; max-width:46ch;}
   .flow-step-link{color:var(--accent-deep); text-shadow:none;}
   .flow-step-tag{background:var(--paper-warm); color:var(--muted);}
 }

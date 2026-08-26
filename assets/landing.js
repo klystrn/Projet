@@ -70,12 +70,16 @@
   })();
 
   /* ---------------- how-it-works: pinned fluid-scrub ----------------
-     .flow-scroll is a tall (650vh, desktop-only via CSS) wrapper; .flow-stage
-     sticks inside it, split 3/8 (title) : 5/8 (scrub). Scroll progress maps
-     to one of 5 beats — the 4 steps, then a final recap showing all 4
-     together — and only the current beat's step carries .is-active (unlike
-     the old always-all-dimmed timeline, this really does show one at a
-     time). Steps/rail items are re-queried live each frame rather than
+     .flow-scroll is a tall (520vh, desktop-only via CSS) wrapper; .flow-stage
+     sticks inside it, split 3/8 (title + rail) : 5/8 (scrub). Scroll progress
+     maps to one beat per step, and only the current beat's step carries
+     .is-active, so the right-hand panel really does show one at a time.
+     The left rail tracks the same beat (.is-active on the current step,
+     .is-done on everything before it) — the rail is where each step is
+     NAMED and the panel is where it is EXPLAINED, so between them nothing
+     is stated on screen twice. There is no separate recap beat any more:
+     the rail already shows all four continuously, which is what that beat
+     was for. Steps/rail items are re-queried live each frame rather than
      cached, since [data-mode-copy] replaces these nodes wholesale on every
      audience switch. Desktop + motion-ok only: mobile and reduced-motion
      render the plain flat list from CSS alone, no JS needed there. */
@@ -83,7 +87,6 @@
     var scrollWrap = document.getElementById("flowScroll");
     var stepsWrap = document.getElementById("flowSteps");
     var rail = document.getElementById("flowRail");
-    var recap = document.getElementById("flowRecap");
     var fluid = document.getElementById("flowFluid");
     if (!scrollWrap || !stepsWrap) return;
     if (reducedMotion) return;
@@ -97,22 +100,17 @@
       var scrollable = scrollWrap.offsetHeight - window.innerHeight;
       var progress = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
 
-      // steps.length beats for the steps themselves, +1 for the recap
-      var segments = steps.length + 1;
-      var beat = clamp(Math.floor(progress * segments), 0, segments - 1);
-      var isRecap = beat === steps.length;
-      var stepIdx = Math.min(beat, steps.length - 1);
+      // one beat per step, nothing after them
+      var stepIdx = clamp(Math.floor(progress * steps.length), 0, steps.length - 1);
 
       // re-applied every tick rather than only on change: [data-mode-copy]
       // replaces these nodes wholesale on an audience swap, which would
       // otherwise silently lose .is-active until progress next changed.
-      for (var i = 0; i < steps.length; i++) steps[i].classList.toggle("is-active", i === stepIdx && !isRecap);
+      for (var i = 0; i < steps.length; i++) steps[i].classList.toggle("is-active", i === stepIdx);
       for (var j = 0; j < railItems.length; j++) {
         railItems[j].classList.toggle("is-active", j === stepIdx);
-        railItems[j].classList.toggle("is-done", j < stepIdx || isRecap);
+        railItems[j].classList.toggle("is-done", j < stepIdx);
       }
-      stepsWrap.classList.toggle("is-recap", isRecap);
-      if (recap) recap.classList.toggle("is-active", isRecap);
       if (fluid) fluid.style.backgroundPosition = (progress * 100).toFixed(2) + "% " + (100 - progress * 100).toFixed(2) + "%";
     });
   })();
