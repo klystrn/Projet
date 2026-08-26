@@ -299,12 +299,19 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 }
 .hero::after{
   content:''; position:absolute; top:-10%; left:auto; bottom:auto;
-  /* -20% of .hero's own width (its usual bleed) capped at however much
-     margin actually exists between .hero's edge and the true viewport edge
-     — plain -20% overflowed the real page by ~148px at viewport widths
-     close to --maxw, where that margin is thinner than the bleed wants.
-     Confirmed via window.scrollTo(9999,0) actually moving scrollX off 0. */
-  right:calc(-1 * min(var(--maxw) * .2, (100vw - var(--maxw)) / 2));
+  /* Anchor the bloom's right edge to the TRUE viewport edge at every width.
+     (100vw - 100%) / 2 is exactly the margin between .hero's padding box
+     and the viewport, so this resolves to 0 below --maxw (no overflow) and
+     grows with the gutter above it (no gap).
+
+     Both earlier attempts were wrong in one direction each: a flat -20%
+     overflowed the page by ~148px at widths close to --maxw, and the
+     min(--maxw * .2, ...) cap that replaced it fixed that but then
+     UNDER-extended on wide screens — measured 132px of bare page at
+     2000px and 412px at 2560px, which is the white band down the right
+     edge. The bloom's own width stays 80% of .hero, so the radial
+     gradient's internal tuning is untouched; only its anchoring changes. */
+  right:calc(-1 * (100vw - 100%) / 2);
   width:80%; height:120%;
   z-index:0; pointer-events:none; background:var(--grad-glow);
 }
