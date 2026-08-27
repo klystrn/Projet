@@ -490,6 +490,62 @@
     sync();
   })();
 
+  /* ---------------- featured-challenge ticket rail: drag-to-scroll ----------------
+     Mouse-only click-and-drag panning, on top of the arrow buttons above.
+     Touch and trackpad already scroll the native overflow-x:auto container
+     for free (that's the whole point of it being a real scroller, see the
+     comment on .ch-rail in landing.css) and are untouched here — this only
+     reacts to pointerType:"mouse", which browsers don't pan on drag by
+     default. Setting scrollLeft directly (not scrollTo/scrollBy) is always
+     instant regardless of .ch-rail's own scroll-behavior:smooth, so the
+     drag tracks the cursor 1:1 with no lag. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    if (!rail) return;
+    var dragging = false, moved = false, startX = 0, startScroll = 0, pointerId = null;
+
+    rail.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      dragging = true; moved = false;
+      startX = e.clientX;
+      startScroll = rail.scrollLeft;
+      pointerId = e.pointerId;
+    });
+
+    rail.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      // capture (and the visual drag state) only start once the cursor has
+      // actually moved past a small threshold — capturing unconditionally
+      // on every pointerdown redirects the resulting "click" event's target
+      // to the rail itself even for an ordinary, un-dragged click (a real
+      // browser quirk), which broke opening the ticket modal on a plain
+      // click. Deferring capture until a real drag is confirmed keeps a
+      // plain click's hit-testing untouched.
+      if (!moved && Math.abs(dx) > 4) {
+        moved = true;
+        rail.classList.add("is-dragging");
+        rail.setPointerCapture(pointerId);
+      }
+      if (moved) rail.scrollLeft = startScroll - dx;
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      rail.classList.remove("is-dragging");
+    }
+    rail.addEventListener("pointerup", endDrag);
+    rail.addEventListener("pointercancel", endDrag);
+
+    // a drag that actually moved the rail shouldn't also open the ticket
+    // modal below — capture phase so this runs before that delegated
+    // click handler, which is registered directly on the same element
+    rail.addEventListener("click", function (e) {
+      if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+  })();
+
   /* ---------------- featured-challenge ticket modal ----------------
      Native <dialog> — same pattern as challenges.html's own brief modal
      (assets/challenges.js). Each ticket carries its own brief as

@@ -462,9 +462,16 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   scroll-padding-inline:var(--rail-inset);
   /* the scrollbar itself is redundant next to the position bar below */
   scrollbar-width:none;
+  cursor:grab;
 }
 .ch-rail::-webkit-scrollbar{display:none;}
 .ch-rail:focus-visible{outline:2px solid var(--ink); outline-offset:-4px; border-radius:var(--radius);}
+/* mouse-drag panning (see landing.js) — touch/trackpad already scroll the
+   native container for free and are untouched by this. Snap is suspended
+   for the duration so it can't fight the drag mid-gesture; removing the
+   class on release restores the base rule's scroll-snap-type. */
+.ch-rail.is-dragging{cursor:grabbing; scroll-snap-type:none; user-select:none;}
+.ch-rail.is-dragging .ch-ticket{pointer-events:none;}
 
 .ch-ticket{
   position:relative; flex:0 0 clamp(290px, 27vw, 340px); display:flex;
