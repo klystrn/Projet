@@ -175,14 +175,15 @@ main:focus{outline:none;}
 .btn-accent:hover{filter:saturate(1.12) brightness(1.03);}
 .btn-ghost{border-color:var(--line); background:transparent; color:var(--ink);}
 .btn-ghost:hover{border-color:var(--ink);}
+/* Hover highlights the button itself — background shifts to the mode
+   accent, text to white — rather than revealing an arrow (removed
+   outright, see CLAUDE.md). Reuses the transform lift + background/color
+   transitions already declared on the base .btn, so this costs nothing
+   new; :focus-visible gets the same highlight as :hover so keyboard users
+   see the identical cue. */
 .btn-white{background:#fff; color:var(--ink);}
+.btn-white:hover, .btn-white:focus-visible{background:var(--accent); color:#fff;}
 .btn-sm{padding:14px 17px; font-size:13px;}
-/* The arrow's own box is a fixed size at all times (asked explicitly: no
-   button size change on hover any more) — only its opacity/position
-   animate, both compositor-only, so this is strictly cheaper than the old
-   max-width transition too. */
-.btn-arrow .arw{display:inline-block; opacity:0; transform:translateX(-6px); transition:opacity .25s var(--ease), transform .25s var(--ease);}
-.btn-arrow:hover .arw, .btn-arrow:focus-visible .arw{opacity:1; transform:translateX(0);}
 
 /* ==========================================================================
    NAV
@@ -792,7 +793,6 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    the light-mode tokens (--ink-soft/--muted/--line) this footer used before.
    ========================================================================== */
 footer{position:relative; background:var(--ink); color:#fff; padding:56px 0 34px;}
-footer::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--grad-rule);}
 .footer-grid{display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:40px; margin-bottom:44px;}
 .footer-brand .logo-img{height:22px; margin-bottom:14px;}
 .footer-brand p{font-size:14px; color:rgba(255,255,255,.72); line-height:1.6; max-width:34ch; margin-bottom:22px;}
