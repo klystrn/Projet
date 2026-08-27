@@ -468,19 +468,31 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 
 .ch-ticket{
   position:relative; flex:0 0 clamp(290px, 27vw, 340px); display:flex;
-  scroll-snap-align:start;
+  scroll-snap-align:start; cursor:pointer;
   background:#fff; border:1px solid var(--line); border-radius:16px;
   box-shadow:0 14px 30px -26px rgba(20,19,15,.3);
   transition:transform .22s var(--ease), box-shadow .22s var(--ease);
 }
 .ch-ticket:hover{transform:translateY(-4px); box-shadow:0 26px 48px -28px rgba(20,19,15,.38);}
-.ch-ticket:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
 
 .ch-ticket-body{display:flex; flex-direction:column; gap:10px; flex:1; min-width:0; padding:22px;}
 .ch-ticket-co{font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--muted);}
 .ch-ticket-title{font-size:17.5px; font-weight:800; line-height:1.26;}
 .ch-ticket-desc{font-size:12.5px; color:var(--ink-soft); line-height:1.5; flex:1;}
 .ch-ticket-subs{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted);}
+/* the one real interactive/focusable control on the ticket — clicking
+   anywhere else on the card opens the same modal via JS delegation (mouse
+   convenience only), matching the precedent set by challenges.html's own
+   cards, which are deliberately not links themselves either. */
+.ch-view-btn{
+  align-self:flex-start; margin-top:auto; padding:8px 14px; border-radius:999px;
+  border:1.5px solid var(--line); background:transparent; color:var(--ink);
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.04em; cursor:pointer;
+  transition:background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);
+}
+.ch-view-btn:hover{background:var(--ink); border-color:var(--ink); color:#fff;}
+.ch-view-btn:focus-visible{outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--ink);}
 
 /* the perforation, and the two notches that make it read as a torn stub.
    Each notch is a circle filled with the SECTION background, half in and
@@ -540,6 +552,36 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 }
 .ch-viewall:hover{border-color:var(--accent); background:var(--accent-wash);}
 .ch-viewall:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+
+/* ticket modal — same native-<dialog> pattern as challenges.html's own
+   brief modal (see assets/challenges.css .cl-modal), reimplemented here
+   under its own .ch- prefix since index.html doesn't load challenges.css. */
+.ch-modal{
+  border:0; border-radius:var(--radius-xl); padding:0;
+  width:min(560px, calc(100vw - 48px)); max-height:min(680px, calc(100vh - 48px));
+  box-shadow:0 40px 90px -30px rgba(20,19,15,.5);
+}
+.ch-modal::backdrop{background:rgba(20,19,15,.6); backdrop-filter:blur(2px);}
+.ch-modal-inner{position:relative; padding:34px 30px 30px; display:flex; flex-direction:column; gap:14px;}
+.ch-modal-close{
+  position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--line); background:#fff; cursor:pointer;
+  font-size:18px; line-height:1; color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center;
+}
+.ch-modal-close:hover{border-color:var(--ink); color:var(--ink);}
+.ch-modal-close:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.ch-modal-tag{font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-deep);}
+.ch-modal h2{font-size:23px; line-height:1.25; padding-right:36px;}
+.ch-modal-inner > p{font-size:15px; line-height:1.65; color:var(--ink-soft);}
+.ch-modal-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:2px;}
+.ch-modal-stats div{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
+.ch-modal-stats b{display:block; font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
+.ch-modal-stats span{display:block; margin-top:4px; font-size:11px; color:var(--muted);}
+.ch-modal-submit{width:100%; text-align:center; margin-top:4px;}
+@media (max-width:640px){
+  .ch-modal-inner{padding:30px 22px 24px;}
+}
 
 .ch-countdown{
   display:inline-flex; align-items:center; gap:10px; margin-bottom:22px;
@@ -617,14 +659,23 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    scrub animation is unchanged — only the sampling is.
    Raising this zoom trades sharpness back for pan distance; past ~1.3 the
    source starts being upscaled again at common desktop sizes. */
+/* Sized exactly as the old background-size was ("100%-of-container-or-
+   100vh-tall, whichever is larger, times the zoom factor" for width; height
+   via aspect-ratio instead of background-size's own "auto", since the two
+   produce the same box). The pan itself is now a transform (see
+   landing.js), not background-position: background-position is a paint
+   property, so animating it repaints the whole zoomed image every scroll
+   frame; transform is compositor-only. .flow-right's overflow:hidden clips
+   the overhang exactly like the old oversized background did. */
 .flow-fluid{
-  position:absolute; inset:0;
-  background-image:var(--img-fluid-full);
+  position:absolute; top:0; left:0;
+  width:calc(max(100%, 100vh * var(--fluid-ar)) * var(--fluid-zoom));
   --fluid-ar:1.7676;   /* 2048 / 1159 — regenerate if the artwork changes */
   --fluid-zoom:1.2;
-  background-size:calc(max(100%, 100vh * var(--fluid-ar)) * var(--fluid-zoom)) auto;
-  background-position:0% 100%;
-  opacity:.5; will-change:background-position;
+  aspect-ratio:var(--fluid-ar);
+  background-image:var(--img-fluid-full);
+  background-size:100% 100%;
+  opacity:.5; will-change:transform;
 }
 /* heaviest at centre, not just the edges — the step copy sits left-aligned
    in this narrower column but still over the artwork's brightest passages */
@@ -846,6 +897,12 @@ footer{position:relative; background:var(--ink); color:#fff; padding:56px 0 34px
    survive. Reduced motion keeps the rail but drops the smooth-scroll
    easing, since an arrow press would otherwise animate a long glide. */
 .no-js .ch-rail-btn, .no-js .ch-rail-track{display:none;}
+/* the modal can't open without JS (native <dialog>.showModal() is a JS
+   call); every ticket already shows company/title/description/deadline
+   inline, so hiding this rather than leaving a dead button is the same
+   contract as .no-js .cl-view-brief on challenges.html. */
+.no-js .ch-view-btn{display:none;}
+.no-js .ch-ticket{cursor:default;}
 @media (prefers-reduced-motion: reduce){
   .ch-rail{scroll-behavior:auto;}
 }

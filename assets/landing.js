@@ -92,6 +92,22 @@
     if (reducedMotion) return;
     if (window.matchMedia && window.matchMedia("(max-width:900px)").matches) return;
 
+    // .flow-fluid's own box is sized larger than .flow-right (see
+    // landing.css) so the pan has somewhere to travel; measured in px once
+    // (and on resize) rather than every scroll frame, since it only changes
+    // when the viewport does. offsetWidth/offsetHeight, not
+    // getBoundingClientRect, since the latter would report the *transformed*
+    // box once a pan is already applied.
+    var overageW = 0, overageH = 0;
+    function measureFluid() {
+      if (!fluid || !fluid.parentElement) return;
+      var container = fluid.parentElement;
+      overageW = fluid.offsetWidth - container.clientWidth;
+      overageH = fluid.offsetHeight - container.clientHeight;
+    }
+    measureFluid();
+    window.addEventListener("resize", measureFluid);
+
     scrollUpdaters.push(function () {
       var steps = stepsWrap.querySelectorAll(".flow-step");
       if (!steps.length) return;
@@ -111,7 +127,14 @@
         railItems[j].classList.toggle("is-active", j === stepIdx);
         railItems[j].classList.toggle("is-done", j < stepIdx);
       }
-      if (fluid) fluid.style.backgroundPosition = (progress * 100).toFixed(2) + "% " + (100 - progress * 100).toFixed(2) + "%";
+      // mirrors the old background-position:0%->100% horizontal / 100%->0%
+      // vertical pan, just expressed as a compositor-only translate instead
+      // of a paint-triggering background-position
+      if (fluid) {
+        var x = -overageW * progress;
+        var y = -overageH * (1 - progress);
+        fluid.style.transform = "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0)";
+      }
     });
   })();
 
@@ -465,6 +488,46 @@
     }, { passive: true });
     window.addEventListener("resize", sync);
     sync();
+  })();
+
+  /* ---------------- featured-challenge ticket modal ----------------
+     Native <dialog> — same pattern as challenges.html's own brief modal
+     (assets/challenges.js). Each ticket carries its own brief as
+     data-brief-* attributes, read fresh on every open. One click handler on
+     #chRail (event delegation) covers both "click anywhere on the ticket"
+     and "click the View challenge button" — the button's click bubbles to
+     the same .ch-ticket ancestor, so there's nothing to double-wire. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    var modal = document.getElementById("chModal");
+    if (!rail || !modal || typeof modal.showModal !== "function") return;
+
+    var closeBtn = document.getElementById("chmClose");
+    var tagEl = document.getElementById("chmTag");
+    var titleEl = document.getElementById("chmTitle");
+    var bodyEl = document.getElementById("chmBody");
+    var submittedEl = document.getElementById("chmSubmitted");
+    var deadlineEl = document.getElementById("chmDeadline");
+
+    rail.addEventListener("click", function (e) {
+      var ticket = e.target.closest(".ch-ticket");
+      if (!ticket) return;
+      var discipline = ticket.getAttribute("data-brief-discipline") || "";
+      var company = ticket.getAttribute("data-brief-company") || "";
+      tagEl.textContent = discipline + (company ? " · " + company : "");
+      titleEl.textContent = ticket.getAttribute("data-brief-title") || "";
+      bodyEl.textContent = ticket.getAttribute("data-brief-body") || "";
+      submittedEl.textContent = ticket.getAttribute("data-brief-submitted") || "";
+      deadlineEl.textContent = ticket.getAttribute("data-brief-deadline") || "";
+      modal.showModal();
+    });
+
+    closeBtn.addEventListener("click", function () { modal.close(); });
+    // a click landing on the ::backdrop itself (the dialog element, not any
+    // of its children) closes it too
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) modal.close();
+    });
   })();
 
   /* ---------------- featured-challenge countdown ----------------
