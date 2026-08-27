@@ -622,8 +622,8 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   background:var(--paper);
 }
 .flow-left .eyebrow{margin-bottom:14px;}
-.flow-left h2{font-size:clamp(27px,2.6vw,36px); margin:0 0 14px; max-width:13ch;}
-.flow-left p{font-size:15px; line-height:1.6; color:var(--ink-soft); max-width:36ch;}
+.flow-left h2{font-size:clamp(27px,2.6vw,36px); margin:0 0 14px; max-width:20ch;}
+.flow-left p{font-size:15px; line-height:1.6; color:var(--ink-soft); max-width:48ch;}
 
 /* the left-column filler: a vertical step rail, doubling as a design element
    (fills the space under the title) and a progress readout that mirrors the
@@ -821,10 +821,24 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    text-width-constrained inner content, same split the hero already uses
    for its own full-bleed wash. No bottom padding either — the footer
    trails directly off it now, see FOOTER below. */
+/* --grad-dark is a DIAGONAL gradient (155deg), so it doesn't reach flat
+   --ink at the same vertical depth on every column — pixel-sampled the
+   rendered page and confirmed it directly (with the glow blooms below
+   forced to opacity:0 as a control, to rule them out first): the left
+   portion of the row was still a few units warmer than pure --ink right at
+   the seam into the footer below, while the centre/right portion had
+   already reached it. The colour delta is tiny (single digits per channel)
+   but it's a hard step at the section boundary, not a fade, which is what
+   actually reads as a seam. The second background layer here is a plain
+   (non-diagonal) vertical fade that force-crushes the last stretch of the
+   section to flat --ink uniformly across every column, so the handoff into
+   the footer's own flat --ink is pixel-identical everywhere, not just down
+   the centre. */
 .final{
   position:relative; overflow:hidden;
   padding:clamp(64px,9vw,120px) 0; text-align:center;
-  background:var(--grad-dark); color:#fff;
+  background:linear-gradient(to bottom, transparent 82%, var(--ink) 97%), var(--grad-dark);
+  color:#fff;
 }
 .final::before{
   content:''; position:absolute; inset:-40% -20% auto auto; width:90%; height:180%;
