@@ -34,6 +34,16 @@
 
 /* ---------- faq.html ---------- */
 .faq-section{padding:48px 0 72px; display:flex; flex-direction:column; gap:40px;}
+/* Capped narrower than --maxw on purpose: .faq-item summary is a single
+   full-width flex row (question left, +/x toggle right via
+   justify-content:space-between), and at the section's full 1240px content
+   width that put a very long stretch of empty space between a short
+   question and its own toggle icon — every other section on the site
+   fills that width with its own multi-column layout, but a flat Q&A list
+   has nothing to put in the middle. 720px keeps the question and its icon
+   close together at any viewport, the same way a reading-width column
+   would in a document. */
+.faq-group{max-width:720px;}
 .faq-group h2{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase; color:var(--accent-deep);
