@@ -92,6 +92,22 @@
     if (reducedMotion) return;
     if (window.matchMedia && window.matchMedia("(max-width:900px)").matches) return;
 
+    // .flow-fluid's own box is sized larger than .flow-right (see
+    // landing.css) so the pan has somewhere to travel; measured in px once
+    // (and on resize) rather than every scroll frame, since it only changes
+    // when the viewport does. offsetWidth/offsetHeight, not
+    // getBoundingClientRect, since the latter would report the *transformed*
+    // box once a pan is already applied.
+    var overageW = 0, overageH = 0;
+    function measureFluid() {
+      if (!fluid || !fluid.parentElement) return;
+      var container = fluid.parentElement;
+      overageW = fluid.offsetWidth - container.clientWidth;
+      overageH = fluid.offsetHeight - container.clientHeight;
+    }
+    measureFluid();
+    window.addEventListener("resize", measureFluid);
+
     scrollUpdaters.push(function () {
       var steps = stepsWrap.querySelectorAll(".flow-step");
       if (!steps.length) return;
@@ -111,7 +127,14 @@
         railItems[j].classList.toggle("is-active", j === stepIdx);
         railItems[j].classList.toggle("is-done", j < stepIdx);
       }
-      if (fluid) fluid.style.backgroundPosition = (progress * 100).toFixed(2) + "% " + (100 - progress * 100).toFixed(2) + "%";
+      // mirrors the old background-position:0%->100% horizontal / 100%->0%
+      // vertical pan, just expressed as a compositor-only translate instead
+      // of a paint-triggering background-position
+      if (fluid) {
+        var x = -overageW * progress;
+        var y = -overageH * (1 - progress);
+        fluid.style.transform = "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0)";
+      }
     });
   })();
 
@@ -465,6 +488,102 @@
     }, { passive: true });
     window.addEventListener("resize", sync);
     sync();
+  })();
+
+  /* ---------------- featured-challenge ticket rail: drag-to-scroll ----------------
+     Mouse-only click-and-drag panning, on top of the arrow buttons above.
+     Touch and trackpad already scroll the native overflow-x:auto container
+     for free (that's the whole point of it being a real scroller, see the
+     comment on .ch-rail in landing.css) and are untouched here — this only
+     reacts to pointerType:"mouse", which browsers don't pan on drag by
+     default. Setting scrollLeft directly (not scrollTo/scrollBy) is always
+     instant regardless of .ch-rail's own scroll-behavior:smooth, so the
+     drag tracks the cursor 1:1 with no lag. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    if (!rail) return;
+    var dragging = false, moved = false, startX = 0, startScroll = 0, pointerId = null;
+
+    rail.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      dragging = true; moved = false;
+      startX = e.clientX;
+      startScroll = rail.scrollLeft;
+      pointerId = e.pointerId;
+    });
+
+    rail.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      // capture (and the visual drag state) only start once the cursor has
+      // actually moved past a small threshold — capturing unconditionally
+      // on every pointerdown redirects the resulting "click" event's target
+      // to the rail itself even for an ordinary, un-dragged click (a real
+      // browser quirk), which broke opening the ticket modal on a plain
+      // click. Deferring capture until a real drag is confirmed keeps a
+      // plain click's hit-testing untouched.
+      if (!moved && Math.abs(dx) > 4) {
+        moved = true;
+        rail.classList.add("is-dragging");
+        rail.setPointerCapture(pointerId);
+      }
+      if (moved) rail.scrollLeft = startScroll - dx;
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      rail.classList.remove("is-dragging");
+    }
+    rail.addEventListener("pointerup", endDrag);
+    rail.addEventListener("pointercancel", endDrag);
+
+    // a drag that actually moved the rail shouldn't also open the ticket
+    // modal below — capture phase so this runs before that delegated
+    // click handler, which is registered directly on the same element
+    rail.addEventListener("click", function (e) {
+      if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+  })();
+
+  /* ---------------- featured-challenge ticket modal ----------------
+     Native <dialog> — same pattern as challenges.html's own brief modal
+     (assets/challenges.js). Each ticket carries its own brief as
+     data-brief-* attributes, read fresh on every open. One click handler on
+     #chRail (event delegation) covers both "click anywhere on the ticket"
+     and "click the View challenge button" — the button's click bubbles to
+     the same .ch-ticket ancestor, so there's nothing to double-wire. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    var modal = document.getElementById("chModal");
+    if (!rail || !modal || typeof modal.showModal !== "function") return;
+
+    var closeBtn = document.getElementById("chmClose");
+    var tagEl = document.getElementById("chmTag");
+    var titleEl = document.getElementById("chmTitle");
+    var bodyEl = document.getElementById("chmBody");
+    var submittedEl = document.getElementById("chmSubmitted");
+    var deadlineEl = document.getElementById("chmDeadline");
+
+    rail.addEventListener("click", function (e) {
+      var ticket = e.target.closest(".ch-ticket");
+      if (!ticket) return;
+      var discipline = ticket.getAttribute("data-brief-discipline") || "";
+      var company = ticket.getAttribute("data-brief-company") || "";
+      tagEl.textContent = discipline + (company ? " · " + company : "");
+      titleEl.textContent = ticket.getAttribute("data-brief-title") || "";
+      bodyEl.textContent = ticket.getAttribute("data-brief-body") || "";
+      submittedEl.textContent = ticket.getAttribute("data-brief-submitted") || "";
+      deadlineEl.textContent = ticket.getAttribute("data-brief-deadline") || "";
+      modal.showModal();
+    });
+
+    closeBtn.addEventListener("click", function () { modal.close(); });
+    // a click landing on the ::backdrop itself (the dialog element, not any
+    // of its children) closes it too
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) modal.close();
+    });
   })();
 
   /* ---------------- featured-challenge countdown ----------------
