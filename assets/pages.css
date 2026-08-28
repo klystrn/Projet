@@ -87,7 +87,12 @@
    has nothing to put in the middle. 720px keeps the question and its icon
    close together at any viewport, the same way a reading-width column
    would in a document. */
-.faq-group{max-width:720px;}
+/* width:100% alongside the max-width, not just margin-inline:auto: .faq-
+   section is a flex column, and an auto margin on a flex item's cross axis
+   suppresses align-items:stretch for that item — without an explicit width
+   here the group collapsed to fit-content (as narrow as its widest child's
+   natural text width) instead of filling out to the 720px cap. */
+.faq-group{max-width:720px; width:100%; margin-inline:auto;}
 .faq-group h2{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase; color:var(--accent-deep);

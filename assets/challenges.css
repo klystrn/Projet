@@ -160,6 +160,12 @@
 }
 .cl-modal-close:hover{border-color:var(--ink); color:var(--ink);}
 .cl-modal-close:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+/* the close button is absolutely positioned top:16/right:16 over the modal's
+   padded content, so anything sitting in that top-right corner needs room
+   cleared for it — h2 already had this, but .cl-card-top's OPEN pill (the
+   only other thing at the very top of the modal) didn't, so it sat directly
+   underneath the close button. */
+.cl-modal .cl-card-top{padding-right:36px;}
 .cl-modal h2{font-size:23px; line-height:1.25; padding-right:36px;}
 .cl-modal-inner > p{font-size:15px; line-height:1.65; color:var(--ink-soft);}
 .cl-modal-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:2px;}
