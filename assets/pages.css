@@ -17,14 +17,22 @@
 .page-hero-sub{font-size:17.5px; line-height:1.6; color:var(--ink-soft); max-width:56ch;}
 
 /* ---------- about.html ---------- */
-.about-section{padding:56px 0;}
+/* Vertical-only, same reason as .page-hero above: this class is combined
+   with .wrap on the same element (twice, on the two .about-section rows),
+   so a 2-value shorthand here (which also sets left/right) would zero out
+   .wrap's own horizontal padding below --maxw. Was actually doing exactly
+   that until this pass — found via measuring computed padding at mobile
+   widths, not just checking for horizontal overflow (zero padding doesn't
+   overflow, it just runs content flush to the edges). */
+.about-section{padding-top:56px; padding-bottom:56px;}
 .about-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px;}
 .about-grid h2{font-size:clamp(22px,2.6vw,28px); margin:10px 0 12px;}
 .about-grid p{font-size:15.5px; line-height:1.65; color:var(--ink-soft); max-width:48ch;}
 .about-grid a{font-weight:700; color:var(--accent-deep);}
 @media (max-width:800px){ .about-grid{grid-template-columns:1fr; gap:36px;} }
 
-.about-stats{padding:16px 0 72px;}
+/* same wrap-padding trap, same fix */
+.about-stats{padding-top:16px; padding-bottom:72px;}
 .about-stats-inner{
   padding:36px 40px; border-radius:var(--radius-xl); background:var(--paper-warm);
   border:1px solid var(--line);
@@ -33,7 +41,11 @@
 .about-stats .hero-stat-row b{font-size:26px;}
 
 /* ---------- faq.html ---------- */
-.faq-section{padding:48px 0 72px; display:flex; flex-direction:column; gap:40px;}
+/* same wrap-padding trap as .about-section above — was zeroing .wrap's own
+   horizontal padding here too, which is what actually made the page read
+   as edge-to-edge on mobile (a plain overflow check doesn't catch this:
+   zero padding doesn't overflow, it just removes the margin). */
+.faq-section{padding-top:48px; padding-bottom:72px; display:flex; flex-direction:column; gap:40px;}
 /* Capped narrower than --maxw on purpose: .faq-item summary is a single
    full-width flex row (question left, +/x toggle right via
    justify-content:space-between), and at the section's full 1240px content

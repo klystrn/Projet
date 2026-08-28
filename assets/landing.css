@@ -392,7 +392,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 /* ==========================================================================
    2. LOGO CAROUSEL
    ========================================================================== */
-.logos{padding:10px 0 64px; position:relative;}
+/* vertical-only padding, deliberately: .logos carries .wrap directly (it
+   IS the max-width/padded box, same convention as .hero above), and a
+   shorthand covering all four sides here would zero out .wrap's own 32px
+   horizontal padding, running the carousel flush to the viewport edges on
+   any screen narrower than --maxw. See CLAUDE.md's ".page-hero + .wrap"
+   note for the same trap; .about-section/.about-stats/.faq-section had it
+   too until this pass (all fixed the same way, see pages.css). */
+.logos{padding-top:10px; padding-bottom:64px; position:relative;}
 .logos-label{
   text-align:center; font-family:'JetBrains Mono', monospace; font-size:11px;
   letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:22px;
