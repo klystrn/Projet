@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-05T18:00:00Z",
+  "generatedAt": "2026-08-30T00:00:00Z",
   "title": "Design System: Projet",
   "extensions": {
     "colorMeta": {
@@ -80,22 +80,25 @@
       "label": { "displayName": "Label", "purpose": "Eyebrows, badges, mono stats, nav data." }
     },
     "shadows": [
-      { "name": "card-ambient", "value": "0 14px 40px -20px rgba(20,19,15,.22)", "purpose": "Resting elevation for light-surface cards (testimonial wall)." },
-      { "name": "hero-card-float", "value": "0 24px 54px -20px rgba(0,0,0,.65)", "purpose": "The glass hero-status card floating over the hero visual." },
-      { "name": "visual-frame", "value": "0 34px 80px -34px rgba(20,19,15,.55)", "purpose": "Separates the hero image frame from the page behind it." },
+      { "name": "card-ambient", "value": "0 14px 40px -20px rgba(20,19,15,.22)", "purpose": "Resting elevation for light-surface cards (testimonial strip chips)." },
+      { "name": "hero-dashboard-card", "value": "0 34px 80px -38px rgba(20,19,15,.4)", "purpose": "The hero's static dashboard-summary card." },
       { "name": "nav-compact", "value": "0 8px 26px -20px rgba(20,19,15,.3)", "purpose": "Applied once the sticky nav scrolls past 48px and compacts." },
-      { "name": "mini-card-hover", "value": "0 14px 30px -16px rgba(0,0,0,.55)", "purpose": "Featured-challenge mini cards, hover only." }
+      { "name": "ticket-rest", "value": "0 14px 30px -26px rgba(20,19,15,.3)", "purpose": "Featured Challenges ticket cards at rest." },
+      { "name": "ticket-hover", "value": "0 26px 48px -28px rgba(20,19,15,.38)", "purpose": "Featured Challenges ticket cards on hover, paired with translateY(-4px)." },
+      { "name": "testimonial-spotlight", "value": "0 34px 76px -40px rgba(20,19,15,.5)", "purpose": "The dark promoted-quote card in the testimonials section." },
+      { "name": "modal", "value": "0 40px 90px -30px rgba(20,19,15,.5)", "purpose": "The challenge-brief and ticket modals — the heaviest shadow on the page." }
     ],
     "motion": [
       { "name": "ease-standard", "value": "cubic-bezier(.16,.84,.44,1)", "purpose": "Default easing for every transition and animation on the page." },
       { "name": "button-lift", "value": "transform: translateY(-2px)", "purpose": "The universal button hover/focus feedback, used instead of a shadow change." },
-      { "name": "mode-swap", "value": "opacity .16s var(--ease)", "purpose": "Crossfade used by audience-mode-aware copy blocks when the toggle switches." }
+      { "name": "mode-swap", "value": "opacity .16s var(--ease)", "purpose": "Crossfade used by audience-mode-aware copy blocks when the toggle switches." },
+      { "name": "fluid-scrub-pan", "value": "transform: translate3d(x,y,0)", "purpose": "How-it-works' pinned background pan — compositor-only, not background-position, so it never repaints per scroll frame." }
     ],
     "breakpoints": [
       { "name": "sm", "value": "480px" },
       { "name": "md", "value": "640px" },
       { "name": "lg", "value": "900px" },
-      { "name": "xl", "value": "980px" }
+      { "name": "xl", "value": "1080px" }
     ]
   },
   "components": [
@@ -124,12 +127,20 @@
       "css": ".ds-btn-ghost { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; border:1px solid #e6e3da; background:transparent; color:#14130f; font-family:'Satoshi',sans-serif; font-size:14.5px; font-weight:700; cursor:pointer; transition:border-color .2s cubic-bezier(.16,.84,.44,1), transform .2s cubic-bezier(.16,.84,.44,1); } .ds-btn-ghost:hover { border-color:#14130f; transform:translateY(-2px); } .ds-btn-ghost:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #14130f; }"
     },
     {
-      "name": "Testimonial Card",
+      "name": "Testimonial Spotlight",
       "kind": "card",
       "refersTo": "card-testimonial",
-      "description": "White pill-cornered card with a top accent stripe tagging speaker side (orange=builder, blue=company) and a faint brandmark watermark.",
-      "html": "<article class=\"ds-t-card\"><span class=\"ds-t-badge\">Builder</span><p class=\"ds-t-quote\">“The live defense is what actually convinced us.”</p><div class=\"ds-t-person\"><span class=\"ds-t-name\">Hiring lead</span></div></article>",
-      "css": ".ds-t-card { position:relative; overflow:hidden; text-align:left; width:320px; background:#fff; border-radius:20px; padding:28px 26px; box-shadow:0 14px 40px -20px rgba(20,19,15,.22); font-family:'Satoshi',sans-serif; } .ds-t-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#ff5b24; } .ds-t-badge { position:absolute; top:18px; right:18px; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:rgba(255,91,36,.12); color:#c73e10; } .ds-t-quote { margin-top:10px; font-size:16px; line-height:1.55; margin-bottom:22px; font-weight:500; color:#14130f; } .ds-t-name { font-weight:700; font-size:14px; color:#14130f; }"
+      "description": "Dark promoted-quote card; hovering or focusing a chip in the strip below swaps which quote is spotlighted here. The speaker tag is pinned blue (company) or orange (builder) regardless of audience mode — it labels who's speaking, not who's browsing.",
+      "html": "<article class=\"ds-t-spot\"><span class=\"ds-t-spot-mark\">&#8220;</span><p class=\"ds-t-spot-quote\">The live defense is what actually convinced us.</p><div class=\"ds-t-spot-foot\"><span class=\"ds-t-spot-avatar\"></span><span class=\"ds-t-spot-name\">Hiring lead<br><small>Nordwave</small></span><span class=\"ds-t-spot-tag\">Company</span></div></article>",
+      "css": ".ds-t-spot { position:relative; overflow:hidden; border-radius:26px; padding:36px; color:#fff; background:linear-gradient(155deg,#1c1a14 0%,#14130f 74%); box-shadow:0 34px 76px -40px rgba(20,19,15,.5); font-family:'Satoshi',sans-serif; } .ds-t-spot-mark { display:block; font-size:52px; line-height:1; font-weight:900; color:rgba(255,255,255,.22); margin-bottom:6px; } .ds-t-spot-quote { font-size:22px; font-weight:700; line-height:1.38; letter-spacing:-.01em; max-width:56ch; margin-bottom:28px; } .ds-t-spot-foot { display:flex; align-items:center; gap:14px; } .ds-t-spot-avatar { width:50px; height:50px; border-radius:50%; flex:none; background:rgba(255,255,255,.15); } .ds-t-spot-name { font-weight:700; font-size:15px; } .ds-t-spot-name small { display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:400; color:rgba(255,255,255,.6); } .ds-t-spot-tag { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:5px 11px; border-radius:999px; background:rgba(47,107,255,.28); color:#bcd0ff; white-space:nowrap; }"
+    },
+    {
+      "name": "Ticket Rail Card",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Featured Challenges' torn-ticket card: a body (company, title, description, submission count, View challenge button) joined by a dashed perforation to a stub carrying the days-left countdown. Deliberately unlike challenges.html's own card so the homepage teaser and the full listing never look like the same component twice.",
+      "html": "<article class=\"ds-ch-ticket\"><div class=\"ds-ch-body\"><span class=\"ds-ch-co\">Anchorpoint</span><h4 class=\"ds-ch-title\">Ship a data pipeline for churn signals</h4><p class=\"ds-ch-desc\">Turn raw product events into the signals that actually predict a customer leaving.</p><span class=\"ds-ch-subs\">23 submitted</span><button class=\"ds-ch-view\">View challenge</button></div><div class=\"ds-ch-perf\"></div><div class=\"ds-ch-stub\"><span class=\"ds-ch-num\">04</span><span class=\"ds-ch-unit\">days left</span></div></article>",
+      "css": ".ds-ch-ticket { display:flex; width:340px; background:#fff; border:1px solid #e6e3da; border-radius:16px; box-shadow:0 14px 30px -26px rgba(20,19,15,.3); font-family:'Satoshi',sans-serif; cursor:pointer; transition:transform .22s cubic-bezier(.16,.84,.44,1), box-shadow .22s cubic-bezier(.16,.84,.44,1); } .ds-ch-ticket:hover { transform:translateY(-4px); box-shadow:0 26px 48px -28px rgba(20,19,15,.38); } .ds-ch-body { display:flex; flex-direction:column; gap:10px; flex:1; padding:22px; } .ds-ch-co { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:#726d5f; } .ds-ch-title { margin:0; font-size:17.5px; font-weight:800; } .ds-ch-desc { font-size:12.5px; color:#3a382f; line-height:1.5; } .ds-ch-subs { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#726d5f; } .ds-ch-view { align-self:flex-start; margin-top:auto; padding:8px 14px; border-radius:999px; border:1.5px solid #e6e3da; background:transparent; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; cursor:pointer; } .ds-ch-perf { width:0; border-left:2px dashed #e6e3da; margin:14px 0; } .ds-ch-stub { width:76px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:16px 6px; } .ds-ch-num { font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700; color:#c73e10; } .ds-ch-unit { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#726d5f; text-align:center; }"
     },
     {
       "name": "Input Field",
@@ -174,7 +185,7 @@
   ],
   "narrative": {
     "northStar": "Signal Flare",
-    "overview": "Projet's whole surface is built around one idea: a single warm accent burning against a calm, mostly-neutral field, and that flare only ever means one thing — real activity, happening right now. The live-status pulse on the hero card, the countdown ticking down to a challenge deadline, the recycling logo and testimonial marquees, the shear of the light-spectrum wave as a visitor hovers between \"Featured challenges\" and \"Success stories\" — none of it is ambient decoration. Every moving element on the page is standing in for the same claim the copy makes in words: that proof is live and ongoing, not a static portfolio.\n\nThe system carries a second, cooler signal alongside the first: builders and students read the page in Signal orange, companies read it in Current blue, and the accent color itself is the audience switch. This is not two different designs pretending to be one — it's one calm, confident-startup shell (bold black-on-white type, real stated numbers, no soft SaaS gradients or stock illustration standing in for substance) that relabels its own accent depending on who's looking. The spectrum gradient bridging orange to blue — through a middle violet — appears everywhere a designer might otherwise reach for a divider: the hero headline, the footer's top edge, the seam of the light-spectrum wave. It's the visual proof that the two audiences are joined by one process, not two separate products bolted together.\n\nDensity is generous, not dense — this is a persuade-mode marketing surface, not a dashboard, and it gives its stats, cards, and CTAs room to breathe. Nothing renders in hard corners, and nothing sits completely still without a reason: every interactive control confirms itself with a lift, a color shift, or a sliding glyph the instant it's touched.",
+    "overview": "Projet's whole surface is built around one idea: a single warm accent burning against a calm, mostly-neutral field, and that flare only ever means one thing — real activity, happening right now. The countdown ticking down to a challenge deadline, the recycling logo marquee, the Featured Challenges ticket rail a visitor can drag through like a real feed of open work, the How-it-works panel that pins in place and scrubs through its own background as you scroll, the testimonial spotlight promoting a different quote the instant you hover its chip — none of it is ambient decoration. Every moving element on the page is standing in for the same claim the copy makes in words: that proof is live and ongoing, not a static portfolio.\n\nThe system carries a second, cooler signal alongside the first: builders and students read the page in Signal orange, companies read it in Current blue, and the accent color itself is the audience switch. This is not two different designs pretending to be one — it's one calm, confident-startup shell (bold black-on-white type, real stated numbers, no soft SaaS gradients or stock illustration standing in for substance) that relabels its own accent depending on who's looking. Headline text itself stays a flat, solid accent color rather than a gradient (a gradient-text word was tried and removed as a recognisable AI-generated-site tell); the audience switch shows up in flat color, not a rainbow bridge.\n\nDensity is generous, not dense — this is a persuade-mode marketing surface, not a dashboard, and it gives its stats, cards, and CTAs room to breathe. Nothing renders in hard corners, and nothing sits completely still without a reason: every interactive control confirms itself with a lift, a color shift, or a sliding glyph the instant it's touched.",
     "keyCharacteristics": [
       "One accent lit against a mostly-neutral (ink/paper) field, never two accents competing for attention on the same surface",
       "The accent itself carries meaning — it names which audience is currently being addressed",
@@ -183,20 +194,20 @@
       "Every interactive element visibly responds to hover/focus — nothing is static once touched"
     ],
     "rules": [
-      { "name": "The Two-Signal Rule", "body": "Only Signal or Current is active as the page's accent at any moment — never both, and a surface never lets orange and blue compete as two live CTAs. The one deliberate exception is the light-spectrum wave's two panel buttons, which are pinned to their literal side color regardless of audience mode, because their job is to label which half of the split they belong to, not to reflect who's currently browsing.", "section": "colors" },
+      { "name": "The Two-Signal Rule", "body": "Only Signal or Current is active as the page's accent at any moment — never both, and a surface never lets orange and blue compete as two live CTAs. The one deliberate exception is the testimonial spotlight's speaker tag, which is pinned to blue for a company speaker or orange for a builder speaker regardless of audience mode, because its job is to label who is speaking, not to reflect who's currently browsing.", "section": "colors" },
       { "name": "The Mono-Label Rule", "body": "Any small-caps or label-scale text — eyebrows, badges, nav toggle labels, stat captions, countdown digits — is always set in JetBrains Mono, never Satoshi.", "section": "typography" },
       { "name": "The Motion-Over-Shadow Rule", "body": "Buttons never change shadow on hover — they lift (translateY(-2px)) instead. Shadow answers \"is this surface floating above another,\" motion answers \"did you just interact with this.\"", "section": "elevation" },
       { "name": "The No-Hard-Corner Rule", "body": "Nothing in the system ships a 0px corner. The only question is how generous the round is, never whether to round at all.", "section": "shapes" }
     ],
     "dos": [
       "Do let the accent color (--accent) name the audience — never hardcode Signal or Current onto a control that should track the current mode.",
-      "Do pair every hover/focus state with visible motion (lift, underline sweep, arrow reveal, color shift) — a static default-only control reads as dead.",
+      "Do pair every hover/focus state with visible motion (lift, underline sweep, fill-color swap) — a static default-only control reads as dead.",
       "Do round every corner — pill for controls, 13–28px for containers, scaled to size.",
       "Do set any label-scale text (eyebrows, badges, stats, captions) in JetBrains Mono, uppercase, wide tracking.",
       "Do treat scroll-linked and hover-driven motion as enhancement only — every effect must render its end state under prefers-reduced-motion or with JavaScript disabled, never disappear."
     ],
     "donts": [
-      "Don't run Signal and Current as two live, competing CTAs on the same surface outside the light-spectrum split's side-fixed panel buttons.",
+      "Don't run Signal and Current as two live, competing CTAs on the same surface outside the testimonial spotlight's speaker tag.",
       "Don't apply a shadow change as a button's hover feedback — use the translateY(-2px) lift instead.",
       "Don't revert Muted Label to a lighter value than #726d5f (or Muted Label Large below #8f8874) — both were darkened specifically to clear WCAG AA at the small sizes they're used at.",
       "Don't apply the base Signal or Current hue directly to small text (eyebrows, labels) — use Signal Deep / Current Deep instead; the base hues fail WCAG AA at those sizes.",
