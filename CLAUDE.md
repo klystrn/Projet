@@ -431,6 +431,27 @@ quote against the spotlight's real layout once (and again on resize) and
 reserves the tallest as `min-height`, so the swap only ever changes
 content now, never layout.
 
+**Real bug in that height reservation, fixed (Aug 2026): the card could
+still expand on activate(), just not on every hover.** The measurement
+loop only ever swapped `quoteEl.textContent`, leaving `nameEl`/`roleEl`/
+`tagEl` at whatever the currently-active chip's values were for the
+*entire* pass — but `activate()` swaps all four together. A chip whose
+**name or role** (not its quote) was longer than the one active when
+`stabilizeHeight()` last ran could still push `#tSpot` taller than its
+reserved `min-height` the moment that chip actually activated. Confirmed
+with a real repro before fixing it, not just reasoned about: at 480px
+wide, a chip with a long name measured a true height of 381px against a
+locked reservation of only 321px — a genuine 60px overflow. Fixed by
+setting all four fields (quote/name/role/tag) per chip inside the
+measurement loop, so the reserved max is the tallest any real
+`activate()` call can ever produce. Also added a
+`document.fonts.ready.then(stabilizeHeight)` re-run alongside the
+existing initial-call-plus-resize-listener, since a custom webfont
+(Satoshi, via Fontshare) still loading at first measurement uses
+fallback-font metrics that don't necessarily match the real font's line
+height once it's actually in — this makes the reservation correct
+regardless of font-load timing, not just on a fast/cached load.
+
 **Testimonials pinned dwell (Aug 2026).** Explicit follow-up: this section
 had no scroll gating at all, so it flew past on scroll. Same shape as the
 How-it-works `.flow-scroll`/`.flow-stage` pin further up the page —

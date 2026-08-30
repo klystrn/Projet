@@ -511,20 +511,41 @@
 
     /* Quotes differ in length, so swapping which one is in the spotlight
        used to change #tSpot's own height and jolt the whole section on
-       every hover. Measure every chip's quote against the spotlight's
-       real layout (min-height cleared first, so a stale reservation can't
-       skew the measurement) and reserve the tallest as min-height — the
-       swap only ever changes content after that, never layout. Re-measured
-       on resize since wrapping depends on viewport width. */
+       every hover. Measure every chip's FULL content (not just the quote —
+       see the bug note below) against the spotlight's real layout
+       (min-height cleared first, so a stale reservation can't skew the
+       measurement) and reserve the tallest as min-height — the swap only
+       ever changes content after that, never layout. Re-measured on
+       resize since wrapping depends on viewport width.
+
+       Real bug this had: the loop below used to swap only quoteEl's text,
+       leaving nameEl/roleEl/tagEl at whatever the currently-active chip's
+       values happened to be for the whole pass. Since activate() swaps all
+       four together, a chip whose NAME or ROLE (not just its quote) is
+       longer than the one active when this ran could push #tSpot taller
+       than the reserved min-height once it actually activated — the card
+       visibly growing exactly when a "too long" chip came up. Fixed by
+       setting all four fields per chip in the loop, so the measured max is
+       genuinely the tallest any real activate() call can ever produce,
+       not just the tallest quote in isolation. */
     function stabilizeHeight() {
       spot.style.minHeight = "";
-      var current = quoteEl.textContent;
+      var currentQuote = quoteEl.textContent;
+      var currentName = nameEl.textContent;
+      var currentRole = roleEl.textContent;
+      var currentTag = tagEl.textContent;
       var max = 0;
       chips.forEach(function (chip) {
         quoteEl.textContent = chip.getAttribute("data-quote") || "";
+        nameEl.textContent = chip.getAttribute("data-name") || "";
+        roleEl.textContent = chip.getAttribute("data-role") || "";
+        tagEl.textContent = chip.getAttribute("data-tag") || "";
         max = Math.max(max, spot.offsetHeight);
       });
-      quoteEl.textContent = current;
+      quoteEl.textContent = currentQuote;
+      nameEl.textContent = currentName;
+      roleEl.textContent = currentRole;
+      tagEl.textContent = currentTag;
       spot.style.minHeight = max + "px";
     }
     stabilizeHeight();
@@ -533,6 +554,14 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(stabilizeHeight, 150);
     });
+    // Custom webfonts (Satoshi, via Fontshare) can still be loading when the
+    // measurement above first runs, using fallback-font metrics that don't
+    // match the real font's line height/character widths. Re-measuring once
+    // the real font is actually in is what makes this reservation trustworthy
+    // regardless of network timing, not just correct on a fast/cached load.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(stabilizeHeight);
+    }
 
     /* ---- pinned dwell: auto-advance the spotlight as the reader scrolls ----
        Desktop + motion-ok only, same gate (and same reasoning) as the
