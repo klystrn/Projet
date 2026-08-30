@@ -367,6 +367,38 @@ re-flowed as static content); the fallback CSS is written three times
 (`@media(max-width:900px)`, `@media(prefers-reduced-motion:reduce)`,
 `.no-js`), matching the file's existing convention for this kind of thing.
 
+**Company mode gets a different scrub background — EXPERIMENTAL, Aug
+2026, may be reverted.** Flagged directly: the fluid-full render has no
+blue in it at all (it shades warm orange into purple/magenta, never true
+blue), so it fought company mode's own blue accent instead of
+complementing it the way it does in student mode. `spectrum.webp`/`.avif`
+(the retired "light spectrum wave" asset — see that section further down)
+genuinely spans orange-to-blue by design, so `html[data-audience=
+"business"] .flow-fluid` swaps to it instead of trying to recolour an
+image with no blue to lean into:
+
+```css
+html[data-audience="business"] .flow-fluid{
+  --fluid-ar:1.6993;   /* 2163 / 1273 — spectrum.webp's own ratio, not fluid-full's */
+  --fluid-zoom:1.4;
+  background-image:var(--img-spectrum);
+}
+```
+
+Same sizing math and the same `landing.js` scrub transform as student
+mode — only the image and its own aspect ratio/zoom change; nothing in
+the JS needed to move. `--img-spectrum` (AVIF/WebP `image-set()`, same
+fallback pattern as `--img-fluid-full`) was added to `landing.css`'s
+`:root` for this. Screenshotted across the full scroll range at 1440x900:
+step 1 reads warm-amber, step 2 and step 4 land in genuine deep blue,
+giving the sequence an intentional-reading warm-to-cool arc — confirmed
+student mode is untouched (still `fluid-full`, unaffected by the
+`[data-audience="business"]` scope). **This is a trial, not a settled
+decision** — asked for as "try it, I'll say if it's not good," so revert
+to `background-image:var(--img-fluid-full)` (drop the whole override
+block) if a fresh instruction says to go back to the single shared
+artwork for both modes.
+
 **The sticky/overflow-x gotcha.** Fixing a real ~148px horizontal-scroll
 bug (`.hero::after`'s radial bloom bled a fixed 20% of `.hero`'s own width
 past its edge, which overflowed the true viewport at widths close to

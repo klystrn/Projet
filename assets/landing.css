@@ -92,11 +92,14 @@ html[data-audience="business"]{
    to its own WebP entry. Both files must stay on disk. */
 :root{
   --img-fluid-full:url("fluid-full.webp");
+  --img-spectrum:url("spectrum.webp");
 }
 @supports (background-image:image-set(url("x.avif") type("image/avif"))){
   :root{
     --img-fluid-full:image-set(url("fluid-full.avif") type("image/avif"),
                                url("fluid-full.webp") type("image/webp"));
+    --img-spectrum:image-set(url("spectrum.avif") type("image/avif"),
+                             url("spectrum.webp") type("image/webp"));
   }
 }
 
@@ -663,6 +666,21 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   background-image:var(--img-fluid-full);
   background-size:100% 100%;
   opacity:.5; will-change:transform;
+}
+/* EXPERIMENTAL (Aug 2026) — the warm fluid-full render has no blue in it at
+   all (it shades toward purple/magenta, not blue), so it fought company
+   mode's own blue accent instead of complementing it the way it does in
+   student mode. spectrum.webp genuinely spans orange-to-blue by design (it
+   is the retired "light spectrum wave" asset), so business mode swaps to it
+   instead of trying to recolour an image with no blue to lean into. Same
+   sizing math, own aspect ratio and zoom since the source dimensions and
+   colour layout differ; landing.js's scrub transform is untouched; it just
+   pans a different image underneath. Revert to var(--img-fluid-full) if
+   this doesn't read well — flagged as a trial, not a settled decision. */
+html[data-audience="business"] .flow-fluid{
+  --fluid-ar:1.6993;   /* 2163 / 1273 */
+  --fluid-zoom:1.4;
+  background-image:var(--img-spectrum);
 }
 /* heaviest at centre, not just the edges — the step copy sits left-aligned
    in this narrower column but still over the artwork's brightest passages */
