@@ -471,7 +471,7 @@ Current structure — three subsections, in this order:
 
 ```
 .challenges > .wrap        .ch-head (eyebrow/h2/p) + .ch-countdown
-.challenges > .ch-rail     the tickets — OUTSIDE .wrap, deliberately
+.challenges > .wrap        .ch-rail — a plain wrapping grid of tickets
 .challenges > .wrap        .ch-rail-controls + .ch-note
 ```
 
@@ -484,29 +484,25 @@ that the homepage section not look like the listing page, so none of those
 four appear here. If this section is restyled again, check it against
 `.cl-card` before shipping.
 
-**The rail is a native `overflow-x:auto` scroller.** Touch, trackpad and
-keyboard all work with zero JS (the container carries `tabindex="0"`), and
-the arrows + position bar in `.ch-rail-controls` are pure enhancement.
-`.no-js` hides **only** `.ch-rail-btn` and `.ch-rail-track` — *not* the
-whole control row, which also carries the "View all challenges" link;
-that's real content and has to survive. The fill bar is driven by a
-`--rail-progress` custom property on `transform:scaleX()`, not `width`, so
-dragging the rail never triggers layout per frame.
-
-**Two gotchas this section hit, both worth not relearning:**
-
-- **`scroll-snap-align:start` fights the scroller's own padding.** The
-  rail is padded by `--rail-inset` so its first ticket lines up with
-  `.wrap`'s content edge while the row still runs to the true viewport
-  edges. But snap positions resolve against the *scrollport* edge, so on
-  load the browser silently scrolled the rail to `scrollLeft:132` to snap
-  the first card — the row arrived already nudged off its start. Fixed
-  with `scroll-padding-inline:var(--rail-inset)` matching the padding
-  exactly. **Any padded scroll-snap container needs both.**
-- **The inset is computed from `100%`, never `100vw`.** `vw` includes the
-  scrollbar gutter, which is the exact cause of the horizontal-overflow
-  bug documented under "the sticky/overflow-x gotcha" above. `100%` here
-  is the section's own width, which is what's actually wanted.
+**The horizontal-scroll rail is RETIRED (Aug 2026) — removed on explicit
+request.** `.ch-rail` was originally a native `overflow-x:auto` scroller
+with scroll-snap, arrow buttons + a position bar in `.ch-rail-controls`,
+and mouse drag-to-scroll — all of that is gone. `.ch-rail` is now a plain
+`display:grid; grid-template-columns:repeat(auto-fill, minmax(290px,1fr))`
+that wraps onto new rows instead of scrolling, same shape as
+`challenges.html`'s own `.cl-grid`. It moved back **inside** `.wrap`
+(it used to sit deliberately outside it so the row could bleed past the
+content column's edge — meaningless once there's no scrolling row to
+bleed). `.ch-rail-controls` now holds only the "View all challenges" link;
+the arrow buttons and position-bar `<div>`/`<i>` markup, their CSS
+(`.ch-rail-btn`, `.ch-rail-track`, `--rail-progress`), the `--rail-inset`
+scroll-padding math, and both landing.js IIFEs that drove them (the
+arrow/position-bar sync loop and the pointer-drag panning) are deleted
+outright, not just unused. **Do not reinstate any of it without a fresh
+instruction** — if this section needs to scroll again later, treat it as
+a new build rather than un-commenting the old one, since the two gotchas
+below (padded scroll-snap, the `100%` vs `100vw` inset) will very likely
+resurface and need re-solving either way.
 
 `.ch-perf`'s two notches are circles filled with `var(--paper-warm)` and
 **no border of their own** — a full ring reads as a dot stuck to the edge
