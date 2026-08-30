@@ -75,14 +75,44 @@
 /* Seam-side clearance. The bars are deliberately wider than the stripe so
    they fan past it (--bar-w below), and that overhang has to land on empty
    panel margin — in v2 it sat straight over a headline until this was
-   added. Same trap here, same fix. */
-.as-panel--signup{padding-right:clamp(40px,6vw,104px);}
-.as-panel--login{padding-left:clamp(40px,6vw,104px);}
+   added. Same trap here, same fix. Login is the LEFT panel, so its
+   clearance is on the right (the side facing the seam); signup is the
+   RIGHT panel, so its clearance is on the left. */
+.as-panel--login{padding-right:clamp(40px,6vw,104px);}
+.as-panel--signup{padding-left:clamp(40px,6vw,104px);}
 
 /* Each side carries the spectrum end nearest it, so a collapsed panel reads
-   as its own colour rather than as empty stage. */
+   as its own colour rather than as empty stage. Tied to which MODE a panel
+   is, not which physical side it sits on — signup stays orange-leaning and
+   login stays blue-leaning even after the left/right swap above. */
 .as-panel--signup{background:linear-gradient(135deg, rgba(255,91,36,.24), rgba(199,62,16,.06));}
 .as-panel--login{background:linear-gradient(225deg, rgba(47,107,255,.24), rgba(12,22,56,.1));}
+
+/* ---------- content hugs the seam, not the outer edge ----------
+   Asked for explicitly: rather than both panels' text sitting flush against
+   their own OUTER edge (the default for a flex column, which happens to put
+   the right panel's content near the seam already but strands the left
+   panel's content far from it), the left panel's content is pushed to its
+   own right edge and right-aligned, and the right panel's is pushed to its
+   own left edge and left-aligned — so both read as gathered around the
+   spectrum rather than pulled to opposite corners of the screen.
+
+   align-items positions the .as-form/.as-prompt BOX itself (they are flex
+   children of this column); text-align then aligns the INLINE content
+   (headings, paragraphs, labels) within that box. Both are needed — one
+   without the other leaves either a right-hugging box of left-run text, or
+   a left-hugging box with right-run text spilling toward the outer edge.
+
+   Desktop only, same convention as the How-it-works flow-rail's own
+   right-alignment further up the site: there is no seam to gather around
+   once the panels stack below 900px, so the media query further down resets
+   both to the ordinary left-aligned stack. */
+.as-panel--login{align-items:flex-end; text-align:right;}
+.as-panel--signup{align-items:flex-start; text-align:left;}
+/* Form fields keep left-to-right reading direction regardless of which way
+   their panel's prose leans — right-aligned typed text would be genuinely
+   harder to read while filling in an email or password. */
+.as-panel--login .field input{text-align:left;}
 
 /* The active side dominates. 2.4/1 rather than v2's gentler 1.5/1: there the
    collapsed side was still full content that had to stay readable, whereas
@@ -243,6 +273,10 @@
   .auth-split{height:auto; min-height:100vh; flex-direction:column; overflow:visible;}
   .as-logo{position:static; padding:24px 20px 0;}
   .as-panel{flex:none !important; padding:40px 20px; overflow:visible; cursor:default;}
+  /* There is no seam to gather around once the panels stack — both reset to
+     the ordinary left-aligned reading direction rather than one hugging a
+     right edge that no longer sits next to anything. */
+  .as-panel--login, .as-panel--signup{align-items:stretch; text-align:left;}
   .as-form{max-width:none;}
   .as-prompt{max-width:none;}
   /* the band becomes a horizontal divider; the sheared bars have no meaning
@@ -263,6 +297,10 @@
 
 .no-js .auth-split{height:auto; min-height:100vh; flex-wrap:wrap;}
 .no-js .as-panel{flex:1 1 380px !important; padding-top:56px; padding-bottom:56px; cursor:default;}
+/* Both forms are shown in full here (see .as-form below), so there is no
+   single active side to gather toward the seam — reset to the ordinary
+   left-aligned reading direction for both. */
+.no-js .as-panel--login, .no-js .as-panel--signup{align-items:stretch; text-align:left;}
 /* both forms up, both prompts down — the reverse of the JS-driven state, and
    !important because .is-collapsed is never applied without JS but the
    :not(.is-collapsed) half of that rule pair is */
