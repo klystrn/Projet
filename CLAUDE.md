@@ -1496,6 +1496,51 @@ overlay), and reintroducing them wasn't requested. Worth knowing if a
 future ask wants that copy back — it isn't gone, `archive/v2/login.html`
 and `signup.html` still have the exact wording.
 
+**Form visual pass (Aug 2026)** — flagged directly: "the UI for the login
+and sign up page looks ugly." Three fixes, all scoped to `.auth-card` in
+`assets/auth.css` so nothing shared with the footer capture form
+(`.field`/`.role-toggle`/`.auth-submit` themselves) is touched:
+- **A real, concrete bug, not just a taste issue**: the "New to Projet?
+  Create an account" / "Already have an account? Log in" toggle is a
+  `<button>`, not an `<a>` — it has to be, since it drives the JS slide
+  rather than navigating. `site.css` only ever styled `.auth-alt a`, never
+  `.auth-alt button`, so the toggle was rendering with the browser's own
+  default button chrome (a grey bordered box) sitting incongruously next
+  to plain underlined-link text. `.auth-card .auth-alt button` now matches
+  `.auth-alt a`'s own treatment exactly.
+- **`.auth-eyebrow`** — a small mono/uppercase/accent-coloured kicker
+  ("LOG IN" / "SIGN UP") above each `h1`, the same kicker convention used
+  everywhere else on the site. The form had zero brand colour anywhere on
+  it before this; the submit button was already on-brand (`.btn-primary`
+  is ink with an orange hover, unchanged), the eyebrow is what ties the
+  card itself back to the palette.
+- Minor input polish (`.auth-card .field input`): a subtle resting shadow
+  and a hover border-colour step, so the fields read as slightly more
+  considered than bare browser-default boxes.
+
+**Background image — tuned, not replaced (Aug 2026).** Reported as "too
+blur and zoomed in." Checked before touching anything: `fluid-full.webp`/
+`.avif` is the correct, non-corrupted 2048x1159 asset (matches CLAUDE.md's
+own "Known issues" #3 record of the AVIF 4:4:4 regeneration), and at this
+stage's box size the image is being *downscaled*, not upscaled — so the
+softness isn't a resolution or encoding bug. It's the artwork's own style:
+every fluid/spectrum asset on this site (`fluid-full`, `hero-visual`,
+`spectrum` — all frames of the same family of glossy liquid renders) is a
+soft-focus, close-up abstract composition with no sharp edges anywhere by
+design, and this page shows one at full opacity across half the screen
+with no scrim or reduced-opacity treatment the way How-it-works uses the
+same family of asset. That combination is what reads as "blurry."
+Two real levers pulled, both kept modest: `.auth-bg`'s oversize went from
+`inset:-6% -6%`/`--bg-x:±4%` to `-3%`/`±2%`, cropping noticeably less of
+the actual composition so more of its own variety shows instead of one
+repeated section; and `filter:saturate(1.1) contrast(1.06)` gives the
+existing detail more definition without fabricating sharpness that isn't
+in the source. **What this can't fix**: there is no sharp/high-detail
+background asset in this repo to swap in instead — every candidate
+(`hero-visual`, `spectrum`) shares the same soft-focus family. If a crisp,
+high-detail background is wanted, that needs a new asset supplied or
+sourced, not a CSS adjustment to this one.
+
 ---
 
 **Everything from here through the next `---` describes the v2

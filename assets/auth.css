@@ -57,17 +57,24 @@
   background:var(--ink);
 }
 
+/* Tuned down from an earlier -6%/±4% pass — asked directly whether this
+   still reads as "too blurry and zoomed in." -3%/±2% crops noticeably
+   less of the actual composition (more of the swirl's own variety stays
+   visible instead of one repeat-y section), and the saturate/contrast
+   nudge is a real, if modest, lever against a soft-focus source image:
+   it can't add sharpness that isn't there, but it does make the existing
+   detail read with more definition instead of washed out. */
 .auth-bg{
-  position:absolute; inset:-6% -6%; z-index:0;
+  position:absolute; inset:-3% -3%; z-index:0;
   background-image:var(--img-auth-bg);
   background-size:cover; background-position:center;
+  filter:saturate(1.1) contrast(1.06);
   transform:translateX(var(--bg-x, 0));
   transition:transform .9s var(--ease);
   will-change:transform;
 }
-/* oversized (inset -6% each edge) so the pan below never exposes an edge */
-.auth-stage[data-mode="signup"] .auth-bg{--bg-x:-4%;}
-.auth-stage[data-mode="login"]  .auth-bg{--bg-x:4%;}
+.auth-stage[data-mode="signup"] .auth-bg{--bg-x:-2%;}
+.auth-stage[data-mode="login"]  .auth-bg{--bg-x:2%;}
 
 /* Light, not the heavy contrast-protecting scrim the earlier small-card
    version needed — the panel below is a fully opaque surface, not
@@ -75,7 +82,7 @@
    the half of the background that stays visible. */
 .auth-scrim{
   position:absolute; inset:0; z-index:1;
-  background:linear-gradient(180deg, rgba(6,6,10,.18), rgba(6,6,10,.05) 30%, rgba(6,6,10,.22));
+  background:linear-gradient(180deg, rgba(6,6,10,.22), rgba(6,6,10,.08) 30%, rgba(6,6,10,.26));
 }
 
 /* The logo sits at a fixed screen position, but which half is the white
@@ -137,8 +144,44 @@
 /* the inner content wrapper — same name, same max-width, as v2's own
    .auth-card, for the "same look as v2" ask */
 .auth-card{width:100%; max-width:420px;}
+
+/* A small mono eyebrow above the headline — asked for explicitly ("fix
+   the form design"), the plain black-button-on-white form had nothing
+   tying it back to the brand. JetBrains Mono / uppercase / accent colour
+   is the same kicker convention used everywhere else on the site. */
+.auth-eyebrow{
+  font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep);
+  display:block; margin-bottom:12px;
+}
 .auth-card h1{font-size:clamp(28px,3.4vw,38px); margin-bottom:10px;}
 .auth-lede{font-size:15.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:28px;}
+
+/* .field/.auth-submit/.role-opt themselves stay exactly as site.css
+   defines them (shared with the footer capture form) — these are
+   auth-page-only refinements layered on top, not changes to the shared
+   base rules. */
+.auth-card .field input{
+  border-color:var(--line); box-shadow:0 1px 2px rgba(20,19,15,.04);
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.auth-card .field input:hover{border-color:#c9c5b8;}
+
+/* The mode-switch prompt ("New to Projet? Create an account") is a
+   <button>, not an <a> — it has to be, since it drives the JS slide
+   rather than navigating — but site.css only ever styled .auth-alt A,
+   never .auth-alt BUTTON. That left it rendering with the browser's own
+   default button chrome (a grey bordered box) sitting oddly next to
+   plain text, which was a real, visible part of what read as "ugly."
+   Matched to .auth-alt a's own treatment so the two are indistinguishable
+   as links, whichever element either page happens to use. */
+.auth-card .auth-alt button{
+  background:none; border:none; padding:0; margin:0; cursor:pointer;
+  font:inherit; font-weight:700; color:var(--ink);
+  text-decoration:underline; text-underline-offset:3px;
+}
+.auth-card .auth-alt button:hover{color:var(--accent-deep);}
+.auth-card .auth-alt button:focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:3px;}
 
 /* ==========================================================================
    Fallbacks. Written three times over (narrow / reduced-motion / no-js),
