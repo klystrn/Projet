@@ -132,7 +132,7 @@ challenges.html     full challenge listing (nav updated for v3)
 dashboard.html      NEW in v3 — student + company dashboards
 login.html          front-end-only auth
 signup.html         front-end-only auth (?role= still prefills)
-assets/             landing.css/js + challenges.css/js + dashboard.css/js + site.css
+assets/             landing.css/js + challenges.css/js + dashboard.css/js + site.css + auth.css/js
 archive/v2/         the complete v2 site, verified-rendering snapshot
 ```
 
@@ -1200,18 +1200,123 @@ accounts aren't connected yet rather than faking a success.
 MongoDB layer are Andrei's (co-founder).** The full contract is in
 `BACKEND-HANDOFF.md` — read that before touching the auth forms.
 
-**The two pages are mirrored, not identical: `login.html` is image-left/
-form-right; `signup.html` is image-right/form-left.** Asked and confirmed.
-Both share the exact same `.auth-page{grid-template-columns:1fr 1fr}` /
-`.auth-aside` / `.auth-main` markup and CSS in `assets/site.css` — nothing
-in that CSS is order-dependent, so the mirroring is done purely by which
-element (`<aside>` vs `<main>`) comes first in each file's DOM. Don't
-"fix" this by making them consistent — the asymmetry is the point.
+**The image-aside shell is gone — REPLACED (Aug 2026) by the split-spectrum
+auth stage. "The two pages are mirrored, not identical" (image-left/
+form-right vs image-right/form-left) is SUPERSEDED and no longer true; the
+old `.auth-page`/`.auth-aside`/`.auth-quote`/`.auth-main`/`.auth-card` shell
+was deleted from `assets/site.css` outright (not left as dead code — it
+shared the `.auth-` prefix with the live rules and would have been
+misleading to read). Recoverable from git history; `archive/v2/assets/
+site.css` also still has a copy.**
+
+Explicit ask: bring back the v2 "light spectrum wave" split (see that
+section further down for the mechanic's origin and name) for these two
+pages, but change its trigger from hover to click, put sign-up permanently
+on the left and log-in permanently on the right, and make whichever mode
+the reader is in the dominant side of the screen while the other side
+collapses to just a prompt. Log in is the default mode.
+
+**One page shape, two entry points.** `login.html` and `signup.html` now
+carry byte-identical stage markup (`assets/auth.css` + `assets/auth.js`,
+new files) and differ only in which mode their `data-mode`/`is-collapsed`
+attributes start on — switching modes is a client-side transition inside
+whichever page you landed on, not a navigation to the other file. **If you
+edit one of these two pages, edit the other to match** — there is no
+templating here to do that automatically.
+
+```
+.auth-split                 the stage, id="authSplit", data-mode="login|signup"
+  .as-logo                  floats over the stage, not owned by either panel
+  .as-panel.as-panel--signup   data-mode-panel="signup" — permanently LEFT
+    .as-prompt                 shown only while this panel is collapsed
+    .as-form                   the real form — role/name/email/password
+  .as-stripe#asBars          the spectrum seam, bars built by auth.js
+  .as-panel.as-panel--login    data-mode-panel="login" — permanently RIGHT
+    .as-prompt / .as-form      same shape as the signup panel
+```
+
+**The bars are the v2 mechanic verbatim, not a rebuild.** `auth.js`'s
+`BAND_ZOOM` table and the bar-construction loop are lifted from
+`archive/v2/assets/landing.js`'s spectrum-split IIFE unchanged — same 14
+`[zoom, offsetK]` pairs, same amplitude curve, same per-bar delay. It reads
+`assets/spectrum.webp`/`.avif` directly (never removed from the live
+`assets/` folder even after v3 dropped every page that referenced them —
+see "Known issues" #6). **Regenerate that table if spectrum.webp is ever
+re-exported**, same caveat as it always carried.
+
+**Hover is gone on purpose, not an oversight.** v2 sheared the bars on
+hover and only pinned a side on click; here there is no hover state at
+all — the shear plays exactly once, as the transition into whichever mode
+was just clicked. `.auth-split[data-mode="…"] .as-bar{transform:…}` is the
+whole mechanism: one attribute switch drives both the flex-grow dominance
+swap and the bar shear together.
+
+**Two ways to trigger a switch, one focus bug caught by testing.** The
+collapsed panel is itself a click target, and its `.as-prompt` also carries
+a real `<button data-goto-mode>` so the same action is keyboard-reachable
+and announced to a screen reader. `setMode()` also moves focus into the
+newly-active form and mirrors the mode into the URL via
+`history.replaceState` (`?mode=signup` / `?mode=login`), so a reload, a
+back-button press, or a copied link lands on the mode actually being looked
+at — `replaceState`, not `pushState`, since a mode switch is not a
+destination worth an extra Back stop. The focus-move had a real bug on
+first pass: `activePanel.querySelector("input, button, select")` matched
+the panel's own `.as-prompt` button first (it sits earlier in the DOM than
+`.as-form`), and since that prompt had just become `visibility:hidden`,
+`.focus()` silently no-opped and focus was stranded on `<body>`. Fixed by
+scoping the query to `.as-form` specifically. Caught via an automated
+click-and-inspect test (see below), not by eye.
+
+**Both forms exist in both files at all times — the site's standing
+"nothing gated behind an effect that might not run" rule, applied to a
+click-driven mechanic rather than a scroll one.** `.no-js` (and only
+`.no-js` — see below) forces `.as-form{opacity:1 !important;
+visibility:visible !important; position:static !important; pointer-events:
+auto !important}` regardless of which panel's `is-collapsed` class is baked
+into the static HTML, and hides both `.as-prompt`s outright, so a visitor
+without JS gets two complete, working forms stacked on one page rather than
+one form and a permanently-unreachable prompt. Verified directly against
+computed style with a static HTML fixture carrying the `no-js` class and no
+scripts loaded at all (loading real `login.html`/`signup.html` with
+Chrome's own `--disable-javascript` flag turned out not to actually stop
+this environment's headless build from running page JS, so that path
+doesn't prove anything — the static-fixture approach is the one that
+actually isolates the CSS-only fallback state).
+
+Below 900px, the two panels stack instead of sitting side by side
+(`flex-direction:column`) and the shear itself is dropped (`.as-bar{display
+:none}`, `.as-stripe-inner` just shows the artwork as a plain horizontal
+divider) — but the click-to-switch mechanic **stays live** at this width,
+unlike the mobile treatment of every other scroll/hover effect on the
+site. This is a deliberate distinction, not an inconsistency: the "always
+show real content, never gate it behind an effect" rule targets *ambient*
+effects a visitor might never trigger (a hover, an autoplaying scroll
+scrub) — a deliberate tap on an obviously-clickable prompt is the same
+class of interaction as the `.role-toggle` radio picker or the FAQ
+accordion already elsewhere on the site, and dropping it on mobile would
+remove real functionality, not just decoration.
+
+`site.js`'s shared `[data-auth-form]` handler had to change for this to
+work: it used to do a bare `document.getElementById('authStatus')` for the
+status banner, which was safe when a page only ever had one form. With both
+forms live in one document, that returned whichever status element was
+first in the DOM regardless of which form actually submitted — the signup
+form's errors could render inside the login panel. Fixed by scoping the
+lookup to `form.parentElement.querySelector('.auth-status')` first, with
+the old global lookup kept as a fallback for any page that still has just
+one form. Verified by submitting one form with invalid input and confirming
+the other form's status element stayed empty.
+
+Also fixed in passing: the login success path's hardcoded redirect fallback
+was `business.html`, a page archived along with the rest of the old
+dual-audience site — that link had been quietly 404ing since v3 shipped.
+Now falls back to `dashboard.html`.
 
 Both pages' logo now links to `index.html` (it pointed at the chooser, which
-is archived). `signup.html` still reads `?role=` from the query string, which
-is what the landing CTAs pass. Its `localStorage["projet:mode"]` fallback is
-vestigial now that the chooser is gone — harmless, just never populated.
+is archived). `signup.html` still reads `?role=` from the query string for
+the business/builder radio default, which is what the landing CTAs pass.
+Its `localStorage["projet:mode"]` fallback is vestigial now that the
+chooser is gone — harmless, just never populated.
 
 ## Known issues / open tasks
 

@@ -152,7 +152,14 @@
   }
 
   document.querySelectorAll('[data-auth-form]').forEach(function (form) {
-    var status = document.getElementById('authStatus');
+    // Scoped to the form's own container first. The split-spectrum auth page
+    // carries BOTH forms at once (login and signup in one document), so a
+    // bare getElementById('authStatus') would route every message from both
+    // forms into whichever status banner happened to be first in the DOM —
+    // the signup form reporting its errors inside the login panel. The
+    // global lookup stays as the fallback for any single-form page.
+    var status = form.parentElement.querySelector('.auth-status') ||
+                 document.getElementById('authStatus');
     var submit = form.querySelector('[type="submit"]');
     var inputs = Array.prototype.slice.call(form.querySelectorAll('input:not([type="radio"])'));
 
@@ -221,7 +228,9 @@
           });
         })
         .then(function (data) {
-          window.location.href = data.redirect || 'business.html';
+          // business.html was archived with the rest of the dual-audience
+          // pages; this fallback had been pointing at a 404 ever since.
+          window.location.href = data.redirect || 'dashboard.html';
         })
         .catch(function (err) {
           submit.removeAttribute('aria-busy');

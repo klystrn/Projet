@@ -1,0 +1,277 @@
+/* ==========================================================================
+   Projet — the split-spectrum auth stage (login.html / signup.html)
+
+   Loaded AFTER site.css, which still owns the form internals this file
+   reuses wholesale: .field, .role-opt, .auth-status, .btn. Only the shell
+   is new — do not re-declare form styling here, it would just fork.
+
+   THE MECHANIC. This is the v2 "light spectrum wave" (archive/v2), brought
+   back on explicit instruction and reshaped for auth:
+
+     - v2 sheared on HOVER and pinned on click. Here there is NO hover
+       preview at all: the shear is the transition that plays when the
+       reader clicks the other mode. Asked for directly ("should not be a
+       hover animation, but instead become a transition animation when the
+       user clicks on the other registration mode").
+     - Sign-up owns the LEFT panel, log in the RIGHT one, permanently. That
+       supersedes the old "login.html is image-left, signup.html is
+       image-right" mirroring convention — the seam can't mean anything if
+       the two sides swap places between the two pages.
+     - The active mode is DOMINANT (flex-grow 2.4 vs 1) and shows its whole
+       form; the collapsed side shows only a prompt over its own end of the
+       spectrum gradient.
+
+   Log in is the default mode. login.html and signup.html carry the same
+   markup and differ only in the data-mode they ship with, so switching is
+   a transition inside one page rather than a navigation.
+   ========================================================================== */
+
+/* Same two-layer fallback as landing.css's own image tokens: a plain WebP
+   url() default, upgraded to an AVIF-first image-set() where supported.
+   Both files must be kept — see CLAUDE.md "Known issues" #3. */
+:root{
+  --img-spectrum:url("spectrum.webp");
+}
+@supports (background-image:image-set(url("x.avif") type("image/avif"))){
+  :root{
+    --img-spectrum:image-set(url("spectrum.avif") type("image/avif"),
+                             url("spectrum.webp") type("image/webp"));
+  }
+}
+
+/* ---------- the stage ----------
+   --stage-h is the single source of truth for every vertical measurement
+   in here, including the bars' own background math further down. They were
+   hardcoded to 100vh in v2 because that stage was always exactly 100vh;
+   routing them through one custom property instead means svh (which
+   accounts for mobile browser chrome) can be used without the bar grid
+   silently drifting out of register with the stage it sits in. */
+.auth-split{
+  --stage-h:100vh;
+  --stage-h:100svh;
+  position:relative; height:var(--stage-h); overflow:hidden;
+  display:flex; align-items:stretch;
+  background:linear-gradient(90deg, #1c0a05 0%, #0d0705 42%, #05070f 58%, #070c22 100%);
+  color:#fff;
+}
+
+/* Logo floats over the stage rather than living inside either panel — it
+   belongs to the page, not to a mode, and a panel-owned logo would slide
+   and resize on every switch. */
+.as-logo{position:absolute; top:28px; left:32px; z-index:9; display:block;}
+.as-logo img{height:24px; width:auto; display:block;}
+.as-logo:focus-visible{outline:2px solid #fff; outline-offset:6px; border-radius:4px;}
+
+/* ---------- the two panels ---------- */
+.as-panel{
+  position:relative; z-index:3; flex:1 1 0; min-width:0;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:0 clamp(24px,4vw,64px);
+  /* a form taller than a short window scrolls inside its own panel rather
+     than being clipped by the stage's overflow:hidden */
+  overflow-y:auto;
+  transition:flex-grow .85s var(--ease);
+}
+/* Seam-side clearance. The bars are deliberately wider than the stripe so
+   they fan past it (--bar-w below), and that overhang has to land on empty
+   panel margin — in v2 it sat straight over a headline until this was
+   added. Same trap here, same fix. */
+.as-panel--signup{padding-right:clamp(40px,6vw,104px);}
+.as-panel--login{padding-left:clamp(40px,6vw,104px);}
+
+/* Each side carries the spectrum end nearest it, so a collapsed panel reads
+   as its own colour rather than as empty stage. */
+.as-panel--signup{background:linear-gradient(135deg, rgba(255,91,36,.24), rgba(199,62,16,.06));}
+.as-panel--login{background:linear-gradient(225deg, rgba(47,107,255,.24), rgba(12,22,56,.1));}
+
+/* The active side dominates. 2.4/1 rather than v2's gentler 1.5/1: there the
+   collapsed side was still full content that had to stay readable, whereas
+   here it is only a prompt, so it can afford to give up much more width. */
+.auth-split[data-mode="login"] .as-panel--login{flex-grow:2.4;}
+.auth-split[data-mode="login"] .as-panel--signup{flex-grow:1;}
+.auth-split[data-mode="signup"] .as-panel--signup{flex-grow:2.4;}
+.auth-split[data-mode="signup"] .as-panel--login{flex-grow:1;}
+
+.as-panel.is-collapsed{cursor:pointer;}
+
+/* ---------- form vs prompt ----------
+   visibility, not opacity alone: a fully transparent form is still
+   focusable, so a keyboard reader would tab straight into the collapsed
+   side's invisible inputs. visibility:hidden takes it out of the tab order
+   and the accessibility tree, and the 0s-duration transition on it (delayed
+   until the fade finishes) is what keeps the fade visible on the way out. */
+.as-form, .as-prompt{
+  width:100%; opacity:1; visibility:visible;
+  transition:opacity .45s var(--ease) .18s, visibility 0s;
+}
+.as-panel.is-collapsed .as-form,
+.as-panel:not(.is-collapsed) .as-prompt{
+  opacity:0; visibility:hidden; pointer-events:none;
+  position:absolute; /* taken out of flow so the survivor centres properly */
+  transition:opacity .28s var(--ease), visibility 0s linear .28s;
+}
+
+.as-form{max-width:390px;}
+.as-eyebrow{
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600;
+  letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.7);
+  display:block; margin-bottom:14px;
+}
+.as-form h1{font-size:clamp(26px,3vw,38px); line-height:1.1; margin-bottom:8px;}
+.as-lede{font-size:14.5px; line-height:1.55; color:rgba(255,255,255,.72); margin-bottom:26px;}
+
+/* ---------- the collapsed side's prompt ---------- */
+.as-prompt{max-width:260px;}
+.as-prompt h2{font-size:clamp(20px,1.9vw,26px); line-height:1.15; margin-bottom:10px;}
+.as-prompt p{font-size:13.5px; line-height:1.5; color:rgba(255,255,255,.68); margin-bottom:20px;}
+.as-switch{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 20px; border-radius:999px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.34); background:rgba(255,255,255,.1);
+  color:#fff; font-family:'JetBrains Mono', monospace;
+  font-size:12px; font-weight:700; letter-spacing:.04em;
+  backdrop-filter:blur(8px);
+  transition:background .25s var(--ease), border-color .25s var(--ease), transform .25s var(--ease);
+}
+.as-switch:hover{background:rgba(255,255,255,.2); border-color:rgba(255,255,255,.55); transform:translateY(-2px);}
+.as-switch:focus-visible{outline:none; box-shadow:0 0 0 2px rgba(0,0,0,.5), 0 0 0 4px #fff;}
+
+/* ---------- forms on a dark ground ----------
+   site.css's .field/.role-opt were written for the old white auth card, so
+   only the colour-carrying declarations are overridden here. Layout, sizing
+   and the error-reveal behaviour all still come from site.css. */
+.auth-split .field label{color:rgba(255,255,255,.88);}
+.auth-split .field input{
+  background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.2); color:#fff;
+}
+.auth-split .field input::placeholder{color:rgba(255,255,255,.36);}
+.auth-split .field input:focus{
+  border-color:#fff; background:rgba(255,255,255,.12);
+  box-shadow:0 0 0 3px rgba(255,255,255,.18);
+}
+.auth-split .field input[aria-invalid="true"]{border-color:#ff9a5a;}
+.auth-split .field .err{color:#ffb191;}
+
+.auth-split .role-opt span{
+  border-color:rgba(255,255,255,.22); background:rgba(255,255,255,.06); color:#fff;
+}
+.auth-split .role-opt small{color:rgba(255,255,255,.6);}
+.auth-split .role-opt input:checked + span{background:#fff; border-color:#fff; color:var(--ink);}
+.auth-split .role-opt input:checked + span small{color:var(--ink-soft);}
+.auth-split .role-opt input:focus-visible + span{outline:2px solid #fff; outline-offset:2px;}
+
+.auth-split .auth-submit{background:#fff; color:var(--ink); border-color:#fff;}
+.auth-split .auth-submit:hover{background:rgba(255,255,255,.86); border-color:rgba(255,255,255,.86);}
+.auth-split .auth-submit:focus-visible{box-shadow:0 0 0 2px rgba(0,0,0,.5), 0 0 0 4px #fff;}
+
+.auth-split .auth-status{
+  background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.22); color:#fff;
+}
+.auth-split .auth-status.err{background:rgba(255,154,90,.16); border-color:rgba(255,154,90,.45); color:#ffc9a8;}
+.auth-split .auth-status.pending{background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.22); color:rgba(255,255,255,.86);}
+
+.as-alt{margin-top:20px; font-size:13px; color:rgba(255,255,255,.6);}
+.as-alt button{
+  background:none; border:none; padding:0; cursor:pointer; color:#fff;
+  font:inherit; font-weight:700; text-decoration:underline; text-underline-offset:3px;
+}
+.as-alt button:focus-visible{outline:2px solid #fff; outline-offset:3px; border-radius:3px;}
+
+/* ==========================================================================
+   The light spectrum wave — the seam between the two panels
+   ========================================================================== */
+.as-stripe{
+  --stripe-w:clamp(74px,6.6vw,112px);
+  /* 1.7x, not more: the fan has to clear the band without reaching the copy
+     (see the seam-side padding on .as-panel above) */
+  --bar-w:calc(var(--stripe-w) * 1.7);
+  position:relative; z-index:5; flex:0 0 var(--stripe-w);
+  align-self:stretch; overflow:visible; pointer-events:none;
+}
+/* Saturated tint confined to the stripe itself. Spread across the whole
+   stage the same colours land on their darkest stops right where the band
+   sits and read as near-black, which is the bug this fixes: any sliver the
+   bars don't cover (mask fade at their edges, sub-pixel gaps) has to read as
+   part of the scene, not as a stray black rectangle. */
+.as-stripe-inner{
+  position:absolute; inset:0;
+  background:linear-gradient(90deg, #3d160a 0%, #241030 50%, #0d1442 100%);
+  transition:filter .8s var(--ease);
+}
+.auth-split[data-mode="signup"] .as-stripe-inner{filter:saturate(1.16) brightness(1.08);}
+
+.as-bar{
+  position:absolute; left:50%;
+  width:var(--bar-w);
+  height:calc(var(--stage-h) / var(--n) + 1px);   /* +1px kills sub-pixel seams */
+  top:calc(var(--i) * var(--stage-h) / var(--n));
+  background-image:var(--img-spectrum);
+  /* --zx/--ox (set per bar in auth.js) zoom into and re-centre on just that
+     row's slice of the colourful diagonal band. spectrum.webp is mostly
+     black margin either side of that band, and because the band is diagonal
+     its centre drifts by most of the image's width between the top bar and
+     the bottom one — so no single fixed crop works for all of them, and
+     squeezing the whole image into each bar (the original v2 attempt) showed
+     mostly flat black. The table is sampled from this exact file. */
+  background-size:calc(var(--bar-w) * var(--zx, 1)) var(--stage-h);
+  background-position:calc(var(--bar-w) * var(--ox, 0)) calc(-1 * var(--i) * var(--stage-h) / var(--n));
+  background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  mask-image:linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  transform:translateX(-50%);
+  transition:transform .85s var(--ease);
+  transition-delay:var(--delay, 0ms);
+  will-change:transform;
+}
+/* THE TRANSITION. Bars shear away from whichever side is active, each by its
+   own amplitude and its own delay, so the switch reads as a wave travelling
+   down the seam rather than a rigid block sliding sideways. */
+.auth-split[data-mode="signup"] .as-bar{transform:translateX(calc(-50% + var(--amp, 24px)));}
+.auth-split[data-mode="login"]  .as-bar{transform:translateX(calc(-50% - var(--amp, 24px)));}
+
+/* ==========================================================================
+   Fallbacks. Written three times over (narrow / reduced-motion / no-js) to
+   match the convention the rest of this site already uses for every effect.
+
+   The no-js case is the load-bearing one: with no JS the mode can never
+   change, so BOTH panels expand and BOTH forms render in full. A visitor
+   without JS gets two working forms rather than one working form and one
+   permanently unreachable prompt — the site's standing rule that nothing is
+   ever gated behind an effect that might not run.
+   ========================================================================== */
+@media (max-width:900px){
+  .auth-split{height:auto; min-height:100vh; flex-direction:column; overflow:visible;}
+  .as-logo{position:static; padding:24px 20px 0;}
+  .as-panel{flex:none !important; padding:40px 20px; overflow:visible; cursor:default;}
+  .as-form{max-width:none;}
+  .as-prompt{max-width:none;}
+  /* the band becomes a horizontal divider; the sheared bars have no meaning
+     across a stacked layout, so the stripe just shows the artwork itself */
+  .as-stripe{flex:none; height:clamp(56px,9vh,80px); width:100%; overflow:hidden; align-self:auto;}
+  .as-bar{display:none;}
+  .as-stripe-inner{
+    background-image:var(--img-spectrum); background-size:cover; background-position:center;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  /* site.css's global guard already flattens every transition-duration; this
+     only drops the will-change hint that goes with a transform that will now
+     never actually animate. */
+  .as-bar{will-change:auto;}
+}
+
+.no-js .auth-split{height:auto; min-height:100vh; flex-wrap:wrap;}
+.no-js .as-panel{flex:1 1 380px !important; padding-top:56px; padding-bottom:56px; cursor:default;}
+/* both forms up, both prompts down — the reverse of the JS-driven state, and
+   !important because .is-collapsed is never applied without JS but the
+   :not(.is-collapsed) half of that rule pair is */
+.no-js .as-form{
+  opacity:1 !important; visibility:visible !important;
+  position:static !important; pointer-events:auto !important;
+}
+.no-js .as-prompt{display:none !important;}
+.no-js .as-stripe{flex:0 0 100%; height:64px; order:2; overflow:hidden;}
+.no-js .as-bar{display:none;}
+.no-js .as-stripe-inner{background-image:var(--img-spectrum); background-size:cover; background-position:center;}
+.no-js .as-alt{display:none;}
