@@ -445,24 +445,51 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 .ch-head h2{font-size:clamp(30px,3.8vw,44px); margin:14px 0 12px;}
 .ch-head p{font-size:16.5px; line-height:1.6; color:var(--ink-soft);}
 
-/* the challenges, as one equally-weighted grid — canvas option N's "ticket
-   rail" concept, minus the horizontal-scroll mechanic itself (removed on
-   request; the grid below is what replaced it). Every brief is still the
-   same .ch-ticket: a body plus a perforated stub with the countdown punched
-   into it — the ticket shape is load-bearing, not decoration.
+/* the challenges, as one equally-weighted horizontally scrolling rail —
+   canvas option N, "ticket rail". Every brief is the same .ch-ticket: a
+   body plus a perforated stub with the countdown punched into it.
 
-   challenges.html's own card signature is a white tile with a pill pair on
-   top, a thin orange progress bar and a full-width dark "View brief" button;
-   none of those four appear here, so the homepage section and the listing
-   page can never read as the same component rendered twice, even now that
-   both are plain wrapping grids rather than one being a horizontal rail. */
+   The ticket shape is load-bearing, not decoration. challenges.html's own
+   card signature is a white tile with a pill pair on top, a thin orange
+   progress bar and a full-width dark "View brief" button; none of those
+   four appear here, so the homepage section and the listing page can never
+   read as the same component rendered twice.
+
+   The rail is a NATIVE overflow-x:auto scroller — it works with touch, with
+   a trackpad, with the keyboard (the container is focusable) and with JS
+   disabled. The arrow buttons and position bar are enhancement on top. */
 .ch-rail{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(290px,1fr));
-  gap:18px;
+  /* the gutter that re-aligns the rail's first ticket with .wrap's content
+     edge while the row itself still runs to the true viewport edges.
+     Computed from 100% (the section's own width) rather than 100vw
+     deliberately — vw includes the scrollbar gutter, which is exactly what
+     caused the horizontal-overflow bug documented in CLAUDE.md. */
+  --rail-inset:max(32px, calc((100% - var(--maxw)) / 2 + 32px));
+  display:flex; gap:18px; align-items:stretch;
+  overflow-x:auto; overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity; scroll-behavior:smooth;
+  padding:8px var(--rail-inset) 26px;
+  /* MUST match the padding. Without it, scroll-snap-align:start on the
+     first ticket resolves against the scrollport's padding edge, so the
+     browser silently scrolls the rail to scrollLeft:132 on load to "snap"
+     the first card — the row arrives already nudged off its start. */
+  scroll-padding-inline:var(--rail-inset);
+  /* the scrollbar itself is redundant next to the position bar below */
+  scrollbar-width:none;
+  cursor:grab;
 }
+.ch-rail::-webkit-scrollbar{display:none;}
+.ch-rail:focus-visible{outline:2px solid var(--ink); outline-offset:-4px; border-radius:var(--radius);}
+/* mouse-drag panning (see landing.js) — touch/trackpad already scroll the
+   native container for free and are untouched by this. Snap is suspended
+   for the duration so it can't fight the drag mid-gesture; removing the
+   class on release restores the base rule's scroll-snap-type. */
+.ch-rail.is-dragging{cursor:grabbing; scroll-snap-type:none; user-select:none;}
+.ch-rail.is-dragging .ch-ticket{pointer-events:none;}
 
 .ch-ticket{
-  position:relative; display:flex; cursor:pointer;
+  position:relative; flex:0 0 clamp(290px, 27vw, 340px); display:flex;
+  scroll-snap-align:start; cursor:pointer;
   background:#fff; border:1px solid var(--line); border-radius:16px;
   box-shadow:0 14px 30px -26px rgba(20,19,15,.3);
   transition:transform .22s var(--ease), box-shadow .22s var(--ease);
@@ -530,10 +557,27 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
 }
 
-/* what's left of the old rail-controls row, now that the arrows and
-   position bar (which only ever made sense next to a horizontal scroller)
-   are gone: just the "View all challenges" link, still real content. */
-.ch-rail-controls{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:26px;}
+/* rail controls: enhancement only, hidden outright with no JS (see the
+   .no-js block further down) rather than left on screen as dead buttons */
+.ch-rail-controls{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.ch-rail-btn{
+  width:44px; height:44px; flex:none; border-radius:50%; cursor:pointer;
+  border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color .2s var(--ease), background .2s var(--ease), opacity .2s var(--ease);
+}
+.ch-rail-btn:hover{border-color:var(--ink);}
+.ch-rail-btn:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.ch-rail-btn[disabled]{opacity:.35; cursor:default;}
+.ch-rail-btn[disabled]:hover{border-color:var(--line);}
+.ch-rail-track{flex:1; min-width:80px; height:3px; border-radius:99px; background:var(--line); position:relative; overflow:hidden;}
+/* driven by transform, not width — compositor-only, so dragging the rail
+   never triggers layout on every frame */
+.ch-rail-track i{
+  position:absolute; inset:0; border-radius:99px; background:var(--ink);
+  transform-origin:left center; transform:scaleX(var(--rail-progress,.3));
+  transition:transform .18s var(--ease);
+}
 .ch-viewall{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:13px 20px; border-radius:999px;
@@ -996,15 +1040,22 @@ footer{position:relative; background:var(--ink); color:#fff; padding:56px 0 34px
   [data-reveal]{opacity:1 !important; transform:none !important;}
 }
 
-/* ---------- ticket-grid fallbacks ----------
-   The grid itself needs nothing here now that it's no longer a scroller —
-   only the modal (which can't open without JS: native <dialog>.showModal()
-   is a JS call) needs a fallback. Every ticket already shows company/title/
-   description/deadline inline, so hiding the button rather than leaving a
-   dead one on screen is the same contract as .no-js .cl-view-brief on
-   challenges.html. */
+/* ---------- ticket-rail fallbacks ----------
+   The rail scrolls natively, so no-js loses only the arrows and the
+   position bar. Hide exactly those — NOT the whole control row, which also
+   carries the "View all challenges" link; that is real content and has to
+   survive. Reduced motion keeps the rail but drops the smooth-scroll
+   easing, since an arrow press would otherwise animate a long glide. */
+.no-js .ch-rail-btn, .no-js .ch-rail-track{display:none;}
+/* the modal can't open without JS (native <dialog>.showModal() is a JS
+   call); every ticket already shows company/title/description/deadline
+   inline, so hiding this rather than leaving a dead button is the same
+   contract as .no-js .cl-view-brief on challenges.html. */
 .no-js .ch-view-btn{display:none;}
 .no-js .ch-ticket{cursor:default;}
+@media (prefers-reduced-motion: reduce){
+  .ch-rail{scroll-behavior:auto;}
+}
 
 /* ---------- how-it-works pin fallbacks ----------
    Reduced motion and no-js both get the plain stacked list rather than a

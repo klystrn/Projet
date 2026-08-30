@@ -262,20 +262,18 @@
        any other, so "featured" describes the whole set rather than singling
        one out.
 
-       Canvas option N, "ticket rail": each brief is shaped like a torn
-       ticket (body + perforated stub with the countdown punched into it).
-       The shape is doing real work beyond decoration — it keeps this
-       section from reading as a second copy of challenges.html, whose card
-       signature is a white tile with a pill pair on top, a thin progress
-       bar and a full-width "View brief" button. None of those four appear
-       here.
+       Canvas option N, "ticket rail": a horizontally scrolling row where
+       each brief is shaped like a torn ticket (body + perforated stub with
+       the countdown punched into it). The shape is doing real work beyond
+       decoration — it keeps this section from reading as a second copy of
+       challenges.html, whose card signature is a white tile with a pill
+       pair on top, a thin progress bar and a full-width "View brief"
+       button. None of those four appear here.
 
-       The horizontal-scroll mechanic this rail originally used (native
-       overflow-x:auto, scroll-snap, arrow buttons + a position bar, mouse
-       drag-to-scroll) was removed on request — the tickets are now a plain
-       wrapping grid, same layout shape as challenges.html's own .cl-grid.
-       The ticket shape/perforation/stub stayed; only the "ride a rail"
-       interaction went. -->
+       The rail is a native overflow-x:auto scroller with scroll-snap, so it
+       works with the keyboard, with touch, and with JS disabled; the arrows
+       and the position bar below are enhancement only and are hidden
+       outright when JS never runs. -->
   <section class="challenges" id="challenges">
     <div class="wrap">
       <!-- subsection 1: text -->
@@ -293,21 +291,22 @@
         Next challenge closes in
         <b><span data-cd="d">04</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</b>
       </div>
+    </div>
 
-      <!-- subsection 3: the tickets, now a plain wrapping grid — was
-           deliberately OUTSIDE .wrap so the horizontal rail could run past
-           the right edge of the content column; that only made sense for a
-           scrolling row, so it moved back inside .wrap alongside everything
-           else once the scroll mechanic was removed.
+    <!-- subsection 3: the rail itself. Deliberately OUTSIDE .wrap so the row
+         can run past the right edge of the content column and read as an
+         ongoing feed rather than a closed set of six; its own padding
+         re-aligns the first ticket with the content edge.
 
-           Each ticket carries its OWN data-reveal (was one data-reveal on
-           the rail itself, fading in as a single block) so they arrive one
-           after another instead of all at once — a slower, more deliberate
-           entrance was asked for specifically. Delays are wider than the
+         Each ticket carries its OWN data-reveal now (was one data-reveal on
+         the rail itself, fading in as a single block) so they arrive one
+         after another instead of all at once — a slower, more deliberate
+         entrance was asked for specifically. Delays are wider than the
          hero's own stagger (.08s steps here vs ~.06s there) since six
          tickets spread over the same tight interval as three hero lines
          would read as simultaneous, not sequential. -->
-      <div class="ch-rail" id="chRail">
+    <div class="ch-rail" id="chRail"
+         tabindex="0" role="group" aria-label="Featured challenges, scrollable">
       <div class="ch-ticket" data-reveal
         data-brief-company="Anchorpoint" data-brief-discipline="Engineering"
         data-brief-title="Ship a data pipeline for churn signals"
@@ -427,9 +426,15 @@
           <span class="ch-stub-disc" aria-hidden="true">Product</span>
         </span>
       </div>
-      </div>
+    </div>
 
-      <div class="ch-rail-controls">
+    <div class="wrap">
+      <!-- Enhancement only: the rail above already scrolls natively. .no-js
+           hides this whole row rather than leaving dead controls on screen. -->
+      <div class="ch-rail-controls" id="chRailControls">
+        <button class="ch-rail-btn" type="button" data-rail-dir="-1" aria-label="Previous challenges">&#8592;</button>
+        <button class="ch-rail-btn" type="button" data-rail-dir="1" aria-label="Next challenges">&#8594;</button>
+        <div class="ch-rail-track" aria-hidden="true"><i id="chRailFill"></i></div>
         <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
       </div>
       <p class="ch-note">Sample briefs, not live listings. Real challenges appear here once the API is connected.</p>
