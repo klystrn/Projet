@@ -16,53 +16,25 @@
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/auth.css">
 <meta name="theme-color" content="#14130f">
 <script>document.documentElement.classList.remove("no-js");</script>
 </head>
 <body>
 
 <!--
-  THE SPLIT-SPECTRUM AUTH STAGE. login.html and signup.html carry identical
-  markup and differ ONLY in the data-mode below and which panel ships with
-  .is-collapsed — switching modes is a transition inside one page, not a
-  navigation, so both forms have to be present in both files. If you edit
-  one of these two pages, edit the other to match.
-
-  Sign-up is permanently the LEFT panel and log in permanently the RIGHT
-  one (swapped back to this, Aug 2026, after a spell with login on the
-  left — see assets/auth.css's file-header comment for the full flip-flop).
-  That supersedes the older "login is image-left, signup is image-right"
-  mirroring: the spectrum seam can't mean anything if the two sides trade
-  places between the two pages.
-
-  Each panel's content hugs the seam rather than sitting flush against the
-  page's outer edge: the left (signup) panel's text and controls are
-  right-aligned, the right (login) panel's are left-aligned, so both sit
-  close to the spectrum rather than both defaulting to the same physical
-  side. See the "hugs the seam" rule in assets/auth.css if this is ever
-  touched again — it is desktop-only, same convention as the How-it-works
-  flow-rail's own right-alignment further up the site.
+  THE V2 IMAGE-ASIDE AUTH SHELL. Restored (Aug 2026) in place of the
+  split-spectrum stage that briefly replaced it — see the comment above
+  .auth-page in assets/site.css for the full history and what's archived
+  where. login.html and signup.html carry mirrored layouts (image aside on
+  opposite sides) rather than identical markup, matching how this shell
+  worked in v2: login's aside is on the left, signup's is on the right.
 -->
-<div class="auth-split" id="authSplit" data-mode="signup">
+<div class="auth-page">
 
-  <a href="index.html" class="as-logo" aria-label="Projet home">
-    <img src="assets/logo-white.png" alt="Projet" width="267" height="88">
-  </a>
-
-  <!-- ============================ LEFT: SIGN UP ============================ -->
-  <section class="as-panel as-panel--signup" data-mode-panel="signup" aria-label="Sign up">
-
-    <div class="as-prompt">
-      <h2>New here?</h2>
-      <p>Create an account and start proving what you can build.</p>
-      <button type="button" class="as-switch" data-goto-mode="signup">Sign up</button>
-    </div>
-
-    <div class="as-form">
-      <span class="as-eyebrow">Sign up</span>
+  <main class="auth-main">
+    <div class="auth-card">
       <h1>Create your account</h1>
-      <p class="as-lede">One account, whichever side of the challenge you're on.</p>
+      <p class="auth-lede">One account, whichever side of the challenge you're on.</p>
 
       <!-- Populated by site.js from the API response (or a network failure). -->
       <div class="auth-status" role="status" aria-live="polite"></div>
@@ -108,70 +80,26 @@
         <button type="submit" class="btn btn-primary auth-submit">Create account</button>
       </form>
 
-      <p class="as-alt">Already have an account?
-        <button type="button" data-goto-mode="login">Log in</button>
-      </p>
+      <p class="auth-alt">Already have an account? <a href="login.html">Log in</a></p>
+      <p class="auth-fineprint">By creating an account you agree to Projet's terms and privacy policy.</p>
     </div>
+  </main>
 
-  </section>
-
-  <!-- ==================== THE LIGHT SPECTRUM WAVE (the seam) ====================
-       Bars are built by auth.js and shear away from whichever side is active.
-       aria-hidden: it is pure artwork, and the mode it reflects is already
-       announced by the panels themselves. -->
-  <div class="as-stripe" id="asBars" aria-hidden="true">
-    <div class="as-stripe-inner"></div>
-  </div>
-
-  <!-- ============================ RIGHT: LOG IN ============================ -->
-  <section class="as-panel as-panel--login is-collapsed" data-mode-panel="login" aria-label="Log in">
-
-    <div class="as-prompt">
-      <h2>Already with us?</h2>
-      <p>Pick up where your challenges left off.</p>
-      <button type="button" class="as-switch" data-goto-mode="login">Log in</button>
+  <aside class="auth-aside">
+    <img class="texture" src="assets/fluid.webp" alt="">
+    <a href="index.html" class="logo">
+      <img class="logo-img" src="assets/logo-white.png" alt="Projet" width="267" height="88">
+    </a>
+    <p class="auth-quote">Where real work is the strongest hiring signal.</p>
+    <div class="auth-stats">
+      <span>Post a challenge</span>
+      <span>Compete on real work</span>
+      <span>Get hired</span>
     </div>
-
-    <div class="as-form">
-      <span class="as-eyebrow">Log in</span>
-      <h1>Welcome back</h1>
-      <p class="as-lede">Pick up where your challenges left off.</p>
-
-      <div class="auth-status" role="status" aria-live="polite"></div>
-
-      <!--
-        FRONT-END ONLY. No credentials are sent anywhere yet.
-        Backend hook: site.js reads data-endpoint and POSTs JSON
-        {email, password} to it. Point it at the real route
-        (e.g. /api/auth/login) and the form starts working as-is.
-      -->
-      <form id="loginForm" data-auth-form data-endpoint="" novalidate>
-
-        <div class="field">
-          <label for="li-email">Email</label>
-          <input id="li-email" name="email" type="email" autocomplete="email" required>
-          <span class="err">Please enter a valid email address.</span>
-        </div>
-
-        <div class="field">
-          <label for="li-password">Password</label>
-          <input id="li-password" name="password" type="password" autocomplete="current-password" required>
-          <span class="err">Please enter your password.</span>
-        </div>
-
-        <button type="submit" class="btn btn-primary auth-submit">Log in</button>
-      </form>
-
-      <p class="as-alt">New to Projet?
-        <button type="button" data-goto-mode="signup">Create an account</button>
-      </p>
-    </div>
-
-  </section>
+  </aside>
 
 </div>
 
 <script src="assets/site.js"></script>
-<script src="assets/auth.js"></script>
 </body>
 </html>

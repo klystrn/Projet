@@ -1386,20 +1386,69 @@ accounts aren't connected yet rather than faking a success.
 MongoDB layer are Andrei's (co-founder).** The full contract is in
 `BACKEND-HANDOFF.md` — read that before touching the auth forms.
 
-**The image-aside shell is gone — REPLACED (Aug 2026) by the split-spectrum
-auth stage. "The two pages are mirrored, not identical" (image-left/
-form-right vs image-right/form-left) is SUPERSEDED and no longer true; the
-old `.auth-page`/`.auth-aside`/`.auth-quote`/`.auth-main`/`.auth-card` shell
-was deleted from `assets/site.css` outright (not left as dead code — it
-shared the `.auth-` prefix with the live rules and would have been
-misleading to read). Recoverable from git history; `archive/v2/assets/
-site.css` also still has a copy.**
+**The v2 image-aside shell is BACK (Aug 2026) — this is the current, live
+design.** It briefly got replaced by a split-spectrum auth stage (built,
+iterated on for several rounds, then explicitly reverted — the whole
+history is kept below, marked superseded, since it's the kind of design
+this project has flip-flopped on before and might again). The request
+that reverted it: *"Archive the existing login/sign up page. I want to
+revert back to the same page from v2."*
 
-Explicit ask: bring back the v2 "light spectrum wave" split (see that
-section further down for the mechanic's origin and name) for these two
-pages, but change its trigger from hover to click, and make whichever
-mode the reader is in the dominant side of the screen while the other
-side collapses to just a prompt. Log in is the default mode.
+"The two pages are mirrored, not identical" is true again: `login.html`
+puts `.auth-aside` on the left and `.auth-main` on the right;
+`signup.html` mirrors it, aside on the right. Each page's own markup
+differs accordingly (unlike the split-spectrum stage's one shared shape),
+matching how this shell always worked in v2.
+
+The split-spectrum stage's files — `login.html`, `signup.html`,
+`assets/auth.css`, `assets/auth.js` (the versions that carried the
+`.auth-split`/`.as-panel`/`.as-stripe` markup and mechanic described
+below) — are archived at `archive/split-spectrum-auth/` rather than
+deleted, in case that direction is wanted again later. The live
+`login.html`/`signup.html` at the repo root are new files with the v2
+shell markup; they load `assets/site.css` + `assets/site.js` only, no
+`auth.css`/`auth.js`.
+
+`.auth-page`/`.auth-aside`/`.auth-quote`/`.auth-main`/`.auth-card` are
+restored in `assets/site.css` (see the comment above them there for the
+full reasoning) — pulled from `archive/v2/assets/site.css`, which still
+had the exact pre-split-spectrum version, since that's what "the same
+page from v2" means literally. **Not** pulled from there: `.role-toggle`,
+`.field`, `.auth-submit`, `.auth-status` and friends, which never
+actually left `assets/site.css` (the split-spectrum stage reused them
+as-is, just re-coloured for its dark ground) and have since picked up
+real fixes the v2 archive copies don't have — the animated error/status
+reveal, the visible `.role-toggle` legend, focus-visible rings. Reusing
+the live versions of those means this revert restores the v2 *layout*
+without regressing any of that. Also not restored: the archived
+`.auth-aside .logo-word`/`.logo-mark::after` overrides, which target a
+CSS-drawn logotype neither `login.html` nor `signup.html` actually uses
+(both put a plain `<img class="logo-img">` inside `.auth-aside`) — dead
+rules in this context, left out rather than carried forward unreachable.
+The signup role toggle also keeps its current, better behaviour rather
+than reverting that too: no default-checked radio, and no
+`localStorage["projet:mode"]` fallback (see "The highlight came back
+anyway" below for why that was removed) — only the visual shell reverted,
+not the bug fixes layered on top of the form logic since.
+
+---
+
+**Everything below this line describes the split-spectrum auth stage,
+which is now retired — archived at `archive/split-spectrum-auth/`, not
+live. Kept in full because this project has flip-flopped on the auth
+shell's design before (v2 shell -> split-spectrum -> back to v2 shell)
+and the reasoning captured here (the BAND_ZOOM sampling approach, the
+seam-alignment mechanics, the panel-side/colour flip-flops, the
+accessibility fixes) is exactly the kind of thing that's expensive to
+re-derive if a future request asks for the split-spectrum direction
+again.**
+
+Explicit ask that led to building it in the first place: bring back the
+v2 "light spectrum wave" split (see that section further down for the
+mechanic's origin and name) for these two pages, but change its trigger
+from hover to click, and make whichever mode the reader is in the
+dominant side of the screen while the other side collapses to just a
+prompt. Log in is the default mode.
 
 **Panel sides have now flipped twice (Aug 2026) — this is the current,
 correct layout.** Originally built sign-up-left/log-in-right; a later

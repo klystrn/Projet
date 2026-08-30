@@ -242,16 +242,60 @@ nav.links a:hover{color:var(--ink);}
 .nav-auth:hover{color:var(--ink);}
 
 /* ---------- AUTH PAGES (login / signup) ----------
-   The SHELL for these two pages now lives in assets/auth.css (the
-   split-spectrum stage). What stays here is everything inside the form —
-   .role-toggle, .field, .auth-submit, .auth-status and friends — which
-   auth.css reuses as-is and only re-colours for its dark ground.
+   REVERTED BACK to the v2 image-aside shell (Aug 2026), on explicit
+   request: "Archive the existing login/sign up page. I want to revert
+   back to the same page from v2." The split-spectrum stage (assets/
+   auth.css + assets/auth.js, login.html/signup.html's own
+   .auth-split/.as-panel/.as-stripe markup) is archived at
+   archive/split-spectrum-auth/ rather than deleted, in case it's wanted
+   again. login.html and signup.html no longer load auth.css/auth.js.
 
-   The old shell (.auth-page / .auth-aside / .auth-quote / .auth-main /
-   .auth-card, an image-aside beside a white form card) was deleted rather
-   than left as dead code: it shared the .auth- prefix with the live rules
-   below, which made it genuinely misleading to read. It is recoverable from
-   git history, and archive/v2/assets/site.css still carries a copy. */
+   .auth-page/.auth-aside/.auth-quote/.auth-main/.auth-card below are the
+   restored shell — pulled from archive/v2/assets/site.css, which still
+   had the exact pre-split-spectrum version. What was NOT pulled from
+   there: .role-toggle, .field, .auth-submit, .auth-status and friends,
+   which never left this file (the split-spectrum stage reused them
+   as-is, just re-coloured for its dark ground) and have since picked up
+   real fixes since v2 — the animated error/status reveal, the visible
+   .role-toggle legend, the focus-visible rings — that the archived v2
+   copies of the same classes don't have. Reusing the live versions here
+   means this revert gets the v2 LAYOUT back without regressing any of
+   that. Also deliberately dropped: the archived .auth-aside
+   .logo-word/.logo-mark::after overrides — dead in this context, since
+   both v2 login.html and signup.html put a plain <img class="logo-img">
+   inside .auth-aside, never the CSS-drawn .logo-word/.logo-mark span
+   pair those two rules target. */
+
+.auth-page{min-height:100vh; display:grid; grid-template-columns:1fr 1fr;}
+@media (max-width:900px){ .auth-page{grid-template-columns:1fr; min-height:auto;} }
+
+.auth-aside{
+  position:relative; overflow:hidden; color:#fff; padding:48px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  background:var(--ink);
+}
+.auth-aside img.texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.9; z-index:0;}
+.auth-aside::after{
+  content:''; position:absolute; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(10,16,42,.62), rgba(10,16,42,.42) 45%, rgba(10,16,42,.72));
+}
+/* :not(img) matters — lifting the texture to z-index 2 as well would put it
+   back on top of the scrim and undo the contrast fix */
+.auth-aside > *:not(img){position:relative; z-index:2;}
+.auth-quote{font-size:clamp(22px,2.4vw,30px); font-weight:900; line-height:1.16; letter-spacing:-.02em; max-width:15ch;}
+.auth-aside .auth-stats{display:flex; gap:22px; flex-wrap:wrap; font-family:'JetBrains Mono'; font-size:12px; color:rgba(255,255,255,.72);}
+.auth-aside .auth-stats b{color:#fff;}
+@media (max-width:900px){
+  .auth-aside{padding:26px 20px; min-height:210px; gap:26px;}
+  .auth-quote{max-width:none;}
+  .auth-aside .auth-stats{display:none;}
+}
+
+.auth-main{display:flex; align-items:center; justify-content:center; padding:48px 32px;}
+@media (max-width:640px){ .auth-main{padding:34px 20px;} }
+.auth-card{width:100%; max-width:420px;}
+.auth-card h1{font-size:clamp(28px,3.4vw,38px); margin-bottom:10px;}
+.auth-lede{font-size:15.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:28px;}
 
 .sr-only{
   position:absolute; width:1px; height:1px; padding:0; margin:-1px;
