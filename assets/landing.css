@@ -737,14 +737,16 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(255,255,255,.82);
 }
 
-/* the pin: desktop only. .flow-scroll gives ~130vh of scroll per beat, now
-   4 beats rather than 5 (the recap beat is gone — see index.html), so
-   520vh; .flow-stage sticks for the whole range while landing.js maps
-   scroll progress to which beat is showing. top:0 (not offset for the nav)
-   matches the nav's own always-opaque background — it stays legible over
-   the pinned stage without a gap above it. */
+/* the pin: desktop only. Raised from 520vh (asked explicitly: a fast
+   trackpad/mouse scroll could blow through the whole 4-step reveal in a
+   couple of seconds) to 720vh — ~180vh of scroll per beat instead of
+   ~130vh, so a normal-speed scroll spends noticeably longer on each step
+   before the next one takes over. .flow-stage sticks for the whole range
+   while landing.js maps scroll progress to which beat is showing. top:0
+   (not offset for the nav) matches the nav's own always-opaque background
+   — it stays legible over the pinned stage without a gap above it. */
 @media (min-width:901px){
-  .flow-scroll{height:520vh;}
+  .flow-scroll{height:720vh;}
   .flow-stage{position:sticky; top:0; height:100vh; display:grid; grid-template-columns:3fr 5fr; overflow:hidden;}
 }
 
