@@ -74,6 +74,10 @@
   box-shadow:0 14px 40px -28px rgba(20,19,15,.28);
   transition:transform .25s var(--ease), box-shadow .25s var(--ease);
 }
+/* .cl-card's own display:flex above beats the UA [hidden]{display:none}
+   rule regardless of specificity once the filter sets .hidden on a card
+   (same trap as dashboard.html's .dp-empty — see CLAUDE.md). */
+.cl-card[hidden]{display:none;}
 .cl-card:hover{
   transform:translateY(-3px);
   box-shadow:0 20px 44px -24px rgba(20,19,15,.32);

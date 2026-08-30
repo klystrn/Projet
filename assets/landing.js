@@ -288,6 +288,27 @@
     apply(false);
   })();
 
+  /* ---------------- final CTA — hidden once signed in ----------------
+     No real auth exists yet, so this is a front-end seam matching the
+     project's existing conventions (localStorage["projet:audience"],
+     dashboard.html's ?view=): reads localStorage["projet:loggedIn"], with
+     a ?loggedin=1 / ?loggedin=0 query param so it can actually be tested
+     without a backend. Defaults to signed-out (CTA visible) so nothing
+     changes for a real visitor until real auth exists. challenges.html has
+     its own separate .cl-cta and is untouched by this. */
+  (function () {
+    var final = document.querySelector(".final");
+    if (!final) return;
+    var STORE = "projet:loggedIn";
+    var params = new URLSearchParams(window.location.search);
+    if (params.has("loggedin")) {
+      try { localStorage.setItem(STORE, params.get("loggedin") === "1" ? "1" : "0"); } catch (e) { /* private mode */ }
+    }
+    var loggedIn = false;
+    try { loggedIn = localStorage.getItem(STORE) === "1"; } catch (e) { /* private mode */ }
+    if (loggedIn) final.hidden = true;
+  })();
+
   /* ---------------- hero count-up ---------------- */
   (function () {
     var nums = document.querySelectorAll(".hero-stat-row b");
