@@ -16,70 +16,133 @@
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/auth.css">
 <meta name="theme-color" content="#14130f">
 <script>document.documentElement.classList.remove("no-js");</script>
 </head>
 <body>
 
 <!--
-  THE V2 IMAGE-ASIDE AUTH SHELL. Restored (Aug 2026) in place of the
-  split-spectrum stage that briefly replaced it — see the comment above
-  .auth-page in assets/site.css for the full history and what's archived
-  where. login.html and signup.html carry mirrored layouts (image aside on
-  opposite sides) rather than identical markup, matching how this shell
-  worked in v2: login's aside is on the left, signup's is on the right.
+  THE FULL-BLEED AUTH STAGE. login.html and signup.html carry identical
+  markup and differ ONLY in the data-mode below — switching modes is a
+  transition inside one page, not a navigation, so both forms have to be
+  present in both files. If you edit one of these two pages, edit the
+  other to match.
+
+  .auth-panel is a full-height column exactly half the stage's width
+  (same proportions as v2's own two-column grid) that slides to the
+  opposite half on a mode switch; .auth-bg behind it is the full-bleed
+  fluid background, panning a smaller amount in the same direction.
 -->
-<div class="auth-page">
+<div class="auth-stage" id="authStage" data-mode="login">
 
-  <aside class="auth-aside">
-    <img class="texture" src="assets/fluid.webp" alt="">
-    <a href="index.html" class="logo">
-      <img class="logo-img" src="assets/logo-white.png" alt="Projet" width="267" height="88">
-    </a>
-    <p class="auth-quote">Where businesses with problems meet builders with potential.</p>
-    <div class="auth-stats">
-      <span>Post a challenge</span>
-      <span>Compete on real work</span>
-      <span>Get hired</span>
+  <div class="auth-bg" aria-hidden="true"></div>
+  <div class="auth-scrim" aria-hidden="true"></div>
+
+  <a href="index.html" class="auth-logo" aria-label="Projet home">
+    <img class="auth-logo-dark" src="assets/logo-dark.png" alt="" width="267" height="88">
+    <img class="auth-logo-white" src="assets/logo-white.png" alt="" width="267" height="88">
+  </a>
+
+  <div class="auth-panel" id="authPanel">
+
+    <div class="auth-face auth-face--login" aria-label="Log in">
+      <div class="auth-card">
+        <h1>Welcome back</h1>
+        <p class="auth-lede">Pick up where your challenges left off.</p>
+
+        <div class="auth-status" role="status" aria-live="polite"></div>
+
+        <!--
+          FRONT-END ONLY. No credentials are sent anywhere yet.
+          Backend hook: site.js reads data-endpoint and POSTs JSON
+          {email, password} to it. Point it at the real route
+          (e.g. /api/auth/login) and the form starts working as-is.
+        -->
+        <form id="loginForm" data-auth-form data-endpoint="" novalidate>
+
+          <div class="field">
+            <label for="li-email">Email</label>
+            <input id="li-email" name="email" type="email" autocomplete="email" required>
+            <span class="err">Please enter a valid email address.</span>
+          </div>
+
+          <div class="field">
+            <label for="li-password">Password</label>
+            <input id="li-password" name="password" type="password" autocomplete="current-password" required>
+            <span class="err">Please enter your password.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit">Log in</button>
+        </form>
+
+        <p class="auth-alt">New to Projet?
+          <button type="button" data-goto-mode="signup">Create an account</button>
+        </p>
+      </div>
     </div>
-  </aside>
 
-  <main class="auth-main">
-    <div class="auth-card">
-      <h1>Welcome back</h1>
-      <p class="auth-lede">Pick up where your challenges left off.</p>
+    <div class="auth-face auth-face--signup" aria-label="Sign up">
+      <div class="auth-card">
+        <h1>Create your account</h1>
+        <p class="auth-lede">One account, whichever side of the challenge you're on.</p>
 
-      <div class="auth-status" role="status" aria-live="polite"></div>
+        <!-- Populated by site.js from the API response (or a network failure). -->
+        <div class="auth-status" role="status" aria-live="polite"></div>
 
-      <!--
-        FRONT-END ONLY. No credentials are sent anywhere yet.
-        Backend hook: site.js reads data-endpoint and POSTs JSON
-        {email, password} to it. Point it at the real route
-        (e.g. /api/auth/login) and the form starts working as-is.
-      -->
-      <form id="loginForm" data-auth-form data-endpoint="" novalidate>
+        <!--
+          FRONT-END ONLY. No credentials are sent anywhere yet.
+          Backend hook: site.js reads data-endpoint and POSTs JSON
+          {role, name, email, password} to it. Point it at the real route
+          (e.g. /api/auth/signup) and the form starts working as-is.
+        -->
+        <form id="signupForm" data-auth-form data-endpoint="" novalidate>
 
-        <div class="field">
-          <label for="li-email">Email</label>
-          <input id="li-email" name="email" type="email" autocomplete="email" required>
-          <span class="err">Please enter a valid email address.</span>
-        </div>
+          <fieldset class="role-toggle">
+            <legend>I am</legend>
+            <label class="role-opt">
+              <input type="radio" name="role" value="business">
+              <span>A business<small>I want to hire</small></span>
+            </label>
+            <label class="role-opt">
+              <input type="radio" name="role" value="builder">
+              <span>A builder<small>I want to build</small></span>
+            </label>
+          </fieldset>
 
-        <div class="field">
-          <label for="li-password">Password</label>
-          <input id="li-password" name="password" type="password" autocomplete="current-password" required>
-          <span class="err">Please enter your password.</span>
-        </div>
+          <div class="field">
+            <label for="su-name">Full name</label>
+            <input id="su-name" name="name" type="text" autocomplete="name" required>
+            <span class="err">Please enter your name.</span>
+          </div>
 
-        <button type="submit" class="btn btn-primary auth-submit">Log in</button>
-      </form>
+          <div class="field">
+            <label for="su-email">Email</label>
+            <input id="su-email" name="email" type="email" autocomplete="email" required>
+            <span class="err">Please enter a valid email address.</span>
+          </div>
 
-      <p class="auth-alt">New to Projet? <a href="signup.html">Create an account</a></p>
+          <div class="field">
+            <label for="su-password">Password</label>
+            <input id="su-password" name="password" type="password" autocomplete="new-password" required minlength="8">
+            <span class="err">Use at least 8 characters.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit">Create account</button>
+        </form>
+
+        <p class="auth-alt">Already have an account?
+          <button type="button" data-goto-mode="login">Log in</button>
+        </p>
+        <p class="auth-fineprint">By creating an account you agree to Projet's terms and privacy policy.</p>
+      </div>
     </div>
-  </main>
+
+  </div>
 
 </div>
 
 <script src="assets/site.js"></script>
+<script src="assets/auth.js"></script>
 </body>
 </html>

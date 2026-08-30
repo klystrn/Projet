@@ -1,0 +1,196 @@
+/* ==========================================================================
+   Projet — the full-bleed auth stage (login.html / signup.html)
+
+   Loaded AFTER site.css, which still owns the form internals this file
+   reuses wholesale: .field, .role-toggle, .auth-submit, .auth-status,
+   .auth-alt, .auth-fineprint, .sr-only. Only the shell — the stage, the
+   background, the sliding panel — is new.
+
+   THE MECHANIC, asked for explicitly (Aug 2026): "I want the fluid
+   background to be the full size of the page, with the form overlaid.
+   When a user chooses a mode, the form and background slide over to the
+   other side as an animation." Then refined, same round: "The card should
+   stretch the full half of the page, same look as v2, just a different
+   structure." So: one full-viewport fluid-texture background (assets/
+   fluid-full.webp/.avif, the same high-resolution asset already used for
+   the How-it-works scrub — assets/fluid.webp is only ever a poster-frame
+   resolution, too low to hold up at full-page size) runs edge to edge,
+   and a solid, opaque, full-height panel exactly half the stage's width
+   sits over ONE half of it — the same proportions and flat, undecorated
+   edge as v2's own two-column grid, just built as a sliding overlay
+   instead of a static grid track. Switching mode slides that panel to the
+   opposite half (transform only, no layout thrash) and pans the
+   background a smaller amount in the same direction, so the whole scene
+   reads as shifting together rather than the panel moving alone.
+
+   This is the FOURTH shell for these two pages (v2 image-aside grid ->
+   split-spectrum stage -> v2 grid again, briefly -> this). Both the
+   split-spectrum stage and the original v2 markup are archived, not
+   deleted — archive/split-spectrum-auth/ and archive/v2/ — in case
+   either is wanted again. login.html and signup.html carry byte-identical
+   stage markup and differ only in which mode .auth-stage ships with
+   (data-mode="login" / "signup"), same "one page shape, two entry points"
+   convention this project has used for every prior version of this
+   mechanic. If you edit one of these two pages, edit the other to match.
+   ========================================================================== */
+
+/* Same two-layer fallback as landing.css's own image tokens: a plain WebP
+   url() default, upgraded to an AVIF-first image-set() where supported.
+   Defined locally rather than shared from landing.css since these two
+   pages don't load that file. Both files must be kept — see CLAUDE.md
+   "Known issues" #3. */
+:root{
+  --img-auth-bg:url("fluid-full.webp");
+}
+@supports (background-image:image-set(url("x.avif") type("image/avif"))){
+  :root{
+    --img-auth-bg:image-set(url("fluid-full.avif") type("image/avif"),
+                             url("fluid-full.webp") type("image/webp"));
+  }
+}
+
+/* ---------- the stage ---------- */
+.auth-stage{
+  --stage-h:100vh;
+  --stage-h:100svh;
+  position:relative; height:var(--stage-h); overflow:hidden;
+  background:var(--ink);
+}
+
+.auth-bg{
+  position:absolute; inset:-6% -6%; z-index:0;
+  background-image:var(--img-auth-bg);
+  background-size:cover; background-position:center;
+  transform:translateX(var(--bg-x, 0));
+  transition:transform .9s var(--ease);
+  will-change:transform;
+}
+/* oversized (inset -6% each edge) so the pan below never exposes an edge */
+.auth-stage[data-mode="signup"] .auth-bg{--bg-x:-4%;}
+.auth-stage[data-mode="login"]  .auth-bg{--bg-x:4%;}
+
+/* Light, not the heavy contrast-protecting scrim the earlier small-card
+   version needed — the panel below is a fully opaque surface, not
+   translucent text over the image, so this is purely a bit of depth on
+   the half of the background that stays visible. */
+.auth-scrim{
+  position:absolute; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(6,6,10,.18), rgba(6,6,10,.05) 30%, rgba(6,6,10,.22));
+}
+
+/* The logo sits at a fixed screen position, but which half is the white
+   panel and which is the image swaps with the mode — so a single white
+   logo would go invisible against the panel in login mode (panel on the
+   left, same side as the logo). Two stacked images crossfade instead: dark
+   for whichever mode puts the panel under the logo, white for whichever
+   puts the image there. Caught by screenshot, not by eye — the earlier
+   single-white-logo version looked fine in signup mode and only broke in
+   login mode, easy to miss without comparing both. */
+.auth-logo{position:absolute; top:28px; left:32px; z-index:5; display:block; width:134px; height:24px;}
+.auth-logo img{
+  position:absolute; top:0; left:0; height:24px; width:auto; display:block;
+  transition:opacity .5s var(--ease);
+}
+.auth-logo-dark{opacity:0;}
+.auth-logo-white{opacity:1;}
+.auth-stage[data-mode="login"] .auth-logo-dark{opacity:1;}
+.auth-stage[data-mode="login"] .auth-logo-white{opacity:0;}
+.auth-logo:focus-visible{outline:2px solid #fff; outline-offset:6px; border-radius:4px;}
+
+/* ---------- the panel, and its slide ----------
+   Exactly half the stage, full height, flush to the left edge by default.
+   translateX(100%) is relative to the ELEMENT's own box — since that box
+   is 50% of the stage, 100% of it is exactly 50% of the stage, so this
+   lands the panel precisely on the opposite half with nothing but a
+   transform (no width/left recalculation, no layout thrash). */
+.auth-panel{
+  position:absolute; top:0; left:0; z-index:3;
+  width:50%; height:100%;
+  background:var(--paper);
+  transform:translateX(var(--panel-x, 0%));
+  transition:transform .9s var(--ease);
+}
+.auth-stage[data-mode="login"]  .auth-panel{--panel-x:0%;}
+.auth-stage[data-mode="signup"] .auth-panel{--panel-x:100%;}
+
+/* Both faces live in the same panel, stacked — visibility/opacity swap
+   rather than display:none so the crossfade can animate and a keyboard
+   user's focus move (auth.js) always lands on a real, laid-out element.
+   The panel itself is always opaque (see above), so — unlike an earlier
+   version of this that faded the whole card — the crossfade never lets
+   the background bleed through mid-transition. overflow-y:auto is the
+   same "a form taller than a short window scrolls inside its own panel"
+   fix the split-spectrum stage used, not new here. */
+.auth-face{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:48px 40px; overflow-y:auto;
+  opacity:1; visibility:visible;
+  transition:opacity .4s var(--ease) .12s, visibility 0s;
+}
+.auth-stage:not([data-mode="login"])  .auth-face--login,
+.auth-stage:not([data-mode="signup"]) .auth-face--signup{
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .22s var(--ease), visibility 0s linear .22s;
+}
+
+/* the inner content wrapper — same name, same max-width, as v2's own
+   .auth-card, for the "same look as v2" ask */
+.auth-card{width:100%; max-width:420px;}
+.auth-card h1{font-size:clamp(28px,3.4vw,38px); margin-bottom:10px;}
+.auth-lede{font-size:15.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:28px;}
+
+/* ==========================================================================
+   Fallbacks. Written three times over (narrow / reduced-motion / no-js),
+   same convention as every other effect on the site.
+
+   The no-js case is the load-bearing one: with no JS the mode can never
+   change, so both faces expand into a plain stacked column and BOTH forms
+   render in full, rather than one workable form and one permanently
+   opacity:0 dead end.
+   ========================================================================== */
+@media (max-width:900px){
+  /* Same breakpoint v2's own .auth-page grid collapsed at. A half-width
+     panel sliding across a full-bleed background has no room to mean
+     anything on a phone-width screen, so the panel takes the FULL stage
+     instead and the two faces just crossfade in place — the background
+     is fully covered either way at this width, so nothing is lost by not
+     also carrying over v2's short mobile image band (there's no aside
+     copy left to justify keeping a sliver of image around it). */
+  .auth-panel{width:100%; transform:none !important;}
+  /* the panel is full-width white at this breakpoint regardless of mode,
+     so the logo always sits over it, not the image — always dark */
+  .auth-logo-dark{opacity:1 !important;}
+  .auth-logo-white{opacity:0 !important;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .auth-bg{will-change:auto;}
+}
+
+.no-js .auth-stage{height:auto; min-height:100vh; overflow:visible;}
+.no-js .auth-bg{position:fixed;}
+/* position:relative, not :static — a real bug caught by screenshot, not
+   just reasoned about. z-index has no effect on a statically positioned
+   box, and a positioned element (.auth-bg, forced to position:fixed right
+   above) always paints above a static one regardless of source order —
+   so with the panel forced static, the fixed background painted straight
+   over its white surface, and only individually-opaque bits inside it
+   (.role-opt's own span background, .field input's own white fill) still
+   showed; everything else (h1, plain paragraph text) rendered directly
+   against the image with no backdrop at all. position:relative keeps the
+   exact same layout as static (no offsets set) but re-enables z-index, so
+   the panel can actually out-rank the fixed image again. */
+.no-js .auth-panel{position:relative !important; z-index:2; width:100%; transform:none !important;}
+/* full-width white panel regardless of mode here too — always dark */
+.no-js .auth-logo-dark{opacity:1 !important;}
+.no-js .auth-logo-white{opacity:0 !important;}
+.no-js .auth-face{
+  position:static !important; display:block; padding:56px 32px;
+  opacity:1 !important; visibility:visible !important; pointer-events:auto !important;
+}
+.no-js .auth-face .auth-card{margin:0 auto;}
+/* both faces stacked in one panel now — a divider between them since
+   nothing else marks where "log in" ends and "sign up" begins once both
+   are simply flowing one after another */
+.no-js .auth-face + .auth-face{border-top:1px solid var(--line);}

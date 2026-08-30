@@ -1386,13 +1386,124 @@ accounts aren't connected yet rather than faking a success.
 MongoDB layer are Andrei's (co-founder).** The full contract is in
 `BACKEND-HANDOFF.md` — read that before touching the auth forms.
 
-**The v2 image-aside shell is BACK (Aug 2026) — this is the current, live
-design.** It briefly got replaced by a split-spectrum auth stage (built,
-iterated on for several rounds, then explicitly reverted — the whole
-history is kept below, marked superseded, since it's the kind of design
-this project has flip-flopped on before and might again). The request
-that reverted it: *"Archive the existing login/sign up page. I want to
-revert back to the same page from v2."*
+**The full-bleed sliding auth stage is the current, live design (Aug
+2026) — a fourth shell for these two pages, not just a third.** The v2
+image-aside grid described just below was live for exactly one round
+before this replaced it — kept as its own marked-superseded section
+rather than deleted, same reasoning as the split-spectrum history further
+down: this project keeps re-visiting the auth shell's design, and each
+past attempt is cheaper to resurrect from a written record than to
+re-derive from scratch.
+
+The ask, across two messages in the same round: *"I want the fluid
+background to be the full size of the page, with the form overlaid. When
+a user chooses a mode, the form and background slide over to the other
+side as an animation"* — then, after a first pass shipped a small
+floating card centred on the image, a follow-up correction: *"The card
+should stretch the full half of the page, same look as v2, just a
+different structure."*
+
+```
+.auth-stage                 the stage, id="authStage", data-mode="login|signup"
+  .auth-bg                  full-bleed fluid-full.webp/.avif, oversized, pans on switch
+  .auth-scrim                light vignette, not a heavy text-contrast scrim (see below)
+  .auth-logo                 fixed top-left; two stacked <img>s crossfade dark/white (see below)
+  .auth-panel#authPanel      exactly 50% of the stage, full height, opaque var(--paper) —
+                             same proportions as v2's own two-column grid, but this one
+                             slides to the opposite half via transform on a mode switch
+    .auth-face--login         position:absolute, inset:0, crossfades via opacity/visibility
+      .auth-card                the inner content wrapper — same name, same max-width:420px,
+                                 as v2's own .auth-card, for the "same look as v2" ask
+    .auth-face--signup         same shape as the login face
+```
+
+`login.html`/`signup.html` carry byte-identical stage markup (the "one
+page shape, two entry points" convention every prior version of this
+mechanic has used) and differ only in `data-mode` on `.auth-stage`, plus
+`<title>`/meta description. `assets/auth.css` and `assets/auth.js` are
+NEW files under those names — not the split-spectrum stage's old ones,
+which stay archived at `archive/split-spectrum-auth/`.
+
+**Sliding is transform-only, on both layers.** `.auth-panel{width:50%;
+transform:translateX(var(--panel-x))}` — `translateX(100%)` is relative
+to the element's OWN box, so on a 50%-wide element that's exactly 50% of
+the stage, landing the panel precisely on the opposite half with no
+width/left recalculation. `.auth-bg` pans a few percent in the same
+direction underneath (oversized via `inset:-6% -6%` so the pan never
+exposes an edge) — asked for explicitly ("the form and background slide
+over to the other side"), not just the panel moving alone.
+
+**A real bug caught by screenshotting the mid-transition frame, not by
+reading the CSS: fading the whole card let the background bleed through.**
+The first version crossfaded `.auth-card` itself (opacity 1→0/0→1) as one
+piece — but CSS opacity on an element takes its background down with it,
+so mid-slide the "white" card became semi-transparent and the busy image
+showed straight through both overlapping cards at once. Fixed by splitting
+the concept in two: `.auth-panel` is a single, permanently-opaque
+`var(--paper)` surface that only ever moves (never fades), and the two
+`.auth-face` children inside it are what actually crossfade — a solid,
+unmoving backdrop behind the fade means the image can never show through
+regardless of how transparent the fading content gets.
+
+**A second real bug, this time in the no-js fallback, also caught by
+rendering it rather than reasoning about it: `position:static` silently
+loses a stacking fight it needs to win.** No-js forces `.auth-panel` out
+of its sliding `position:absolute` so both faces stack in a plain
+scrollable column — the first attempt used `position:static`, which
+seemed harmless since z-index only matters for positioned elements
+anyway. But `.auth-bg` is separately forced to `position:fixed` in the
+same fallback (so the background stays pinned while the now-tall page
+scrolls past it), and a POSITIONED element always paints above a static
+one in the same stacking context, regardless of source order — so the
+fixed image silently painted over the "opaque" white panel underneath it,
+and only elements with their OWN individual opaque background
+(`.role-opt span`, `.field input`) still showed; plain text with no
+backdrop of its own (headings, paragraphs) rendered directly against the
+image. Fixed by using `position:relative` instead of `static` for the
+no-js override — identical layout (no offsets set, so it sits exactly
+where static would put it) but now eligible for z-index, so an explicit
+`z-index:2` puts it back above the fixed background. Screenshotting the
+actual no-js fixture (not just reading computed styles) is what caught
+this — the computed-style checks alone all looked correct.
+
+**The logo needs to change colour with the mode, not just stay white.**
+The logo sits at a fixed screen position (top-left), but which half is
+the white panel and which is the image swaps with the mode — so a single
+white logo goes invisible against the panel in login mode (panel on the
+left, same side as the logo) while working fine in signup mode (image on
+the left there). Two stacked `<img>`s (`assets/logo-dark.png` and
+`assets/logo-white.png`) crossfade via `data-mode`-scoped opacity rather
+than one image with a colour filter — simpler than computing a filter
+that has to look right against both a busy image and a flat white
+surface. Both no-js and the sub-900px breakpoint force the panel to full
+width regardless of mode (see below), so the logo is forced dark in both
+of those, unconditionally.
+
+**Below 900px (the same breakpoint v2's own grid collapsed at), the panel
+takes the full stage width and stops sliding — the two faces just
+crossfade in place.** A half-width panel sliding across a full-bleed
+background has no room to mean anything on a phone-width screen. The
+background ends up fully covered either way at this width, so nothing is
+lost by not also carrying over v2's short mobile image band — there's no
+aside copy left (see below) to justify keeping a sliver of image visible
+around it.
+
+**No aside copy (the quote / stat chips) carried over from v2 — not an
+oversight, just not part of this ask.** v2's `.auth-aside` held a quote
+line and three stat chips over the image; this design has nowhere
+equivalent to put them (the visible half is pure background, no text
+overlay), and reintroducing them wasn't requested. Worth knowing if a
+future ask wants that copy back — it isn't gone, `archive/v2/login.html`
+and `signup.html` still have the exact wording.
+
+---
+
+**Everything from here through the next `---` describes the v2
+image-aside GRID shell, live for exactly one round before the full-bleed
+sliding stage above replaced it. Superseded, not deleted — kept for the
+same reason as the split-spectrum history further down.** The request
+that put it back, briefly: *"Archive the existing login/sign up page. I
+want to revert back to the same page from v2."*
 
 "The two pages are mirrored, not identical" is true again: `login.html`
 puts `.auth-aside` on the left and `.auth-main` on the right;
