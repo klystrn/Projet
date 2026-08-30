@@ -433,7 +433,11 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 /* ==========================================================================
    3. FEATURED CHALLENGES — spotlight + list (v3 option B)
    ========================================================================== */
-.challenges{padding:84px 0 88px; background:var(--paper-warm); position:relative;}
+/* Bumped from a flat 84px/88px — asked for explicitly, the section was
+   flying past on scroll with no real dwell time. clamp() rather than a flat
+   number so this only grows on desktop; mobile (already a much longer
+   scroll per screen-inch) stays close to the original floor. */
+.challenges{padding:clamp(84px,11vw,168px) 0 clamp(88px,11vw,176px); background:var(--paper-warm); position:relative;}
 .ch-head{max-width:60ch; margin-bottom:32px;}
 .ch-head h2{font-size:clamp(30px,3.8vw,44px); margin:14px 0 12px;}
 .ch-head p{font-size:16.5px; line-height:1.6; color:var(--ink-soft);}
@@ -488,6 +492,19 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   transition:transform .22s var(--ease), box-shadow .22s var(--ease);
 }
 .ch-ticket:hover{transform:translateY(-4px); box-shadow:0 26px 48px -28px rgba(20,19,15,.38);}
+/* Each ticket now also carries [data-reveal] for its own staggered entrance
+   (see index.html), and that collides with the hover rule just above: both
+   [data-reveal].revealed{transform:none} and .ch-ticket:hover{transform:...}
+   have equal specificity, and the reveal rule sits later in this file, so it
+   would silently win and cancel the hover lift on every ticket that has
+   already revealed — plus [data-reveal]'s own transition (opacity .6s,
+   transform .6s) would replace this ticket's transition wholesale, dropping
+   box-shadow's transition entirely and slowing the hover lift to .6s. The
+   .challenges ancestor scope pushes this selector's specificity past
+   [data-reveal].revealed's regardless of file order, so it doesn't depend on
+   which rule happens to come first. */
+.challenges .ch-ticket{transition:opacity .6s var(--ease), transform .22s var(--ease), box-shadow .22s var(--ease);}
+.challenges .ch-ticket:hover{transform:translateY(-4px); box-shadow:0 26px 48px -28px rgba(20,19,15,.38);}
 
 .ch-ticket-body{display:flex; flex-direction:column; gap:10px; flex:1; min-width:0; padding:22px;}
 .ch-ticket-co{font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--muted);}
@@ -753,7 +770,8 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 /* ==========================================================================
    5. TESTIMONIALS
    ========================================================================== */
-.testimonials{padding:80px 0 88px; background:var(--paper-warm);}
+/* Same bump as .challenges above, same reason — asked for explicitly. */
+.testimonials{padding:clamp(80px,11vw,168px) 0 clamp(88px,11vw,176px); background:var(--paper-warm);}
 .t-head{text-align:center; margin-bottom:36px;}
 .t-head h2{font-size:clamp(28px,3.4vw,40px); margin-top:12px;}
 .t-avatar-defs{position:absolute; width:0; height:0; overflow:hidden;}
@@ -762,10 +780,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    One card promoted above the rest; hovering/focusing a strip chip
    promotes IT instead. Every chip already carries its own full quote, so
    nothing here depends on JS to be readable — only the swap itself does. */
-.t-layout{display:flex; flex-direction:column; gap:22px;}
+/* gap bumped 22px -> 30px alongside .t-spot's own taller padding below —
+   more breathing room around the spotlight, not just inside it. */
+.t-layout{display:flex; flex-direction:column; gap:30px;}
 .t-spot{
   position:relative; overflow:hidden; border-radius:var(--radius-xl);
-  padding:clamp(30px,4vw,46px); color:#fff; background:var(--grad-dark);
+  /* was clamp(30px,4vw,46px) — asked for more breathing room specifically
+     on the spotlight card, not just the section around it. */
+  padding:clamp(40px,5.4vw,64px); color:#fff; background:var(--grad-dark);
   box-shadow:0 34px 76px -40px rgba(20,19,15,.5);
 }
 .t-spot::after{

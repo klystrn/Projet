@@ -273,10 +273,18 @@
     <!-- subsection 3: the rail itself. Deliberately OUTSIDE .wrap so the row
          can run past the right edge of the content column and read as an
          ongoing feed rather than a closed set of six; its own padding
-         re-aligns the first ticket with the content edge. -->
-    <div class="ch-rail" id="chRail" data-reveal style="transition-delay:.1s"
+         re-aligns the first ticket with the content edge.
+
+         Each ticket carries its OWN data-reveal now (was one data-reveal on
+         the rail itself, fading in as a single block) so they arrive one
+         after another instead of all at once — a slower, more deliberate
+         entrance was asked for specifically. Delays are wider than the
+         hero's own stagger (.08s steps here vs ~.06s there) since six
+         tickets spread over the same tight interval as three hero lines
+         would read as simultaneous, not sequential. -->
+    <div class="ch-rail" id="chRail"
          tabindex="0" role="group" aria-label="Featured challenges, scrollable">
-      <div class="ch-ticket"
+      <div class="ch-ticket" data-reveal
         data-brief-company="Anchorpoint" data-brief-discipline="Engineering"
         data-brief-title="Ship a data pipeline for churn signals"
         data-brief-deadline="4 days left" data-brief-submitted="23"
@@ -296,7 +304,7 @@
         </span>
       </div>
 
-      <div class="ch-ticket"
+      <div class="ch-ticket" data-reveal style="transition-delay:.08s"
         data-brief-company="Nordwave" data-brief-discipline="Product"
         data-brief-title="Rebuild the pricing page conversion flow"
         data-brief-deadline="6 days left" data-brief-submitted="14"
@@ -316,7 +324,7 @@
         </span>
       </div>
 
-      <div class="ch-ticket"
+      <div class="ch-ticket" data-reveal style="transition-delay:.16s"
         data-brief-company="Cobalt &amp; Co" data-brief-discipline="Design"
         data-brief-title="Design a stock-alert dashboard for warehouse staff"
         data-brief-deadline="9 days left" data-brief-submitted="17"
@@ -336,7 +344,7 @@
         </span>
       </div>
 
-      <div class="ch-ticket"
+      <div class="ch-ticket" data-reveal style="transition-delay:.24s"
         data-brief-company="Fieldstone" data-brief-discipline="Design"
         data-brief-title="Cut onboarding drop-off in the mobile app"
         data-brief-deadline="11 days left" data-brief-submitted="9"
@@ -356,7 +364,7 @@
         </span>
       </div>
 
-      <div class="ch-ticket"
+      <div class="ch-ticket" data-reveal style="transition-delay:.32s"
         data-brief-company="Meridian Co" data-brief-discipline="Data"
         data-brief-title="Automate the weekly ops reporting pack"
         data-brief-deadline="14 days left" data-brief-submitted="11"
@@ -376,7 +384,7 @@
         </span>
       </div>
 
-      <div class="ch-ticket"
+      <div class="ch-ticket" data-reveal style="transition-delay:.4s"
         data-brief-company="Vertex Studio" data-brief-discipline="Product"
         data-brief-title="Prototype a referral loop for a B2B tool"
         data-brief-deadline="7 days left" data-brief-submitted="19"
