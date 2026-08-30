@@ -547,23 +547,6 @@
       </defs>
     </svg>
 
-    <!-- Pinned dwell (asked for explicitly, "scrolled through too fast"):
-         .t-scroll is tall scroll-room, desktop-only; .t-stage pins for that
-         whole range via position:sticky and its content stays vertically
-         centered in the 100vh frame throughout, same shape as the
-         How-it-works flow-scroll/flow-stage pin further up the page. As the
-         reader scrolls through the room, landing.js auto-advances which
-         .t-chip is promoted into the spotlight (reuses the exact same
-         activate() function hover/focus already call) — one full pass
-         through all five before the pin releases. Hover/focus still work
-         mid-pin and simply win until the next real scroll event recomputes
-         the auto-selected chip, since the scroll-driven advance only runs
-         off actual scroll/resize events, never a free-running timer.
-         Below 900px, reduced-motion and no-js all collapse this back to a
-         plain static block — same three-way fallback convention as every
-         other pinned effect on this page. -->
-    <div class="t-scroll" id="tScroll">
-      <div class="t-stage">
     <div class="wrap t-head" data-reveal>
       <span class="eyebrow">Testimonials</span>
       <h2>What the pilot sounded like.</h2>
@@ -636,8 +619,6 @@
             <span class="t-chip-who">Hiring lead &middot; Anchorpoint <span class="t-chip-tag">Company</span></span>
           </span>
         </button>
-      </div>
-    </div>
       </div>
     </div>
   </section>

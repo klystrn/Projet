@@ -562,34 +562,6 @@
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(stabilizeHeight);
     }
-
-    /* ---- pinned dwell: auto-advance the spotlight as the reader scrolls ----
-       Desktop + motion-ok only, same gate (and same reasoning) as the
-       How-it-works flow-rail above: mobile and reduced-motion render the
-       plain static block from CSS alone (.t-scroll/.t-stage reset to
-       height:auto/position:static there), so there's no pin for this to
-       drive and no scroll listener is even registered.
-
-       Reuses activate() directly rather than a second implementation, so
-       the auto-advance and the hover/focus swap can never drift out of
-       sync with each other. They coexist for free: this only runs inside
-       the shared scrollUpdaters ticker, which itself only fires on a real
-       scroll/resize event — a reader who stops scrolling to hover a chip
-       gets that chip via the hover listener above and it simply stays
-       until the next real scroll event recomputes the auto-selected one. */
-    if (!reducedMotion && !(window.matchMedia && window.matchMedia("(max-width:900px)").matches)) {
-      var scrollWrap = document.getElementById("tScroll");
-      if (scrollWrap) {
-        scrollUpdaters.push(function () {
-          if (window.innerWidth <= 900) return; // CSS already shows the static block
-          var rect = scrollWrap.getBoundingClientRect();
-          var total = rect.height - window.innerHeight;
-          var progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-          var idx = Math.min(chips.length - 1, Math.floor(progress * chips.length));
-          activate(chips[idx]);
-        });
-      }
-    }
   })();
 
   /* ---------------- featured-challenge ticket rail ----------------

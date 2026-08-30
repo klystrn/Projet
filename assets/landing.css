@@ -794,23 +794,6 @@ html[data-audience="business"] .flow-fluid{
 .t-head h2{font-size:clamp(28px,3.4vw,40px); margin-top:12px;}
 .t-avatar-defs{position:absolute; width:0; height:0; overflow:hidden;}
 
-/* ---------- pinned dwell ----------
-   Asked for explicitly — the section (a static block with no scroll gating
-   at all) was flying past on scroll. Same shape as the How-it-works
-   flow-scroll/flow-stage pin further up the page: .t-scroll is tall
-   scroll-room, .t-stage pins for that whole range and stays vertically
-   centered in the 100vh frame throughout (so its content never sits under
-   the top strip the sticky nav covers). landing.js divides the scroll
-   range into one segment per .t-chip and auto-promotes that chip into the
-   spotlight as the reader scrolls — see the JS comment for how that
-   coexists with hover/focus, which still work mid-pin. Desktop only,
-   240vh chosen as a reasonable dwell for five chips (48vh each) without
-   dragging on the way a denser section like How-it-works can justify. */
-@media (min-width:901px){
-  .t-scroll{height:240vh;}
-  .t-stage{position:sticky; top:0; height:100vh; display:flex; flex-direction:column; justify-content:center;}
-}
-
 /* ---------- option C: spotlight + strip ----------
    One card promoted above the rest; hovering/focusing a strip chip
    promotes IT instead. Every chip already carries its own full quote, so
@@ -890,23 +873,6 @@ html[data-audience="business"] .t-spot{background:var(--grad-dark);}
 @media (max-width:760px){
   .t-strip{grid-template-columns:1fr;}
 }
-
-/* ---------- pinned-dwell fallbacks ----------
-   Same three-way convention as the How-it-works pin: below 900px there's no
-   room to pin a screen-height stage next to anything, reduced motion should
-   never hold the reader in place, and no-js can't scroll-drive the spotlight
-   at all. All three collapse to the plain static block .t-layout already
-   was before this pin existed — nothing is gated behind it. */
-@media (max-width:900px){
-  .t-scroll{height:auto;}
-  .t-stage{position:static; height:auto;}
-}
-@media (prefers-reduced-motion:reduce){
-  .t-scroll{height:auto;}
-  .t-stage{position:static; height:auto;}
-}
-.no-js .t-scroll{height:auto;}
-.no-js .t-stage{position:static; height:auto;}
 
 /* ==========================================================================
    6. FINAL CTA — full-bleed (asked explicitly: no margins, stretches

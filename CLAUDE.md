@@ -452,27 +452,21 @@ fallback-font metrics that don't necessarily match the real font's line
 height once it's actually in — this makes the reservation correct
 regardless of font-load timing, not just on a fast/cached load.
 
-**Testimonials pinned dwell (Aug 2026).** Explicit follow-up: this section
-had no scroll gating at all, so it flew past on scroll. Same shape as the
-How-it-works `.flow-scroll`/`.flow-stage` pin further up the page —
-`.t-scroll` (240vh, desktop-only) wraps `.t-stage` (`position:sticky;
-top:0; height:100vh`, content vertically centered so it never sits under
-the strip the sticky nav covers). `landing.js` divides the pin's scroll
-range into one segment per `.t-chip` (5 segments) and calls the *same*
-`activate()` function hover/focus already use to auto-promote a chip into
-the spotlight as the reader scrolls — not a second implementation, so the
-two can't drift out of sync. They coexist for free: the auto-advance only
-runs inside the shared `scrollUpdaters` ticker, which itself only fires on
-a real `scroll`/`resize` event, so a reader who stops scrolling to hover a
-chip keeps that chip (via the hover listener) until the next real scroll
-event recomputes the auto-selected one. Gated at JS setup time exactly
-like the flow-rail (`reducedMotion` + `matchMedia("(max-width:900px)")`),
-so no scroll listener is even registered where the pin won't render.
-Fallbacks (`max-width:900px`, `prefers-reduced-motion:reduce`, `.no-js`)
-all reset `.t-scroll{height:auto}` / `.t-stage{position:static;
-height:auto}`, collapsing back to the plain static block this was before
-the pin existed — same three-way convention as every other pinned effect
-here, nothing gated behind it.
+**Testimonials pinned dwell — TRIED, THEN REMOVED (Aug 2026).** For one
+round this section was pinned the same way as How-it-works
+(`.t-scroll`/`.t-stage`, `position:sticky`, a 240vh scroll-room, five
+segments auto-advancing the spotlight via the same `activate()` hover/
+focus already used), added because the section had no scroll gating at
+all and flew past on scroll. **Explicitly asked back out**: "we don't
+need to scroll through it anymore, just indicate hover." `.t-scroll`/
+`.t-stage` and the whole scroll-driven auto-advance block in `landing.js`
+are deleted outright, not just disabled — `.t-head` and `.t-layout` are
+plain children of `.testimonials` again, exactly the pre-pin structure.
+Hover/focus promotion (`activate()`) and the `stabilizeHeight()` sizing
+fix above are both untouched — neither ever depended on the pin. **Do
+not reinstate the pin without a fresh instruction** — if this section
+still feels rushed on scroll later, that's a fresh ask to solve, not a
+signal to un-delete this code.
 
 **Testimonial spotlight gets more orange presence in student mode (Aug
 2026).** `.t-spot`'s background was `var(--grad-dark)` unconditionally,
