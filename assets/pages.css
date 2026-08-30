@@ -106,13 +106,22 @@
 .faq-item summary{
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   cursor:pointer; list-style:none; font-size:16.5px; font-weight:700; color:var(--ink);
+  padding-left:0; border-radius:10px;
+  transition:padding-left .22s var(--ease), color .22s var(--ease);
 }
 .faq-item summary::-webkit-details-marker{display:none;}
+/* Hover nudges the question rightward and tints both the text and the
+   toggle circle toward the accent — a closed card otherwise gives no visual
+   hint that it opens on click, unlike an already-open one whose rotated +
+   makes that obvious. Skipped once open: an expanded card has nothing left
+   to invite the reader to do. */
+.faq-item:not([open]) summary:hover{padding-left:10px; color:var(--accent-deep);}
+.faq-item:not([open]) summary:hover::after{border-color:var(--accent-deep); color:var(--accent-deep); transform:scale(1.12);}
 .faq-item summary::after{
   content:'+'; flex:none; width:22px; height:22px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   font-size:16px; font-weight:400; color:var(--muted); border:1px solid var(--line);
-  transition:transform .25s var(--ease);
+  transition:transform .25s var(--ease), border-color .22s var(--ease), color .22s var(--ease);
 }
 .faq-item[open] summary::after{transform:rotate(45deg);}
 .faq-item summary:focus-visible{outline:2px solid var(--ink); outline-offset:4px; border-radius:4px;}

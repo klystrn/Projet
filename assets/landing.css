@@ -843,12 +843,37 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    section to flat --ink uniformly across every column, so the handoff into
    the footer's own flat --ink is pixel-identical everywhere, not just down
    the centre. */
+/* The final CTA + footer together should read as "the last screenful," not
+   spill an extra half-screen past it: min-height caps .final at exactly
+   whatever room is left below the (sticky, always-visible-once-scrolled-
+   past) nav once the footer's own height is subtracted, so the two sections
+   combined land on one viewport-height, nav included. --nav-h/--footer-h
+   are the LIVE rendered heights of #siteNav/#footer, kept current by
+   landing.js (they change with nav's compact state and with the footer's
+   own responsive column-wrapping) — the literal px fallbacks here only
+   cover the instant before that JS runs. min(), not a bare calc(), so this
+   can only ever GROW .final: on a short/zoomed viewport where the content
+   + its own padding is already taller than the leftover space, that larger
+   natural size simply wins and nothing is ever squashed — same "only grows"
+   rule the hero's own --fold-reserve sizing already uses. */
 .final{
   position:relative; overflow:hidden;
+  /* svh as a second, later declaration — not combined into one expression
+     with vh — on purpose: a browser too old to know the svh unit treats
+     calc(100svh - ...) as an invalid VALUE and drops that whole property
+     declaration, leaving the vh-based line above it as the one that
+     actually applies. Folding both into a single min-height:max(...) would
+     instead invalidate the entire declaration (and every browser without
+     svh support would end up with no min-height at all), since CSS
+     validity is decided per declaration, not per operand inside one. */
+  min-height:calc(100vh - var(--nav-h, 78px) - var(--footer-h, 392px));
+  min-height:calc(100svh - var(--nav-h, 78px) - var(--footer-h, 392px));
+  display:flex; align-items:center; justify-content:center;
   padding:clamp(64px,9vw,120px) 0; text-align:center;
   background:linear-gradient(to bottom, transparent 82%, var(--ink) 97%), var(--grad-dark);
   color:#fff;
 }
+.final-wrap{width:100%;}
 .final::before{
   content:''; position:absolute; inset:-40% -20% auto auto; width:90%; height:180%;
   background:var(--grad-glow); opacity:1; pointer-events:none;

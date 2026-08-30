@@ -309,6 +309,33 @@
     if (loggedIn) final.hidden = true;
   })();
 
+  /* ---------------- final CTA + footer sized to one screenful ----------------
+     .final's own min-height (landing.css) reads --nav-h/--footer-h to cap
+     itself at exactly "whatever's left below the nav once the footer's own
+     height is subtracted" — so the CTA and footer together land on one
+     viewport-height, nav included, rather than spilling an extra stretch
+     past it. Both heights are measured LIVE rather than hardcoded: the nav
+     changes height when it compacts on scroll, and the footer changes
+     height whenever its column grid wraps at a narrower width, so a fixed
+     number would drift out of sync with either. Self-skips when there's no
+     .final on the page (challenges.html, dashboard.html). */
+  (function () {
+    var final = document.querySelector(".final");
+    var nav = document.getElementById("siteNav");
+    var footer = document.getElementById("footer");
+    if (!final || !nav || !footer) return;
+    function measure() {
+      document.documentElement.style.setProperty("--nav-h", nav.offsetHeight + "px");
+      document.documentElement.style.setProperty("--footer-h", footer.offsetHeight + "px");
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    // the nav's own height changes a beat after scrollUpdaters flips .compact
+    // (landing.css transitions nav-inner's padding over .3s), so this also
+    // rides the shared ticker rather than only firing once on load/resize
+    scrollUpdaters.push(measure);
+  })();
+
   /* ---------------- hero count-up ---------------- */
   (function () {
     var nums = document.querySelectorAll(".hero-stat-row b");
