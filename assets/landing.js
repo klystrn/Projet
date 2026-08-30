@@ -22,6 +22,33 @@
 
   function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 
+  /* ---------------- hero dashboard mock's CTA ----------------
+     #heroDash's mock ends in an "Open dashboard" button — fine for a
+     visitor who already has an account, but a prompt to open a dashboard
+     they don't have yet for anyone who doesn't. In practice a signed-in
+     visitor never reaches this page at all (see the redirect in index.html's
+     own <head>), but this checks the same seam directly rather than leaning
+     on that alone, the same way the final-CTA-hiding code below does — a
+     visitor with the flag set some other way (a stale value from a past
+     session, JS re-run after the redirect somehow didn't fire) should still
+     get the right button here, not a dead promise of dashboard access.
+     Declared at top level (not nested in the audience-toggle IIFE below) so
+     applyModeCopy() can call it every time it rewrites #heroDash's markup —
+     a wholesale innerHTML swap would otherwise silently undo whatever this
+     function just changed. Self-skips wherever #heroDash doesn't exist. */
+  function updateHeroDashCta() {
+    var heroDash = document.getElementById("heroDash");
+    if (!heroDash) return;
+    var link = heroDash.querySelector(".dash-foot a");
+    if (!link) return;
+    var loggedIn = false;
+    try { loggedIn = localStorage.getItem("projet:loggedIn") === "1"; } catch (e) { /* private mode */ }
+    if (loggedIn) return; // ships already correct: "Open dashboard" -> dashboard.html
+    var business = document.documentElement.getAttribute("data-audience") === "business";
+    link.textContent = business ? "Post a challenge" : "Participate";
+    link.setAttribute("href", "signup.html?role=" + (business ? "business" : "builder"));
+  }
+
   /* ---------------- shared scroll ticker ----------------
      One rAF-gated listener drives every scroll-linked effect, rather than
      each registering its own. */
@@ -224,6 +251,7 @@
           var next = el.getAttribute("data-" + (mode === "business" ? "business" : "builder"));
           if (next != null) el.innerHTML = next;
         });
+        updateHeroDashCta(); // #heroDash's innerHTML was just replaced wholesale
         onScroll(); // re-run scroll-linked updaters against the fresh nodes
         return;
       }
@@ -240,6 +268,7 @@
           if (next != null) el.innerHTML = next;
           el.classList.remove("mode-swap");
         });
+        updateHeroDashCta(); // same reason as above, on the animated path
         // e.g. the how-it-works pin: .flow-tl's nodes were just replaced
         // wholesale, and nothing re-drives scrollUpdaters until the next
         // real scroll event — without this, .is-active/--flow-progress
