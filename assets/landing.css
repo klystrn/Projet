@@ -891,7 +891,16 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   min-height:calc(100vh - var(--nav-h, 78px) - var(--footer-h, 392px));
   min-height:calc(100svh - var(--nav-h, 78px) - var(--footer-h, 392px));
   display:flex; align-items:center; justify-content:center;
-  padding:clamp(64px,9vw,120px) 0; text-align:center;
+  /* Was clamp(64px,9vw,120px) — at typical desktop sizes that alone made
+     the section's own content (289px with zero padding, measured) taller
+     than the min-height floor above, so the floor never actually engaged:
+     the section just rendered at its padding-inflated natural size instead,
+     which is the "too much empty space" this was flagged for. Cut down so
+     the content + padding comfortably clears under the floor at ordinary
+     viewport heights, leaving align-items:center to distribute whatever
+     room the floor still allows evenly above and below — that's the
+     min-height actually doing the job, not padding faking it. */
+  padding:clamp(32px,3.2vw,56px) 0; text-align:center;
   background:linear-gradient(to bottom, transparent 82%, var(--ink) 97%), var(--grad-dark);
   color:#fff;
 }
