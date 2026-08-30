@@ -755,5 +755,65 @@
     });
   })();
 
+  /* ---------------- FAQ expand/retract animation ----------------
+     Native <details> already works with zero JS: clicking summary toggles
+     [open], and pages.css's own height:0 -> height:auto rule already gives
+     a correct (if instant) end state either way. This intercepts the click
+     to make that height change smooth instead, driving .faq-a's own
+     height with plain inline styles rather than fighting it out with
+     Chrome's newer internal ::details-content box.
+
+     A pure grid-template-rows(0fr/1fr) CSS-only version was tried first —
+     see pages.css's comment on .faq-a for the full story — and had to be
+     dropped: opening animated fine, but that internal box silently stops
+     updating layout for its content the instant [open] is removed, so
+     closing just froze at full height with no way to reach it from outside
+     that box. Driving height directly here sidesteps it entirely:
+     <details>.open itself is only flipped once the visible animation is
+     already finished for closing (immediately for opening, since the
+     content has to actually be rendered before scrollHeight means
+     anything), so whatever that internal box does at the moment [open]
+     changes is never visible either way. */
+  (function () {
+    var items = document.querySelectorAll(".faq-item");
+    if (!items.length || reducedMotion) return; // CSS's own height:0/auto jump is correct without this
+    items.forEach(function (item) {
+      var summary = item.querySelector("summary");
+      var body = item.querySelector(".faq-a");
+      if (!summary || !body) return;
+      var animating = false;
+      summary.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (animating) return;
+        animating = true;
+        if (item.open) {
+          var startH = body.scrollHeight;
+          body.style.height = startH + "px";
+          body.getBoundingClientRect(); // force reflow so the browser registers startH before the next change
+          requestAnimationFrame(function () { body.style.height = "0px"; });
+          body.addEventListener("transitionend", function onEnd(ev) {
+            if (ev.target !== body || ev.propertyName !== "height") return;
+            body.removeEventListener("transitionend", onEnd);
+            item.open = false;
+            body.style.height = "";
+            animating = false;
+          });
+        } else {
+          item.open = true;
+          var targetH = body.scrollHeight;
+          body.style.height = "0px";
+          body.getBoundingClientRect();
+          requestAnimationFrame(function () { body.style.height = targetH + "px"; });
+          body.addEventListener("transitionend", function onEnd(ev) {
+            if (ev.target !== body || ev.propertyName !== "height") return;
+            body.removeEventListener("transitionend", onEnd);
+            body.style.height = "auto";
+            animating = false;
+          });
+        }
+      });
+    });
+  })();
+
   onScroll(); // paint every scroll-linked effect at its correct initial value
 })();

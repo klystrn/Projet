@@ -258,10 +258,16 @@ nav.links a:hover{color:var(--ink);}
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
 }
 
-/* role picker — prefilled from whichever side of the chooser they came through */
+/* role picker — prefilled from whichever side of the chooser they came through.
+   Neither option is pre-checked (was "A business" by default, asked to be
+   removed) — the visible legend below prompts the choice instead of the
+   toggle silently arriving with one already picked for the reader. */
 .role-toggle{
   display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px;
   border:0; padding:0; margin-inline:0;   /* strip the default fieldset chrome */
+}
+.role-toggle legend{
+  display:block; width:100%; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:8px;
 }
 .role-opt{position:relative;}
 .role-opt input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;}

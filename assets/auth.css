@@ -82,11 +82,12 @@
 .as-panel--signup{padding-left:clamp(40px,6vw,104px);}
 
 /* Each side carries the spectrum end nearest it, so a collapsed panel reads
-   as its own colour rather than as empty stage. Tied to which MODE a panel
-   is, not which physical side it sits on — signup stays orange-leaning and
-   login stays blue-leaning even after the left/right swap above. */
-.as-panel--signup{background:linear-gradient(135deg, rgba(255,91,36,.24), rgba(199,62,16,.06));}
-.as-panel--login{background:linear-gradient(225deg, rgba(47,107,255,.24), rgba(12,22,56,.1));}
+   as its own colour rather than as empty stage. Tied to which PHYSICAL
+   SIDE a panel sits on — asked for explicitly (left orange, right blue) —
+   not to which mode it represents, so login (left) is orange-leaning and
+   signup (right) is blue-leaning regardless of which one is dominant. */
+.as-panel--login{background:linear-gradient(135deg, rgba(255,91,36,.24), rgba(199,62,16,.06));}
+.as-panel--signup{background:linear-gradient(225deg, rgba(47,107,255,.24), rgba(12,22,56,.1));}
 
 /* ---------- content hugs the seam, not the outer edge ----------
    Asked for explicitly: rather than both panels' text sitting flush against
@@ -170,7 +171,7 @@
    site.css's .field/.role-opt were written for the old white auth card, so
    only the colour-carrying declarations are overridden here. Layout, sizing
    and the error-reveal behaviour all still come from site.css. */
-.auth-split .field label{color:rgba(255,255,255,.88);}
+.auth-split .field label, .auth-split .role-toggle legend{color:rgba(255,255,255,.88);}
 .auth-split .field input{
   background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.2); color:#fff;
 }

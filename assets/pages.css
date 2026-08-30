@@ -107,19 +107,28 @@
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   cursor:pointer; list-style:none; font-size:16.5px; font-weight:700; color:var(--ink);
   border-radius:10px;
+  transition:color .22s var(--ease);
+}
+.faq-item summary::-webkit-details-marker{display:none;}
+/* Hover highlights both the question and the toggle circle toward the
+   accent, but only the QUESTION TEXT nudges right — the + stays in a fixed
+   position (moving both together, the original version, read as the whole
+   row sliding rather than a "here, click this" invitation on the text
+   alone). Needs .faq-q as its own element: summary's own ::after (the +)
+   is generated content of summary itself, so a transform on summary would
+   have carried both along together regardless of which one visually looks
+   like it should move. Skipped once open: an expanded card has nothing
+   left to invite the reader to do. */
+.faq-item:not([open]) summary:hover{color:var(--accent-deep);}
+.faq-item:not([open]) summary:hover .faq-q{transform:translateX(10px);}
+.faq-item:not([open]) summary:hover::after{border-color:var(--accent-deep); color:var(--accent-deep); transform:scale(1.12);}
+.faq-q{
+  display:inline-block;
   /* transform, not padding-left: nudging via a layout property forces a
      reflow of the row (and everything sized against it) on every animation
      frame, where translateX is compositor-only. */
-  transition:transform .22s var(--ease), color .22s var(--ease);
+  transition:transform .22s var(--ease);
 }
-.faq-item summary::-webkit-details-marker{display:none;}
-/* Hover nudges the question rightward and tints both the text and the
-   toggle circle toward the accent — a closed card otherwise gives no visual
-   hint that it opens on click, unlike an already-open one whose rotated +
-   makes that obvious. Skipped once open: an expanded card has nothing left
-   to invite the reader to do. */
-.faq-item:not([open]) summary:hover{transform:translateX(10px); color:var(--accent-deep);}
-.faq-item:not([open]) summary:hover::after{border-color:var(--accent-deep); color:var(--accent-deep); transform:scale(1.12);}
 .faq-item summary::after{
   content:'+'; flex:none; width:22px; height:22px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
@@ -128,4 +137,27 @@
 }
 .faq-item[open] summary::after{transform:rotate(45deg);}
 .faq-item summary:focus-visible{outline:2px solid var(--ink); outline-offset:4px; border-radius:4px;}
+
+/* ---------- expand/retract animation ----------
+   A pure grid-template-rows(0fr/1fr) CSS trick was tried first and had to
+   be dropped: modern Chrome wraps a <details>'s non-summary children in
+   its own internal ::details-content box, which silently stops updating
+   layout for that box the instant [open] is removed (it snaps to a
+   content-visibility-hidden state under the hood) — so OPENING animated
+   correctly but CLOSING just froze at full height, confirmed by polling
+   computed style every 50ms after the close click and watching it never
+   move. landing.js instead drives .faq-a's height directly with inline
+   styles, which are unaffected by that internal box's own state, and
+   calls preventDefault() on the summary click so the native toggle (and
+   whatever ::details-content does) never fires mid-animation — only
+   flips <details>.open itself once the visible animation is already
+   done. See the JS comment for the open/close sequence.
+
+   No-js (and reduced-motion, where the JS below just skips entirely)
+   fall back to this base CSS alone: height:0 + overflow:hidden when
+   closed, height:auto once [open] is present — correct end state with
+   no animation, same contract as every other JS-enhanced effect here. */
+.faq-item .faq-a{overflow:hidden; height:0; transition:height .3s var(--ease);}
+.faq-item[open] .faq-a{height:auto;}
+.faq-item .faq-a-in{overflow:hidden;}
 .faq-item p{margin-top:12px; font-size:15px; line-height:1.65; color:var(--ink-soft); max-width:64ch;}

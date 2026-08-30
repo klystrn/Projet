@@ -566,15 +566,21 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   display:flex; align-items:center; justify-content:center;
   transition:border-color .2s var(--ease), background .2s var(--ease), opacity .2s var(--ease);
 }
-.ch-rail-btn:hover{border-color:var(--ink);}
+/* Matches .ch-viewall's own hover treatment exactly (border-color + a wash
+   of --accent-wash behind it), asked for explicitly so the arrows read as
+   the same family of control as the "View all challenges" link beside
+   them, not a separate unthemed one. */
+.ch-rail-btn:hover{border-color:var(--accent); background:var(--accent-wash); color:var(--accent-deep);}
 .ch-rail-btn:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
 .ch-rail-btn[disabled]{opacity:.35; cursor:default;}
-.ch-rail-btn[disabled]:hover{border-color:var(--line);}
+.ch-rail-btn[disabled]:hover{border-color:var(--line); background:none; color:var(--ink);}
 .ch-rail-track{flex:1; min-width:80px; height:3px; border-radius:99px; background:var(--line); position:relative; overflow:hidden;}
 /* driven by transform, not width — compositor-only, so dragging the rail
-   never triggers layout on every frame */
+   never triggers layout on every frame. --accent (was --ink) so the fill
+   re-tints with the audience toggle same as every other accent-carrying
+   surface on the page. */
 .ch-rail-track i{
-  position:absolute; inset:0; border-radius:99px; background:var(--ink);
+  position:absolute; inset:0; border-radius:99px; background:var(--accent);
   transform-origin:left center; transform:scaleX(var(--rail-progress,.3));
   transition:transform .18s var(--ease);
 }
@@ -723,8 +729,17 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    this doesn't read well — flagged as a trial, not a settled decision. */
 html[data-audience="business"] .flow-fluid{
   --fluid-ar:1.6993;   /* 2163 / 1273 */
-  --fluid-zoom:1.4;
+  /* Raised from 1.4 (asked for explicitly: "travel just slightly more") —
+     a bigger zoom means more overage for landing.js's scrub transform to
+     pan through over the same 4 steps, so the reader covers more of the
+     image's own orange-to-blue span per scroll instead of dwelling on a
+     narrower slice of it. */
+  --fluid-zoom:1.65;
   background-image:var(--img-spectrum);
+  /* Raised from the shared .5 (asked for explicitly: "needs to be
+     brighter") — scoped to business mode only, since student mode's
+     fluid-full wasn't part of this ask. */
+  opacity:.78;
 }
 /* heaviest at centre, not just the edges — the step copy sits left-aligned
    in this narrower column but still over the artwork's brightest passages */

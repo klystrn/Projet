@@ -380,10 +380,20 @@ image with no blue to lean into:
 ```css
 html[data-audience="business"] .flow-fluid{
   --fluid-ar:1.6993;   /* 2163 / 1273 — spectrum.webp's own ratio, not fluid-full's */
-  --fluid-zoom:1.4;
+  --fluid-zoom:1.65;   /* was 1.4 — bumped for more scrub travel, see below */
   background-image:var(--img-spectrum);
+  opacity:.78;         /* was the shared .5 — brighter, business mode only */
 }
 ```
+
+**Kept the light spectrum (Aug 2026) — confirmed, not reverted.** After
+seeing it live: brighter (`opacity` raised business-mode-only, `.5` →
+`.78`, `.flow-fluid`'s own base opacity is untouched for student mode)
+and more scroll travel (`--fluid-zoom` `1.4` → `1.65`, which widens
+`.flow-fluid`'s own oversized box so `landing.js`'s existing scrub
+transform has more overage to pan through over the same 4 steps —
+nothing in the JS itself needed to change, this is purely the CSS sizing
+inputs it already reads).
 
 Same sizing math and the same `landing.js` scrub transform as student
 mode — only the image and its own aspect ratio/zoom change; nothing in
@@ -532,6 +542,25 @@ Two further passes since the initial rebuild:
   filter works against the larger set (4 product / 3 design / 3
   engineering / 2 data).
 
+**Visual pass, Aug 2026:**
+- `.cl-view-brief` was a flat `--ink` (near-black) fill — read as too
+  heavy/generic next to the brand's own orange identity ("consider using
+  one of the assets, especially the orange ones"). Now `var(--grad-accent)`
+  + `var(--accent-glow-shadow)`, the same treatment `.btn-accent` uses
+  elsewhere on the site (re-tints blue in company mode); hover is
+  `filter:saturate(1.12) brightness(1.03)` instead of a background swap,
+  matching `.btn-accent:hover`.
+- `.cl-card` no longer has its own hover animation (`transform`/
+  `box-shadow` on hover, removed outright) — asked for explicitly, only
+  `.cl-view-brief` should react to hover now, not the whole card.
+- `.cl-fill-in` (the timeline progress bar) is `var(--accent-deep)` now,
+  was a fixed `var(--orange-deep)` — re-tints with the audience toggle
+  same as everything else.
+- `.cl-cta`'s bottom margin was `96px`, and the footer right after it
+  already carries its own `56px` of top padding — combined that read as
+  a large dead gap between the card and the page's actual end. Cut to
+  `32px`.
+
 **about.html gained explicit Problem/Mission/Vision sections, v3.2.** The
 former single "Why we exist" / "How it works" `.about-grid` row is now two
 rows: Problem/Mission, then Vision/How it works (same `.about-grid`
@@ -585,7 +614,22 @@ the arrows + position bar in `.ch-rail-controls` are pure enhancement.
 whole control row, which also carries the "View all challenges" link;
 that's real content and has to survive. The fill bar is driven by a
 `--rail-progress` custom property on `transform:scaleX()`, not `width`, so
-dragging the rail never triggers layout per frame.
+dragging the rail never triggers layout per frame. **Re-tinted to
+`--accent`** (was a flat `--ink`, Aug 2026) so it swaps with the audience
+toggle. `.ch-rail-btn`'s hover state now matches `.ch-viewall`'s exactly
+(`border-color:var(--accent); background:var(--accent-wash);
+color:var(--accent-deep)`, was a flat `border-color:var(--ink)`) — asked
+for explicitly so the arrows read as the same family of control as the
+link beside them.
+
+**Tickets are ordered by days-left, shortest first (Aug 2026).** Was
+whatever order they were originally written in (4, 6, 9, 11, 14, 7 —
+Vertex Studio's 7 days sat last); now 4, 6, 7, 9, 11, 14 left to right.
+The per-ticket `[data-reveal]` stagger delays (`.08s` increments) moved
+with their tickets, so the entrance order still matches the new left-to-
+right reading order. If a ticket's own deadline changes, re-sort the
+markup rather than just editing its `data-brief-deadline`/`.ch-stub-num`
+in place.
 
 **Two gotchas this section hit, both worth not relearning:**
 
@@ -1282,6 +1326,54 @@ testimonials, all counters, the How-it-works steps (collapsed to a plain
 stacked list, all visible), and the mobile-only spectrum-split card reveal
 all render at their final values.
 
+## faq.html
+
+**Hover invite fix, Aug 2026.** The closed-card hover (nudge + accent
+tint, added earlier to hint that a card opens on click) was moving the
+whole `<summary>` row on `transform`, which meant the `+` toggle circle
+— generated content on `summary` itself via `::after` — slid right along
+with the question text, since a transform on `summary` carries all of
+its content including its own pseudo-elements. Asked to fix explicitly:
+only the question text moves; the `+` stays in a fixed position but
+still highlights (border-colour + scale) on hover. Fixed by wrapping the
+question in its own `<span class="faq-q">` and moving the `translateX`
+there — `summary` itself only transitions `color` now, and `::after`'s
+own hover rule (border-colour, colour, `scale(1.12)`) is untouched, so
+its highlight survives while its position doesn't move.
+
+**Expand/retract animation, Aug 2026 — a pure-CSS attempt was tried and
+abandoned, read before retrying it.** The obvious first approach was the
+`grid-template-rows:0fr → 1fr` trick (wrap the answer in `.faq-a` +
+`.faq-a-in`, override the UA's `display:none` on closed non-summary
+content, let `[open]` toggle the grid track size) — and it half-worked:
+opening animated correctly, but **closing silently froze at full
+height**, confirmed by polling `getComputedStyle(...).height` every 50ms
+after the close click and watching it never move even though the `open`
+attribute itself was correctly removed. Root cause: modern Chrome wraps
+a `<details>`'s non-summary children in its own internal
+`::details-content` box, which stops updating layout for that box the
+instant `[open]` is removed (effectively a `content-visibility:hidden`
+switch under the hood) — no amount of author CSS on `.faq-a` itself can
+reach around that, since the box actually being hidden/frozen is one
+level up, outside author control without targeting `::details-content`
+directly (which is real but too new to rely on across browsers here).
+
+Fixed by dropping the CSS-only approach for a small JS enhancement
+instead: `landing.js` intercepts the `summary` click
+(`preventDefault()`, so the native toggle — and whatever
+`::details-content` does — never fires mid-animation), and drives
+`.faq-a`'s `height` directly with inline styles (measure `scrollHeight`,
+force a reflow, animate to/from the target, `transitionend` cleans up).
+`<details>.open` itself is only flipped **after** the close animation
+visually finishes (immediately for opening, since content has to
+actually render before `scrollHeight` means anything) — by the time
+`open` changes, whatever the browser's internal box does is no longer
+visible either way, so the earlier freeze can't recur.
+No-js/`prefers-reduced-motion` (where the JS skips entirely) fall back
+to the base CSS alone — `height:0` closed, `height:auto` once `[open]`
+is present — a correct but instant jump, same contract as every other
+JS-enhanced effect on this site.
+
 ## Auth / accounts (front end only)
 
 `login.html` and `signup.html` are kept and still work. **They are front end
@@ -1305,10 +1397,18 @@ site.css` also still has a copy.**
 
 Explicit ask: bring back the v2 "light spectrum wave" split (see that
 section further down for the mechanic's origin and name) for these two
-pages, but change its trigger from hover to click, put sign-up permanently
-on the left and log-in permanently on the right, and make whichever mode
-the reader is in the dominant side of the screen while the other side
-collapses to just a prompt. Log in is the default mode.
+pages, but change its trigger from hover to click, and make whichever
+mode the reader is in the dominant side of the screen while the other
+side collapses to just a prompt. Log in is the default mode.
+
+**Panel sides flipped once, since the initial build (Aug 2026) — this is
+the current, correct layout.** Originally built sign-up-left/log-in-
+right; a later explicit ask swapped it to **log in permanently on the
+left, sign-up permanently on the right** (only the flex-grow dominance/
+collapse logic was unaffected, since it targets each panel by mode, not
+by side). The diagram below reflects the swapped, current layout — if
+you find an older note elsewhere saying signup is left, that note is
+stale, not this one.
 
 **One page shape, two entry points.** `login.html` and `signup.html` now
 carry byte-identical stage markup (`assets/auth.css` + `assets/auth.js`,
@@ -1321,13 +1421,41 @@ templating here to do that automatically.
 ```
 .auth-split                 the stage, id="authSplit", data-mode="login|signup"
   .as-logo                  floats over the stage, not owned by either panel
-  .as-panel.as-panel--signup   data-mode-panel="signup" — permanently LEFT
+  .as-panel.as-panel--login    data-mode-panel="login" — permanently LEFT
     .as-prompt                 shown only while this panel is collapsed
     .as-form                   the real form — role/name/email/password
   .as-stripe#asBars          the spectrum seam, bars built by auth.js
-  .as-panel.as-panel--login    data-mode-panel="login" — permanently RIGHT
-    .as-prompt / .as-form      same shape as the signup panel
+  .as-panel.as-panel--signup   data-mode-panel="signup" — permanently RIGHT
+    .as-prompt / .as-form      same shape as the login panel
 ```
+
+**Panel colour is tied to physical side, not mode (Aug 2026, asked for
+explicitly): left is orange, right is blue.** `.as-panel--login` (left)
+carries the orange wash, `.as-panel--signup` (right) the blue one —
+regardless of which one is currently dominant. This is a deliberate
+reversal of the more common "colour follows mode" convention used
+elsewhere on the site (e.g. the audience toggle's own orange=student/
+blue=company mapping) — here the ask was specifically about the seam's
+two fixed sides, not about which mode a colour represents. The spectrum
+stripe itself (`.as-stripe-inner`'s gradient, and the overall stage
+background) already ran orange-to-blue left-to-right from the original
+v2 asset, so this panel-wash change is what actually brings the two
+panels into agreement with the seam they sit beside — before this fix
+the left (login) panel was blue-washed sitting next to an orange-left
+stripe.
+
+**Sign-up's role toggle no longer defaults to "A business" (Aug 2026).**
+The `checked` attribute on the business radio was removed — asked for
+explicitly, since arriving on the switched-to-signup panel with a role
+silently pre-picked read as the page deciding for the reader rather than
+asking. The toggle's `<fieldset><legend>`, previously `sr-only` (screen-
+reader-only, visually hidden), is now a visible **"I am"** label above
+the two options, so the prompt is explicit rather than implied by the
+options' own copy alone. `site.js`'s `?role=`/`localStorage["projet:mode"]`
+prefill logic is untouched and still checks a radio when a role is
+actually specified (e.g. a CTA linking to `signup.html?role=business`);
+only the *unconditional* default was removed. The signup form's email
+field label changed from "Work email" to plain "Email" in the same pass.
 
 **The bars are the v2 mechanic verbatim, not a rebuild.** `auth.js`'s
 `BAND_ZOOM` table and the bar-construction loop are lifted from
