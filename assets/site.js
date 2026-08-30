@@ -179,11 +179,14 @@
       });
     });
 
-    // carry the side chosen on the split-hero into the signup role picker
-    var stored = null;
-    try { stored = localStorage.getItem('projet:mode'); } catch (e) {}
-    var param = new URLSearchParams(location.search).get('role');
-    var role = param || stored;
+    // carry a role passed on the URL (e.g. signup.html?role=business) into the
+    // signup role picker. Used to read a localStorage['projet:mode'] fallback
+    // left over from the old split-hero chooser; that key has had no writer
+    // anywhere in the codebase since the chooser was archived, so a stale
+    // value from an old visit was silently re-checking a radio on every
+    // load. Removed outright rather than fixed, since nothing legitimate
+    // writes it any more.
+    var role = new URLSearchParams(location.search).get('role');
     if (role) {
       var pick = form.querySelector('input[name="role"][value="' + role + '"]');
       if (pick) pick.checked = true;

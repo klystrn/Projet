@@ -17,6 +17,11 @@
        supersedes the old "login.html is image-left, signup.html is
        image-right" mirroring convention — the seam can't mean anything if
        the two sides swap places between the two pages.
+       This has flipped twice now: this comment's own original pairing, then
+       an explicit ask swapped it to login-left/signup-right, then a later
+       explicit ask ("Login should be on the right while the sign up is on
+       the left") swapped it back to what's written here. If a stale note
+       elsewhere says login is left, that note is the one that's wrong.
      - The active mode is DOMINANT (flex-grow 2.4 vs 1) and shows its whole
        form; the collapsed side shows only a prompt over its own end of the
        spectrum gradient.
@@ -75,19 +80,28 @@
 /* Seam-side clearance. The bars are deliberately wider than the stripe so
    they fan past it (--bar-w below), and that overhang has to land on empty
    panel margin — in v2 it sat straight over a headline until this was
-   added. Same trap here, same fix. Login is the LEFT panel, so its
-   clearance is on the right (the side facing the seam); signup is the
-   RIGHT panel, so its clearance is on the left. */
-.as-panel--login{padding-right:clamp(40px,6vw,104px);}
-.as-panel--signup{padding-left:clamp(40px,6vw,104px);}
+   added. Same trap here, same fix. Signup is the LEFT panel (swapped back,
+   Aug 2026 — see the file-header note above), so its clearance is on the
+   right (the side facing the seam); login is the RIGHT panel, so its
+   clearance is on the left.
+   The clamp range itself was raised from clamp(40px,6vw,104px) earlier (Aug
+   2026, asked explicitly: "increase the space between the light spectrum
+   and the text") — the fan's own --bar-w (1.7 x --stripe-w) is unchanged,
+   so this is purely extra breathing room past where the bars already end,
+   not a change to the shear itself. */
+.as-panel--signup{padding-right:clamp(56px,8vw,140px);}
+.as-panel--login{padding-left:clamp(56px,8vw,140px);}
 
 /* Each side carries the spectrum end nearest it, so a collapsed panel reads
    as its own colour rather than as empty stage. Tied to which PHYSICAL
    SIDE a panel sits on — asked for explicitly (left orange, right blue) —
-   not to which mode it represents, so login (left) is orange-leaning and
-   signup (right) is blue-leaning regardless of which one is dominant. */
-.as-panel--login{background:linear-gradient(135deg, rgba(255,91,36,.24), rgba(199,62,16,.06));}
-.as-panel--signup{background:linear-gradient(225deg, rgba(47,107,255,.24), rgba(12,22,56,.1));}
+   not to which mode it represents, so whichever panel is currently on the
+   left leans orange and whichever is on the right leans blue, regardless of
+   which one is dominant. Signup is left / login is right (swapped back, Aug
+   2026), so that's signup-orange, login-blue now — opposite of the pairing
+   this block carried right before the swap. */
+.as-panel--signup{background:linear-gradient(135deg, rgba(255,91,36,.24), rgba(199,62,16,.06));}
+.as-panel--login{background:linear-gradient(225deg, rgba(47,107,255,.24), rgba(12,22,56,.1));}
 
 /* ---------- content hugs the seam, not the outer edge ----------
    Asked for explicitly: rather than both panels' text sitting flush against
@@ -107,13 +121,18 @@
    Desktop only, same convention as the How-it-works flow-rail's own
    right-alignment further up the site: there is no seam to gather around
    once the panels stack below 900px, so the media query further down resets
-   both to the ordinary left-aligned stack. */
-.as-panel--login{align-items:flex-end; text-align:right;}
-.as-panel--signup{align-items:flex-start; text-align:left;}
+   both to the ordinary left-aligned stack.
+
+   Signup is the LEFT panel, login the RIGHT one (swapped back, Aug 2026) —
+   so it's signup that hugs the seam on its right edge now, and login that
+   hugs it on its left. */
+.as-panel--signup{align-items:flex-end; text-align:right;}
+.as-panel--login{align-items:flex-start; text-align:left;}
 /* Form fields keep left-to-right reading direction regardless of which way
    their panel's prose leans — right-aligned typed text would be genuinely
-   harder to read while filling in an email or password. */
-.as-panel--login .field input{text-align:left;}
+   harder to read while filling in an email or password. Signup is the
+   right-aligned panel now, so it's the one that needs this override. */
+.as-panel--signup .field input{text-align:left;}
 
 /* The active side dominates. 2.4/1 rather than v2's gentler 1.5/1: there the
    collapsed side was still full content that had to stay readable, whereas
@@ -230,6 +249,30 @@
   transition:filter .8s var(--ease);
 }
 .auth-split[data-mode="signup"] .as-stripe-inner{filter:saturate(1.16) brightness(1.08);}
+
+/* Each bar samples spectrum.webp's own diagonal band, and that band genuinely
+   brightens to near-white where its warm and cool halves meet (confirmed by
+   inspecting a rendered clip of the stripe, not a CSS artifact) — stacked
+   down 14 bars that reads as three distinct sections (orange / white / blue)
+   rather than one continuous transition. Fixing it in the source sample
+   would mean re-deriving the whole BAND_ZOOM table (see the .as-bar comment
+   below, and the "regenerate if spectrum.webp changes" caveat in CLAUDE.md)
+   for a result that's still just a burn-toward-colour in the end, so instead
+   this overlay does the same thing without touching the table: a centred
+   band, tinted with a violet that sits between the stripe's own warm and
+   cool ends, blended with colour-burn so it pulls the bright middle down
+   toward colour while barely touching the already-saturated orange/blue at
+   each end. Painted via ::after (after both .as-stripe-inner and every
+   .as-bar in paint order, all z-index:auto) so it sits on top with no
+   markup or z-index changes needed. */
+.as-stripe::after{
+  content:"";
+  position:absolute; inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(90deg, transparent 0%, transparent 18%, rgba(70,48,120,.46) 50%, transparent 82%, transparent 100%);
+  mix-blend-mode:multiply;
+}
 
 .as-bar{
   position:absolute; left:50%;

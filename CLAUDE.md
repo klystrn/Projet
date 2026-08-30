@@ -1401,14 +1401,21 @@ pages, but change its trigger from hover to click, and make whichever
 mode the reader is in the dominant side of the screen while the other
 side collapses to just a prompt. Log in is the default mode.
 
-**Panel sides flipped once, since the initial build (Aug 2026) — this is
-the current, correct layout.** Originally built sign-up-left/log-in-
-right; a later explicit ask swapped it to **log in permanently on the
-left, sign-up permanently on the right** (only the flex-grow dominance/
-collapse logic was unaffected, since it targets each panel by mode, not
-by side). The diagram below reflects the swapped, current layout — if
-you find an older note elsewhere saying signup is left, that note is
-stale, not this one.
+**Panel sides have now flipped twice (Aug 2026) — this is the current,
+correct layout.** Originally built sign-up-left/log-in-right; a later
+explicit ask swapped it to log in permanently on the left, sign-up
+permanently on the right; a further explicit ask ("Login should be on
+the right while the sign up is on the left") swapped it back to the
+**original pairing — sign-up permanently LEFT, log in permanently
+RIGHT**. Only the flex-grow dominance/collapse logic was ever unaffected
+by either swap, since it targets each panel by mode, not by side. Both
+swaps were done the same way: reordering the two `<section>`s in the
+markup (there is no CSS `order` on either panel, so physical position is
+plain DOM order), plus flipping every side-tied CSS rule — seam-side
+padding, the orange/blue wash, and the "hugs the seam" alignment — to
+match. The diagram below reflects the current layout — if you find an
+older note elsewhere saying login is left, that note is stale, not this
+one.
 
 **One page shape, two entry points.** `login.html` and `signup.html` now
 carry byte-identical stage markup (`assets/auth.css` + `assets/auth.js`,
@@ -1421,28 +1428,31 @@ templating here to do that automatically.
 ```
 .auth-split                 the stage, id="authSplit", data-mode="login|signup"
   .as-logo                  floats over the stage, not owned by either panel
-  .as-panel.as-panel--login    data-mode-panel="login" — permanently LEFT
+  .as-panel.as-panel--signup   data-mode-panel="signup" — permanently LEFT
     .as-prompt                 shown only while this panel is collapsed
     .as-form                   the real form — role/name/email/password
   .as-stripe#asBars          the spectrum seam, bars built by auth.js
-  .as-panel.as-panel--signup   data-mode-panel="signup" — permanently RIGHT
-    .as-prompt / .as-form      same shape as the login panel
+  .as-panel.as-panel--login    data-mode-panel="login" — permanently RIGHT
+    .as-prompt / .as-form      same shape as the signup panel
 ```
 
 **Panel colour is tied to physical side, not mode (Aug 2026, asked for
-explicitly): left is orange, right is blue.** `.as-panel--login` (left)
-carries the orange wash, `.as-panel--signup` (right) the blue one —
-regardless of which one is currently dominant. This is a deliberate
-reversal of the more common "colour follows mode" convention used
-elsewhere on the site (e.g. the audience toggle's own orange=student/
-blue=company mapping) — here the ask was specifically about the seam's
-two fixed sides, not about which mode a colour represents. The spectrum
-stripe itself (`.as-stripe-inner`'s gradient, and the overall stage
-background) already ran orange-to-blue left-to-right from the original
-v2 asset, so this panel-wash change is what actually brings the two
-panels into agreement with the seam they sit beside — before this fix
-the left (login) panel was blue-washed sitting next to an orange-left
-stripe.
+explicitly): left is orange, right is blue.** Whichever panel is
+currently on the left carries the orange wash, whichever is on the right
+carries the blue one — regardless of which one is currently dominant.
+This is a deliberate reversal of the more common "colour follows mode"
+convention used elsewhere on the site (e.g. the audience toggle's own
+orange=student/blue=company mapping) — here the ask was specifically
+about the seam's two fixed sides, not about which mode a colour
+represents. The spectrum stripe itself (`.as-stripe-inner`'s gradient,
+and the overall stage background) already ran orange-to-blue
+left-to-right from the original v2 asset, so this panel-wash rule is
+what keeps the two panels in agreement with the seam they sit beside
+regardless of which side each currently occupies. With sign-up now the
+left panel again (see "Panel sides have now flipped twice" above),
+`.as-panel--signup` carries the orange wash and `.as-panel--login` the
+blue one — the reverse of the pairing this rule carried in between the
+two side-swaps.
 
 **Sign-up's role toggle no longer defaults to "A business" (Aug 2026).**
 The `checked` attribute on the business radio was removed — asked for
@@ -1451,11 +1461,25 @@ silently pre-picked read as the page deciding for the reader rather than
 asking. The toggle's `<fieldset><legend>`, previously `sr-only` (screen-
 reader-only, visually hidden), is now a visible **"I am"** label above
 the two options, so the prompt is explicit rather than implied by the
-options' own copy alone. `site.js`'s `?role=`/`localStorage["projet:mode"]`
-prefill logic is untouched and still checks a radio when a role is
-actually specified (e.g. a CTA linking to `signup.html?role=business`);
-only the *unconditional* default was removed. The signup form's email
-field label changed from "Work email" to plain "Email" in the same pass.
+options' own copy alone. The signup form's email field label changed
+from "Work email" to plain "Email" in the same pass.
+
+**The highlight came back anyway after that fix — root cause was a
+second code path, not the `checked` attribute (Aug 2026).** The user
+reported the business radio was still highlighting on load after the
+`checked` attribute was removed. `site.js`'s `[data-auth-form]` prefill
+logic had a second source for the same effect: `localStorage
+["projet:mode"]` was read as a fallback whenever `?role=` wasn't present
+on the URL. That key was written only by the old, now-archived
+split-hero chooser — grepping the live codebase (`grep -rn "projet:mode"
+assets/*.js *.html`) turned up exactly one hit, the read itself, with no
+writer anywhere — so a value left over from testing the old chooser (or
+from any earlier visit, ever) would silently re-check "A business" on
+every later load of `signup.html`, in that one browser, forever. Fixed
+by deleting the `localStorage` read outright rather than trying to
+clear or expire the key — nothing legitimate writes it any more. The
+real, still-used `?role=` query param path (e.g. a CTA linking to
+`signup.html?role=business`) is untouched and still works.
 
 **The bars are the v2 mechanic verbatim, not a rebuild.** `auth.js`'s
 `BAND_ZOOM` table and the bar-construction loop are lifted from
@@ -1465,6 +1489,38 @@ field label changed from "Work email" to plain "Email" in the same pass.
 `assets/` folder even after v3 dropped every page that referenced them —
 see "Known issues" #6). **Regenerate that table if spectrum.webp is ever
 re-exported**, same caveat as it always carried.
+
+**Seam-side clearance widened (Aug 2026).** Asked explicitly: "increase
+the space between the light spectrum and the text." `.as-panel--login`/
+`--signup`'s seam-side padding went from `clamp(40px,6vw,104px)` (already
+raised once before, see the comment history in `assets/auth.css`) to
+`clamp(56px,8vw,140px)`. Purely extra breathing room past where the bars'
+own fan (`--bar-w`, 1.7 x `--stripe-w`) already ends — the shear/fan
+math itself is untouched.
+
+**The stripe's own "three visible bands" fixed with a blend-mode
+overlay, not a BAND_ZOOM re-sample (Aug 2026).** Reported directly: "the
+light spectrum divider has 3 sections, orange (left), white (connector),
+blue (right)... reduce the amount of white... to make the gradient
+transition smoother." Screenshotted a clip of the live stripe to check
+before touching anything: the white is real image content, not a CSS
+artifact — each of the 14 bars samples `spectrum.webp`'s own diagonal
+band, and that band genuinely brightens to near-white where its warm and
+cool halves meet, so stacked down 14 bars it reads as three distinct
+bands rather than one continuous transition. Recolouring it at the
+source would mean re-deriving the whole `BAND_ZOOM` table (each pair is
+specific to this exact image, per the caveat above) for a result that's
+still just a burn-toward-colour in the end — so instead `.as-stripe::after`
+adds a centred, violet-tinted `linear-gradient` overlay blended with
+`mix-blend-mode:multiply`, pulling just the bright middle down toward
+colour without needing markup or z-index changes (`::after` paints after
+both `.as-stripe-inner` and every dynamically-added `.as-bar` in the same
+stacking context, so it sits on top by construction). **`color-burn` was
+tried first and rejected** — screenshotted, and it over-corrected into an
+obvious magenta stripe of its own rather than reading as smoothing; a
+gentler `multiply` at lower alpha (`rgba(70,48,120,.46)`) was the version
+that actually reads as one continuous transition rather than an added
+third colour. Verified by re-screenshotting the same clip before/after.
 
 **Hover is gone on purpose, not an oversight.** v2 sheared the bars on
 hover and only pinned a side on click; here there is no hover state at
