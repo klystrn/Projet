@@ -399,6 +399,41 @@ quote against the spotlight's real layout once (and again on resize) and
 reserves the tallest as `min-height`, so the swap only ever changes
 content now, never layout.
 
+**Testimonials pinned dwell (Aug 2026).** Explicit follow-up: this section
+had no scroll gating at all, so it flew past on scroll. Same shape as the
+How-it-works `.flow-scroll`/`.flow-stage` pin further up the page —
+`.t-scroll` (240vh, desktop-only) wraps `.t-stage` (`position:sticky;
+top:0; height:100vh`, content vertically centered so it never sits under
+the strip the sticky nav covers). `landing.js` divides the pin's scroll
+range into one segment per `.t-chip` (5 segments) and calls the *same*
+`activate()` function hover/focus already use to auto-promote a chip into
+the spotlight as the reader scrolls — not a second implementation, so the
+two can't drift out of sync. They coexist for free: the auto-advance only
+runs inside the shared `scrollUpdaters` ticker, which itself only fires on
+a real `scroll`/`resize` event, so a reader who stops scrolling to hover a
+chip keeps that chip (via the hover listener) until the next real scroll
+event recomputes the auto-selected one. Gated at JS setup time exactly
+like the flow-rail (`reducedMotion` + `matchMedia("(max-width:900px)")`),
+so no scroll listener is even registered where the pin won't render.
+Fallbacks (`max-width:900px`, `prefers-reduced-motion:reduce`, `.no-js`)
+all reset `.t-scroll{height:auto}` / `.t-stage{position:static;
+height:auto}`, collapsing back to the plain static block this was before
+the pin existed — same three-way convention as every other pinned effect
+here, nothing gated behind it.
+
+**Testimonial spotlight gets more orange presence in student mode (Aug
+2026).** `.t-spot`'s background was `var(--grad-dark)` unconditionally,
+but that token is a near-neutral ink-to-ink gradient in student/builder
+mode (`--ink-lift` `#1c1a14` to `--ink` `#14130f` — barely any hue in it)
+while company mode already swaps it to an explicit navy pair
+(`html[data-audience="business"]` overrides `--grad-dark` to `#131a33` →
+`--navy-deep`). Asked for explicitly: more orange in the student-mode
+card specifically, without touching the shared `--grad-dark` token itself
+(`.final` also reads it and wasn't part of this ask). `.t-spot` now
+declares its own `linear-gradient(155deg, #2e160a 0%, #1a0f08 74%)`
+directly, with `html[data-audience="business"] .t-spot{background:
+var(--grad-dark)}` restoring the existing navy pair for company mode.
+
 **Final CTA / footer, v3.2.** `.final` no longer carries `.wrap` directly
 (same trap the hero had) — `.final` is now the full-width background
 carrier and `.final-wrap` is the text-width-constrained inner content, so
