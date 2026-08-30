@@ -228,6 +228,11 @@
           });
         })
         .then(function (data) {
+          // The dashboard is home for a signed-in visitor, so a real
+          // signup/login success marks the same seam landing.js reads to
+          // hide the landing page's own closing CTA and to bounce a
+          // returning member straight past the pitch page.
+          try { localStorage.setItem('projet:loggedIn', '1'); } catch (e) { /* private mode */ }
           // business.html was archived with the rest of the dual-audience
           // pages; this fallback had been pointing at a 404 ever since.
           window.location.href = data.redirect || 'dashboard.html';

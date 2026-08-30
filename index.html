@@ -31,6 +31,29 @@
 <meta property="og:locale" content="en_SG">
 <meta name="theme-color" content="#14130f">
 
+<!--
+  Dashboard is home for a signed-in visitor; this page's job is only to
+  land a signed-OUT one and get them to sign up. Runs as early as possible
+  (before the rest of <head> even finishes) so a returning member doesn't
+  see a flash of the marketing page before bouncing off it. Mirrors the
+  same localStorage["projet:loggedIn"] + ?loggedin= seam landing.js already
+  uses to hide the final CTA on this/about/faq — see assets/landing.js for
+  the query-param testing convention this reads.
+-->
+<script>
+(function () {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.has("loggedin")) {
+      localStorage.setItem("projet:loggedIn", params.get("loggedin") === "1" ? "1" : "0");
+    }
+    if (localStorage.getItem("projet:loggedIn") === "1") {
+      window.location.replace("dashboard.html");
+    }
+  } catch (e) { /* private mode: no seam available, just show the landing page */ }
+})();
+</script>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",

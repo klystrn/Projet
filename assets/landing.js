@@ -309,6 +309,23 @@
     if (loggedIn) final.hidden = true;
   })();
 
+  /* ---------------- dashboard "Log out" ----------------
+     dashboard.html is only ever reached signed in, so its nav offers a way
+     OUT of that state instead of the "Log in" prompt every other page shows
+     — clearing the same projet:loggedIn seam the pages above read, then
+     sending the reader back to the landing page. Self-skips everywhere else,
+     since only dashboard.html has these buttons. */
+  (function () {
+    var buttons = document.querySelectorAll("#navLogout, #navLogoutMobile");
+    if (!buttons.length) return;
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        try { localStorage.removeItem("projet:loggedIn"); } catch (e) { /* private mode */ }
+        window.location.href = "index.html";
+      });
+    });
+  })();
+
   /* ---------------- final CTA + footer sized to one screenful ----------------
      .final's own min-height (landing.css) reads --nav-h/--footer-h to cap
      itself at exactly "whatever's left below the nav once the footer's own
