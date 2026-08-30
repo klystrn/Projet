@@ -57,24 +57,42 @@
   background:var(--ink);
 }
 
-/* Tuned down from an earlier -6%/±4% pass — asked directly whether this
-   still reads as "too blurry and zoomed in." -3%/±2% crops noticeably
-   less of the actual composition (more of the swirl's own variety stays
-   visible instead of one repeat-y section), and the saturate/contrast
-   nudge is a real, if modest, lever against a soft-focus source image:
-   it can't add sharpness that isn't there, but it does make the existing
-   detail read with more definition instead of washed out. */
+/* THE REAL PROBLEM, found by testing at deviceScaleFactor:2 (Retina),
+   not the deviceScaleFactor:1 this was first checked at: fluid-full.webp/
+   .avif is only 2048x1159, and is itself already a Lanczos upscale of a
+   true 1080x611 master (see CLAUDE.md "Known issues" #3) — there is no
+   higher-resolution source in this repo. On an ordinary 1440-CSS-px-wide
+   Retina window this box needs ~3050 physical px to cover, which is a
+   ~1.6x upscale of the 2048px file and effectively ~3x of the true
+   1080px master. A cropped screenshot at that scale showed real, visible
+   mosaic/staircase artifacts along the diagonal highlights, not just
+   softness — confirming this is genuine pixelation, not the earlier
+   "it's just this artwork's soft-focus style" read. Fetching a proper
+   higher-res export was checked again and is still blocked: this
+   environment's egress policy still refuses www.figma.com (confirmed via
+   the agent proxy's status endpoint), same as CLAUDE.md's existing record.
+
+   Two changes, given no sharper source is reachable: the earlier
+   saturate/contrast boost is GONE — contrast specifically sharpens the
+   edges of exactly the blocky artifacts it was meant to help, making
+   them more visible, not less. And a real blur() is added: this can't
+   invent detail, but it dissolves the interpolation staircasing into a
+   smooth, deliberately soft backdrop, which reads as an intentional
+   atmospheric treatment rather than a failed attempt at a sharp image —
+   the panel in front of it is where all the actually-legible content
+   lives anyway. Oversize also trimmed slightly (-3%/±2% -> -2%/±1.5%),
+   since every extra percent is more upscale demanded for no visual gain. */
 .auth-bg{
-  position:absolute; inset:-3% -3%; z-index:0;
+  position:absolute; inset:-2% -2%; z-index:0;
   background-image:var(--img-auth-bg);
   background-size:cover; background-position:center;
-  filter:saturate(1.1) contrast(1.06);
+  filter:blur(5px) saturate(1.08);
   transform:translateX(var(--bg-x, 0));
   transition:transform .9s var(--ease);
   will-change:transform;
 }
-.auth-stage[data-mode="signup"] .auth-bg{--bg-x:-2%;}
-.auth-stage[data-mode="login"]  .auth-bg{--bg-x:2%;}
+.auth-stage[data-mode="signup"] .auth-bg{--bg-x:-1.5%;}
+.auth-stage[data-mode="login"]  .auth-bg{--bg-x:1.5%;}
 
 /* Light, not the heavy contrast-protecting scrim the earlier small-card
    version needed — the panel below is a fully opaque surface, not

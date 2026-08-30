@@ -1518,28 +1518,43 @@ and sign up page looks ugly." Three fixes, all scoped to `.auth-card` in
   and a hover border-colour step, so the fields read as slightly more
   considered than bare browser-default boxes.
 
-**Background image — tuned, not replaced (Aug 2026).** Reported as "too
-blur and zoomed in." Checked before touching anything: `fluid-full.webp`/
-`.avif` is the correct, non-corrupted 2048x1159 asset (matches CLAUDE.md's
-own "Known issues" #3 record of the AVIF 4:4:4 regeneration), and at this
-stage's box size the image is being *downscaled*, not upscaled — so the
-softness isn't a resolution or encoding bug. It's the artwork's own style:
-every fluid/spectrum asset on this site (`fluid-full`, `hero-visual`,
-`spectrum` — all frames of the same family of glossy liquid renders) is a
-soft-focus, close-up abstract composition with no sharp edges anywhere by
-design, and this page shows one at full opacity across half the screen
-with no scrim or reduced-opacity treatment the way How-it-works uses the
-same family of asset. That combination is what reads as "blurry."
-Two real levers pulled, both kept modest: `.auth-bg`'s oversize went from
-`inset:-6% -6%`/`--bg-x:±4%` to `-3%`/`±2%`, cropping noticeably less of
-the actual composition so more of its own variety shows instead of one
-repeated section; and `filter:saturate(1.1) contrast(1.06)` gives the
-existing detail more definition without fabricating sharpness that isn't
-in the source. **What this can't fix**: there is no sharp/high-detail
-background asset in this repo to swap in instead — every candidate
-(`hero-visual`, `spectrum`) shares the same soft-focus family. If a crisp,
-high-detail background is wanted, that needs a new asset supplied or
-sourced, not a CSS adjustment to this one.
+**Background image — first pass was wrong, second pass found the real
+cause (Aug 2026).** Reported as "too blur and zoomed in," then, after a
+first fix, reported *again* as "still too pixelated." The first pass
+checked only at `deviceScaleFactor:1` and concluded the image was being
+downscaled, not upscaled, so the softness had to be the artwork's own
+soft-focus style — that conclusion was wrong, or at least incomplete.
+Re-checked at `deviceScaleFactor:2` (an ordinary Retina laptop, not an
+edge case) and found the actual bug: `fluid-full.webp`/`.avif` is only
+2048x1159, and is *itself* already a Lanczos upscale of a true 1080x611
+master (see "Known issues" #3 above) — there is no higher-resolution
+source in this repo. On a Retina display this box needs roughly 3000
+physical px to cover, which is a ~1.6x upscale of the 2048px file and
+effectively ~3x of the true 1080px master. A cropped, zoomed screenshot
+at that scale showed real, visible mosaic/staircase artifacts along the
+diagonal highlights — genuine pixelation, not just softness. **Re-checked
+whether a real higher-res export is reachable — still no**: this
+environment's egress policy still refuses `www.figma.com` outright
+(confirmed via the agent proxy's status endpoint), same block recorded
+earlier in this file.
+
+With no sharper source reachable, two changes: the `saturate`/`contrast`
+boost from the first pass is **gone** — contrast specifically sharpens
+the edges of exactly the blocky artifacts it was meant to help, making
+them more visible, not less. In its place, `filter:blur(5px) saturate
+(1.08)` on `.auth-bg`: this can't invent detail, but it dissolves the
+interpolation staircasing into a smooth, deliberately soft backdrop, which
+reads as an intentional atmospheric treatment behind the opaque panel
+rather than a failed attempt at a sharp image — confirmed by re-shooting
+the same zoomed crop at `deviceScaleFactor:2` afterward, with the
+artifacts gone. Oversize trimmed again too (`-3%`/`±2%` → `-2%`/`±1.5%`),
+since every extra percent is more upscale demanded for no visual gain.
+**What this still can't fix**: there is no sharp/high-detail background
+asset in this repo to swap in instead — every candidate (`hero-visual`,
+`spectrum`) is the same family of Lanczos-upscaled renders. If a crisp,
+high-detail background is wanted, that needs a new, genuinely
+higher-resolution asset supplied or sourced (or Figma access from outside
+this sandbox), not a CSS adjustment to this one.
 
 ---
 
