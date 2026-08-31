@@ -1556,6 +1556,66 @@ high-detail background is wanted, that needs a new, genuinely
 higher-resolution asset supplied or sourced (or Figma access from outside
 this sandbox), not a CSS adjustment to this one.
 
+**Reported "still blurry" a third time — the blur() masking above is
+GONE, replaced with a real 4K video (Aug 2026).** The user pointed at the
+actual fix: *"Try using the video as the background, since it was
+enhanced to 4k by chatgpt."* `assets/fluid_animation_3500ms.mp4` — already
+sitting in this repo, documented in "Known issues" #5 as "the raw master
+export... not referenced by any page" — is genuinely 3840x2160
+(`ffprobe`-confirmed), not an interpolated upscale like the stills. At the
+`.auth-bg` box size this needs (even oversized, even at
+`deviceScaleFactor:2`), the *height* of the box stays under 2160px, so
+`object-fit:cover` never has to upscale it at all — the ceiling the still
+images kept hitting simply doesn't apply to this source.
+
+`.auth-bg` is now a `<video autoplay muted loop playsinline>` instead of a
+background-image div. `assets/auth-bg.mp4` is a fresh re-encode straight
+from the 4K master (not the still-image pipeline) — `ffmpeg -c:v libx264
+-crf 24 -preset slow -pix_fmt yuv420p -movflags +faststart`, kept at the
+full 3840x2160 (downscaling it would just reintroduce a resolution
+ceiling on the largest realistic viewports). Picked **CRF 24 (6.1MB)**
+over CRF 20 (10MB, 47.7dB) and CRF 26 (4.8MB, 44.7dB) by measuring PSNR
+against the untouched master: 24 lands at 45.75dB, comfortably in the
+"excellent" range this project already uses for its still-image AVIFs,
+without paying for the barely-visible gain CRF 20 would cost. **A VP9/
+WebM alternative was tried and rejected** — at a comparable file size
+(5.0MB) it measured only ~29dB average (parts as low as 22dB), visibly
+worse; this footage compresses better under H.264 than under
+`libvpx-vp9`'s constant-quality mode, at least at the settings tried. No
+blur/saturate filter on `.auth-bg` any more — the source is genuinely
+sharp now, so filtering it would only throw detail away again.
+`assets/auth-bg-poster.webp` (1920x1080, 131KB) is extracted from the new
+video's own first frame, not the old still — using a different image as
+the `poster` would show a visible quality "pop" the instant the sharper
+video actually starts playing.
+
+**Reduced motion**: same fix this project already made once for the
+(now-retired) final-CTA background video, since CSS alone still can't
+stop an autoplaying `<video>`. `assets/auth.js` removes the `autoplay`
+attribute and calls `.pause()`/`currentTime = 0` under
+`prefers-reduced-motion: reduce`, re-asserting on `play`/`loadeddata` in
+case the browser tries to resume once more data arrives. No-js visitors
+still get the moving video regardless of motion preference — there is no
+way to stop it without running this JS, the same accepted tradeoff the
+original fix made.
+
+**A real tooling gotcha hit while verifying this, worth recording**: the
+headless Chromium bundled in this sandbox (`/opt/pw-browsers/
+chromium-1194`) cannot decode ANY video codec at all — not H.264, not
+even VP9 — confirmed by testing this new file *and* the site's existing,
+already-shipping `fluid-loop.mp4`/`.webm` the same way, both failing with
+`MEDIA_ELEMENT_ERROR: Format error` (code 4). There's no bundled
+`libffmpeg.so` in this Chromium build, unlike a full consumer Chrome
+install. This is a limitation of the **test tool**, not the file or the
+integration code — real browsers (desktop and mobile Chrome, Safari,
+Firefox) all ship full H.264 decode support. Verification for this change
+leaned on what doesn't require decode: `ffprobe`/PSNR against the source
+file directly, a `<video>` element's `poster`-fallback rendering (which
+doesn't need codec support) to confirm the CSS sizing/position/crossfade
+logic, and `Emulation.setEmulatedMedia` to confirm the reduced-motion JS
+actually flips the right attributes. **If a future session needs to
+visually confirm video playback in this sandbox, expect the same wall.**
+
 ---
 
 **Everything from here through the next `---` describes the v2
@@ -1960,7 +2020,11 @@ chooser is gone — harmless, just never populated.
    and marked "soon", the same honesty convention the auth forms use. Swap
    each `<span>` back to an `<a href="…">` as its page ships.
 5. **`assets/fluid_animation_3500ms.mp4` (18.7MB, 3840x2160) is the raw
-   master export** and is not referenced by any page. `assets/fluid-loop.mp4`
+   master export** and is not referenced by any page directly — two derived
+   files are: `assets/fluid-loop.mp4` (final CTA) and, as of Aug 2026,
+   `assets/auth-bg.mp4` (the login/signup full-bleed background — see
+   "Background image" further up for why this one gets the full 3840x2160
+   kept rather than downscaled). `assets/fluid-loop.mp4`
    is what ships (final CTA only now — not the hero, not testimonials).
    **Re-encoded at 1920x1080 (was 1280x720):** the final CTA renders up to
    ~1176px wide, so 720p was being upscaled ~1.8x on a retina display.

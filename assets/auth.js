@@ -47,4 +47,23 @@
       setMode(btn.getAttribute("data-goto-mode"));
     });
   });
+
+  /* prefers-reduced-motion can't be honoured by CSS alone for an
+     autoplaying <video> — same limitation this site already hit and
+     fixed once for the (now-retired) final-CTA background video. Freeze
+     it on its poster/first frame instead of leaving it looping for
+     exactly the visitors who asked it not to. No-js visitors still get
+     the moving video (there is no way to stop it without running this),
+     the same accepted tradeoff the earlier fix made. */
+  var bgVideo = document.getElementById("authBgVideo");
+  if (bgVideo && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    bgVideo.removeAttribute("autoplay");
+    bgVideo.autoplay = false;
+    var stop = function () { bgVideo.pause(); bgVideo.currentTime = 0; };
+    stop();
+    // Chrome can kick off playback again once enough data arrives, so hold
+    // it down until the element has actually settled.
+    bgVideo.addEventListener("play", stop);
+    bgVideo.addEventListener("loadeddata", stop);
+  }
 })();

@@ -11,17 +11,20 @@
    When a user chooses a mode, the form and background slide over to the
    other side as an animation." Then refined, same round: "The card should
    stretch the full half of the page, same look as v2, just a different
-   structure." So: one full-viewport fluid-texture background (assets/
-   fluid-full.webp/.avif, the same high-resolution asset already used for
-   the How-it-works scrub — assets/fluid.webp is only ever a poster-frame
-   resolution, too low to hold up at full-page size) runs edge to edge,
-   and a solid, opaque, full-height panel exactly half the stage's width
-   sits over ONE half of it — the same proportions and flat, undecorated
-   edge as v2's own two-column grid, just built as a sliding overlay
-   instead of a static grid track. Switching mode slides that panel to the
-   opposite half (transform only, no layout thrash) and pans the
-   background a smaller amount in the same direction, so the whole scene
-   reads as shifting together rather than the panel moving alone.
+   structure." So: a full-viewport fluid-texture background runs edge to
+   edge, and a solid, opaque, full-height panel exactly half the stage's
+   width sits over ONE half of it — the same proportions and flat,
+   undecorated edge as v2's own two-column grid, just built as a sliding
+   overlay instead of a static grid track. Switching mode slides that
+   panel to the opposite half (transform only, no layout thrash) and pans
+   the background a smaller amount in the same direction, so the whole
+   scene reads as shifting together rather than the panel moving alone.
+
+   THE BACKGROUND IS NOW A VIDEO, not a still image (Aug 2026) — see the
+   comment on .auth-bg below for why the stills (fluid-full.webp/.avif)
+   could never get past a hard resolution ceiling, and why
+   assets/auth-bg.mp4 (re-encoded from the true 4K master,
+   fluid_animation_3500ms.mp4) doesn't have that problem.
 
    This is the FOURTH shell for these two pages (v2 image-aside grid ->
    split-spectrum stage -> v2 grid again, briefly -> this). Both the
@@ -34,21 +37,6 @@
    mechanic. If you edit one of these two pages, edit the other to match.
    ========================================================================== */
 
-/* Same two-layer fallback as landing.css's own image tokens: a plain WebP
-   url() default, upgraded to an AVIF-first image-set() where supported.
-   Defined locally rather than shared from landing.css since these two
-   pages don't load that file. Both files must be kept — see CLAUDE.md
-   "Known issues" #3. */
-:root{
-  --img-auth-bg:url("fluid-full.webp");
-}
-@supports (background-image:image-set(url("x.avif") type("image/avif"))){
-  :root{
-    --img-auth-bg:image-set(url("fluid-full.avif") type("image/avif"),
-                             url("fluid-full.webp") type("image/webp"));
-  }
-}
-
 /* ---------- the stage ---------- */
 .auth-stage{
   --stage-h:100vh;
@@ -57,36 +45,37 @@
   background:var(--ink);
 }
 
-/* THE REAL PROBLEM, found by testing at deviceScaleFactor:2 (Retina),
-   not the deviceScaleFactor:1 this was first checked at: fluid-full.webp/
-   .avif is only 2048x1159, and is itself already a Lanczos upscale of a
-   true 1080x611 master (see CLAUDE.md "Known issues" #3) — there is no
-   higher-resolution source in this repo. On an ordinary 1440-CSS-px-wide
-   Retina window this box needs ~3050 physical px to cover, which is a
-   ~1.6x upscale of the 2048px file and effectively ~3x of the true
-   1080px master. A cropped screenshot at that scale showed real, visible
-   mosaic/staircase artifacts along the diagonal highlights, not just
-   softness — confirming this is genuine pixelation, not the earlier
-   "it's just this artwork's soft-focus style" read. Fetching a proper
-   higher-res export was checked again and is still blocked: this
-   environment's egress policy still refuses www.figma.com (confirmed via
-   the agent proxy's status endpoint), same as CLAUDE.md's existing record.
+/* WHY THIS IS A <video> NOW, not a background-image div (Aug 2026).
+   The still images (fluid-full.webp/.avif) hit a hard ceiling that no CSS
+   fix could get past: they're only 2048x1159, and are THEMSELVES already
+   a Lanczos upscale of a true 1080x611 master — there is no higher-
+   resolution still in this repo. Reported "too blurry / zoomed in," then
+   "still too pixelated" after a first tuning pass; testing at
+   deviceScaleFactor:2 (an ordinary Retina laptop) found real mosaic/
+   staircase artifacts, confirmed by a zoomed screenshot — a genuine
+   resolution problem, not just this artwork's soft-focus style. A
+   blur() masked the artifacts but couldn't add back real detail.
 
-   Two changes, given no sharper source is reachable: the earlier
-   saturate/contrast boost is GONE — contrast specifically sharpens the
-   edges of exactly the blocky artifacts it was meant to help, making
-   them more visible, not less. And a real blur() is added: this can't
-   invent detail, but it dissolves the interpolation staircasing into a
-   smooth, deliberately soft backdrop, which reads as an intentional
-   atmospheric treatment rather than a failed attempt at a sharp image —
-   the panel in front of it is where all the actually-legible content
-   lives anyway. Oversize also trimmed slightly (-3%/±2% -> -2%/±1.5%),
-   since every extra percent is more upscale demanded for no visual gain. */
+   The fix: assets/auth-bg.mp4 is re-encoded straight from
+   assets/fluid_animation_3500ms.mp4, the project's actual 4K (3840x2160)
+   master — a real, non-interpolated source with more than enough
+   resolution to stay sharp on any realistic viewport, Retina included, at
+   the size this box needs. Re-encoded at CRF 24 (libx264, yuv420p,
+   +faststart): 6.1MB for the 3.5s loop, measured at 45.75dB PSNR against
+   the untouched master (comfortably in the "excellent" range this project
+   already uses for its still-image AVIFs) — CRF 20 measured slightly
+   higher (47.7dB) but nearly doubled the file size for a difference nobody
+   would see, and a VP9/WebM alternative was tried and rejected: at a
+   comparable file size it measured only ~29dB, visibly worse, so this
+   footage compresses better under H.264 than under VP9's constant-quality
+   mode. No blur/saturate filter is needed any more — the source is
+   genuinely sharp, so filtering it would only be throwing detail away
+   again. The panel in front is still where all the actually-legible
+   content lives. */
 .auth-bg{
   position:absolute; inset:-2% -2%; z-index:0;
-  background-image:var(--img-auth-bg);
-  background-size:cover; background-position:center;
-  filter:blur(5px) saturate(1.08);
+  width:104%; height:104%;
+  object-fit:cover; object-position:center;
   transform:translateX(var(--bg-x, 0));
   transition:transform .9s var(--ease);
   will-change:transform;
