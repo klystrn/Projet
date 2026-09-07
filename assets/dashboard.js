@@ -73,9 +73,6 @@
   var viewStudentEmpty = document.getElementById("viewStudentEmpty");
   var viewCompany = document.getElementById("viewCompany");
 
-  var eyebrow = document.getElementById("dpEyebrow");
-  var heading = document.getElementById("dpHeading");
-  var lede = document.getElementById("dpLede");
   var avatar = document.getElementById("dpAvatar");
   var nameEl = document.getElementById("dpName");
   var subEl = document.getElementById("dpSub");
@@ -86,9 +83,6 @@
   // sample profiles, one per view — replaced wholesale by a real API response
   var PROFILES = {
     student: {
-      eyebrow: "Student dashboard",
-      heading: "Your proof, in one place.",
-      lede: "Every challenge you have entered, what you scored, and where you ranked.",
       initials: "CL",
       name: "Chloe Lim",
       sub: "SUTD · Year 3 Design & AI",
@@ -107,9 +101,6 @@
       cta: "Edit profile"
     },
     company: {
-      eyebrow: "Company dashboard",
-      heading: "Your shortlist, already ranked.",
-      lede: "Every submission to your brief, scored and ordered before you book a single call.",
       initials: "NW",
       name: "Nordwave",
       sub: "Hiring · 1 open brief",
@@ -145,9 +136,6 @@
   var reapplyProfileEdits = null;
 
   function setProfile(p) {
-    if (eyebrow) eyebrow.textContent = p.eyebrow;
-    if (heading) heading.textContent = p.heading;
-    if (lede) lede.textContent = p.lede;
     if (avatar) avatar.textContent = p.initials;
     if (nameEl) nameEl.textContent = p.name;
     if (subEl) subEl.textContent = p.sub;

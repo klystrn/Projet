@@ -13,14 +13,13 @@
 body.dash-page{background:var(--paper-warm);}
 
 /* ---------- page header ---------- */
-.dp-head{padding:36px 0 26px; position:relative;}
-.dp-head::after{content:''; display:block; height:1px; background:var(--grad-rule); margin-top:26px;}
-.dp-head-row{display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap;}
-.dp-title h1{font-size:clamp(28px,3.4vw,38px); margin:12px 0 8px;}
-.dp-title p{font-size:15px; color:var(--ink-soft);}
-
-/* ---------- layout ---------- */
-.dp-body{padding:32px 0 80px;}
+/* ---------- layout ----------
+   No page-header block above this any more — asked for explicitly: the
+   dashboard should start at the actual dashboard, not a headline + lede
+   restating what the page obviously is. .dp-body carries the top padding
+   that used to come from .dp-head's own box, so the content still clears
+   the sticky nav by a sane amount. */
+.dp-body{padding:40px 0 80px;}
 .dp-grid{display:grid; grid-template-columns:300px 1fr; gap:26px; align-items:start;}
 
 /* ---------- left rail: profile ---------- */
@@ -159,7 +158,6 @@ body.dash-page{background:var(--paper-warm);}
   .dp-metrics{grid-template-columns:1fr;}
   .dp-card{flex-wrap:wrap;}
   .dp-chips, .dp-score, .dp-fit{order:3;}
-  .dp-head-row{flex-direction:column;}
   .dp-listfoot-actions .btn{flex:1;}
 }
 

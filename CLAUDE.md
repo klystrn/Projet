@@ -269,6 +269,19 @@ listener is even registered for a visitor who's never going to see the pin.
 
 ## v3.4 updates (Sep 2026) — read this before the auth section just below
 
+**Dashboard: the page-header block above the profile grid is gone
+entirely** — eyebrow ("Student dashboard" / "Company dashboard"), the `<h1>`
+("Your proof, in one place." / "Your shortlist, already ranked."), the lede
+paragraph, and the `.dp-head::after` divider rule underneath it. Asked for
+directly: "the dashboard should start from the actual dashboard, no filler
+content." `.dp-head`/`.dp-head-row`/`.dp-title` are removed from
+`dashboard.html` and `dashboard.css` outright, not hidden, and the now-dead
+`eyebrow`/`heading`/`lede` fields are gone from `PROFILES` and `setProfile()`
+in `dashboard.js` too — nothing referenced them once the DOM nodes were
+gone. `.dp-body` picked up the top padding the header box used to provide
+(32px → 40px) so the profile grid still clears the sticky nav by a sane
+amount; everything else in the grid is untouched.
+
 **The auth solar system shrank and moved off-centre again — this section in
 v3.3 below is now stale on both the size and the offset, read this instead.**
 Explicit follow-up: "decrease the size of the solar system... and move it
