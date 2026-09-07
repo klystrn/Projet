@@ -267,6 +267,248 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.3 updates (Sep 2026) — read this before anything below it
+
+A large punch list landed across every page. Where it contradicts the v3.2
+notes further down, this section is current.
+
+**Auth — the solar system is off-centre now.** The mark is 136px (was 200,
+then 160), and the whole group sits `+64px` outward / `+40px` down from the
+centre of its exposed half rather than dead centre. The nudge is a fixed px
+value added on top of the existing `25vw`, deliberately: the `vw` part is
+"centre of the exposed half" and has to keep tracking the viewport, while
+the nudge should stay a constant visual amount rather than scaling into a
+huge displacement on a wide monitor. Ring 1 crops ~14px off the outer edge,
+which reads as deliberate framing. It also *improves* narrow-desktop
+framing — at 1024px ring 1 (620px) is wider than the exposed half and
+already tucked ~54px under the panel at dead centre. `--field-y` keeps the
+same sign in both modes so the swap stays a pure horizontal sweep.
+
+**Hero.** "Participate" is **"Join Us"** everywhere (index, about, faq, and
+`landing.js`'s own mode-copy string). `.btn-ghost:hover` now lights the
+accent (`border-color` + `--accent-wash` + `--accent-deep`) instead of
+darkening its border to ink — the two hero CTAs are meant to be different
+*weights* at rest, but their hovers were different in *kind*, so the pair
+read as unrelated controls the moment the mouse moved. Same treatment
+`.ch-viewall` and `.ch-rail-btn` already use.
+
+**The hero's fold-fill was relaxed — this reverses part of the earlier
+"hero + logo carousel fill the window" ask, knowingly.** The gap above the
+logo carousel (105px) was never the carousel's own padding: `.hero`'s
+min-height forced a 664px box around 474px of content and `align-items:
+center` split the leftover 190px evenly, so 95px of dead space landed
+between the hero content and the strip. The old 900px ceiling never bound
+at a 900px window (664 < 900), so it did no work at all. Replaced with a
+real `--hero-cap:620px`, which bounds the slack to ~17px a side. Gaps now
+73px above / 44px below. Cost: Featured challenges peeks ~73px above the
+fold at 900px, which also signals there is more page below.
+**`--fold-reserve` is 207px now (nav 78 + logo strip 129) — update it if
+either changes.**
+
+**Featured challenges: two real bugs fixed.**
+- Tickets "spawned in" on the first horizontal scroll. `IntersectionObserver`
+  clips a target against *every* scrollable ancestor, not just the viewport,
+  so tickets parked past the rail's right edge had an empty intersection
+  rect and never fired — they sat at `opacity:0` until the rail was scrolled
+  sideways. The rail is now `[data-reveal-group]`: `landing.js` observes the
+  **container** and reveals every `[data-reveal]` inside it at once, stagger
+  delays intact. **Any future reveal inside an overflow container needs this
+  same treatment.**
+- "Black lines" after opening a card and pressing Escape were the trigger
+  button's own `:focus-visible` ring. `<dialog>` correctly returns focus to
+  its opener, and because Escape is a key press the browser flips the
+  interaction modality to keyboard, so the ring matched on an element last
+  touched with a mouse. `suppressReturnRing()` in `landing.js` (exported on
+  `window.ProjetUI`) sets `[data-noring]` — but only when the modal was
+  **pointer-opened AND dismissed with Escape**, so a keyboard user who
+  opened it with Enter still gets the ring back. Hooked on the dialog's
+  **`cancel`** event, not `close`: `cancel` fires *before* focus is
+  restored, and `close` is too late — the ring flashes for a frame.
+  Applied to challenges.html's modal and the dashboard's too.
+
+**How it works.** Step 2's subtext is gone in both modes (the company one,
+"Avg. 38 submissions per brief", was also an unsourced stat). Step 4 gained
+a closing CTA link mirroring step 1's — "Join Us" for builders, "Post a
+challenge" for companies. `.flow-step-tag` is now unreferenced in the HTML;
+its CSS is left in place as a defined component.
+
+**The pin runs on MOBILE now — a trial, may be reverted.** Asked for as
+"try it out but keep in memory that I might want to revert back to the
+vanilla how it works version". Not a scaled-down desktop stage: the 3fr/5fr
+split has no meaning at 390px, so below 900px the stage re-flows to two
+stacked rows (compact title band on top, dark image panel filling the rest),
+`.flow-rail` becomes a horizontal row of the same four numbered dots,
+`.flow-num` hides (the dots carry the number) and each step's `h3` un-hides
+in the panel. `landing.js`'s width gate is gone; nothing in that updater was
+width-dependent and `measureFluid()` already re-ran on resize.
+**Reverting is deliberately cheap**: the reduced-motion and no-js blocks
+still hold complete copies of the flat-list treatment, so backing this out
+means deleting the mobile block and pasting either of those in.
+
+**The mobile block is guarded `@media (max-width:900px) and
+(prefers-reduced-motion: no-preference)` and paired with explicit `.no-js`
+resets — this is load-bearing, not tidiness.** The reduced-motion and no-js
+fallbacks are written with `!important`, but they do not *declare* every
+property the mobile pin sets (`.flow-num`'s display, the `h3`'s mono
+treatment, `.flow-step`'s gap), and those leaked straight into the flat
+list. A guarded media query means reduced motion never sees them at all;
+no-js cannot be a media query, so it gets explicit resets instead. **Any
+future breakpoint-scoped effect on this page needs the same two-axis
+check** — verify all four states (desktop pin / mobile pin / reduced-motion
+list / no-js list), not just the one you changed.
+
+**Testimonials: the spotlight's contents no longer move.** `stabilizeHeight()`
+already reserved the *card's* height, but `.t-spot-foot` sat in normal flow
+directly under the quote, so the avatar, name, role and tag slid up and down
+with each quote's length. `.t-spot` is a flex column now with the footer
+pinned by `margin-top:auto` (+ a 50px `min-height` so the row never
+collapses below the avatar), so the only thing a quote's length can move is
+its own last line. Verified across all five chips at 1440/900/430: card
+height, footer top, avatar top, name top and tag top are each a single value
+at every width.
+
+**CTA + footer: a new `--grad-cta` token.** Projet orange running into brand
+blue, the auth page's colour story at roughly a third of its intensity
+(~.34 peak alpha vs that field's .50 blooms). **Not mode-swapped** like
+`--grad-accent`/`--grad-dark` are — it already contains both audience
+accents by construction, so it reads as the brand spectrum rather than as
+whichever accent is currently on. `.final` layers it under a fade to
+`--ink`, so the section is already ink where it meets the footer and the two
+join with no seam. **Footers carry the same wash by default** so a page
+whose footer is the first dark surface (dashboard, challenges) opens on
+brand colour instead of a flat slab; index/about/faq opt out via
+`<footer data-after-cta>`, where the CTA above has already faded into them.
+Set explicitly in the markup rather than derived with `:has()`, so
+correctness does not depend on selector support. `.cl-cta` picks up the same
+wash while keeping its own rounded-card treatment.
+
+**Challenges page.**
+- **Four status types** replace the hardcoded `OPEN` on every card: New,
+  Open, Filling fast, Closing soon, assigned from days-left and submission
+  count. They escalate *by weight* within the brand palette (ink → accent
+  wash → tighter wash → solid accent) rather than borrowing a
+  red/amber/green traffic light the site does not own, which is also why the
+  ladder still reads correctly after an audience toggle.
+- **Discipline and company are two separate fields, no middot.** Given
+  different treatments on purpose: discipline is a category so it keeps the
+  outlined chip; company is a name so it reads as plain type. Two identical
+  chips would have implied they were the same kind of value.
+- **`--grad-accent-deep`** (both stops pulled down) for `.cl-view-brief`.
+  Twelve of these in one grid made `--grad-accent`'s bright endpoint stack
+  into glare. Its own token rather than darkening `--grad-accent`, which
+  also paints the hero CTA, the mode indicator and the scroll-progress bar.
+- The timeline fill bar is a gradient now — `--grad-accent`, *not* the
+  darker token: on a 5px bar the brighter sweep is what makes a gradient
+  legible at all, and there is only one per card so it cannot stack.
+- **The brief modal gained real detail**: a details table (posted, est.
+  effort, skills, format) as an actual `<table>` — label/value pairs about
+  one subject, which gives assistive tech the relationship for free — plus a
+  14-day submission-activity heatmap. The heatmap is `aria-hidden` and
+  colour-only *by design*, which is safe because the same figures are stated
+  in a sentence under it and the total is already in the stats row.
+
+**about.html: the story is a pinned four-row column.** Problem → Mission →
+Vision → How it works, one column, in that order (was a 2x2 grid across two
+sections). `.story-scroll` is 340vh of scroll room, `.story-stage` sticks
+inside it, and `landing.js` walks `.is-active` from the first point to the
+last. **Every heading stays on screen the whole time; only the active
+point's body expands** — that is what lets four full points share one
+viewport, and it keeps the reader's map of the argument intact instead of
+showing one card at a time. The expand is a pure-CSS
+`grid-template-rows:0fr → 1fr`. Worth stating why that is safe here when it
+was abandoned for `faq.html`'s accordion: **that failure was specific to
+`<details>`**, whose non-summary children Chrome wraps in an internal
+`::details-content` box that stops updating layout the instant `[open]` is
+removed. A plain div has no such box.
+
+**faq.html alignment.** The list was a centred `max-width:720px` column
+inside the same 1240px wrap the page header starts at the left edge of, so
+heading and list visibly did not share an edge. Left-aligning the column
+alone would have fixed the edge but left ~500px of dead space beside it, so
+the group label ("General", "For builders", "For companies") moved into that
+space as a **sticky left gutter**. Everything starts on the wrap's left edge
+now and the 720px reading cap still does its original job of keeping a short
+question near its own toggle icon.
+
+**dashboard.html rebuilt on the GitHub profile reference.** Profile column:
+avatar, name, handle, bio, Edit profile directly beneath, then details
+(org / location / joined), a labelled skills block and an at-a-glance stats
+block. Main column: a **real ARIA tablist** (Overview / Activity) with
+roving tabindex and arrow-key navigation — unlike the home page's
+spectrum-split control, which was demoted to plain toggle buttons because
+its panels never actually replaced one another; here they do.
+- **Contribution heatmap**, 53 weeks × 7 days, generated rather than
+  authored (371 `<i>` elements of sample data would be unreadable markup).
+  Values come from a **seeded PRNG, not `Math.random`**, so an account's
+  history does not change on every reload or role re-render. The total is
+  written into the heading as real text, so the figure never lives only in
+  the colours.
+- **Past hackathons keep the single-column row layout** (asked for
+  explicitly), but each row is a `<button>` now and opens a detail modal
+  with rank, date, entrants, score, fit, the solution write-up, a score
+  breakdown and the reviewer note. A button rather than a div with a
+  handler: Enter/Space and a focus ring come free. Payload rides on each row
+  as `data-hk-*`.
+- **Edit profile is semi-functional and honest about it**: the edits are
+  real and they persist, but only into `localStorage["projet:profile"]` on
+  that device, and the dialog says exactly that. Private mode and full
+  storage both throw, so the status line distinguishes "Saved on this
+  device" from "Applied, but this browser blocked saving it".
+- **The nav audience toggle is gone from this page.** Being here means being
+  signed in, so the audience is a property of the *account*: `dashboard.js`
+  sets `html[data-audience]` from the resolved role, which re-tints
+  everything (verified company view reads fully blue). It deliberately does
+  **not** write `projet:audience` back — an account role should not silently
+  overwrite the visitor's own marketing-site preference.
+
+**Two dashboard bugs caught by testing, not by reading the code:**
+- `buildHeat()` threw on a hoisted `var MONTHS` that `setView()` called
+  before its initialiser had run, leaving an empty grid and a stale heading
+  **with no console error** (it surfaced as `Runtime.exceptionThrown`, which
+  a console-error-only check misses). Moved the array inside the function.
+  **Function declarations hoist with their body; `var` initialisers do not.**
+- No-js stranded the entire activity feed behind a tab strip that cannot
+  work, and rendered the heatmap as a hollow frame whose heading claimed a
+  total nothing could back. Both panels now render stacked with the strip
+  hidden, and `.dp-heat-card` is hidden outright.
+
+**Placeholders are tagged and indexed — see `PLACEHOLDERS.md`.** Convention:
+`<!-- PLACEHOLDER[key] -->` above the block and `data-placeholder="key"` on
+it, so the same thing is findable in source *and* from the DOM at runtime.
+`data-placeholder` is inert — nothing styles it, no script reads it (except
+`challenges.js`, which removes it once real data renders). **If you add
+sampled content, add a marker and a row in that file at the same time.**
+
+**Backend seams are documented in full in `BACKEND-HANDOFF.md`**, which now
+covers the whole site rather than just auth. New this round: the challenge
+listing is a *real, working* seam — `challenges.js` fetches
+`#clGrid[data-endpoint]`, rebuilds the grid, hides the sample-brief banner
+and drops the placeholder marker. Verified against a local JSON fixture, not
+just written. The filter and the brief modal were both refactored to
+**delegate off the grid and query cards live**, because per-node listeners
+and cached NodeLists would not survive a re-render. Every fetch fails soft:
+a network error, non-2xx or malformed body leaves what is already on the
+page alone, since replacing a readable list with an error state is strictly
+worse.
+
+**Alignment audit.** Every page's content now shares a 132px left edge at
+1440px, with zero horizontal overflow (checked by actually scrolling to
+`9999,0` and reading `scrollX`, not by eyeballing). One real bug found:
+`.story-stage` is a flex container, so the `.wrap` inside it shrank to
+fit-content and started the story list at x=335 instead of 132 — the same
+trap `.faq-group` hit. Fixed with `.story-stage > .wrap{width:100%}`.
+**Any `.wrap` placed inside a flex container needs an explicit `width:100%`.**
+
+**The featured-challenge rail is cut off on purpose — this was asked as a
+question and the answer is "as is".** `.ch-rail` sits outside `.wrap` so the
+row runs past the content column to the true viewport edge, and the partly
+visible last ticket is what tells the reader the row scrolls. Its own
+`--rail-inset` padding re-aligns the *first* ticket with the content edge,
+so the row starts aligned and only the far end bleeds. Making it stop
+flush at 132px would close the set off visually and lose the affordance.
+
+---
+
 ## v3.2 updates (this round, Aug 2026)
 
 A further punch list landed on top of v3, superseding several things

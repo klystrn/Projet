@@ -77,7 +77,7 @@
           <p id="dpLede">Every challenge you have entered, what you scored, and where you ranked.</p>
         </div>
       </div>
-      <p class="dp-notice">
+      <p class="dp-notice" data-placeholder="dashboard-notice">
         <b>Front end only.</b>&nbsp;These numbers are sample data. The layout and every
         slot are finished and waiting on the API.
       </p>
@@ -179,7 +179,8 @@
                      ring for free, which a div with a click handler does
                      not. Data for the modal rides on each row as
                      data-hk-* attributes, read fresh on every open. -->
-                <div class="dp-list" id="dpEntries">
+                <!-- PLACEHOLDER[dashboard-entries] -->
+                <div class="dp-list" id="dpEntries" data-placeholder="dashboard-entries">
                   <button type="button" class="dp-card" data-hk
                     data-hk-title="Onboarding conversion" data-hk-company="Nordwave"
                     data-hk-discipline="Product" data-hk-date="Aug 2026" data-hk-rank="4"
@@ -308,7 +309,8 @@
                   <span class="dp-sort">Score, high to low</span>
                 </div>
 
-                <div class="dp-list" id="dpCandidates">
+                <!-- PLACEHOLDER[dashboard-candidates] -->
+                  <div class="dp-list" id="dpCandidates" data-placeholder="dashboard-candidates">
                   <article class="dp-card" data-skills="react typescript" data-name="tan wei jie">
                     <span class="dp-rank is-top">01</span>
                     <div class="dp-card-body">
@@ -391,7 +393,8 @@
                 <h3 id="dpActTitle">Recent activity</h3>
                 <span class="dp-count" id="dpActCount">6 events</span>
               </div>
-              <ol class="dp-feed" id="dpFeed">
+              <!-- PLACEHOLDER[dashboard-activity] -->
+              <ol class="dp-feed" id="dpFeed" data-placeholder="dashboard-activity">
                 <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
                   <div><b>Shortlisted for interview</b><span>Nordwave &middot; Onboarding conversion</span></div><time>28 Aug 2026</time></li>
                 <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>

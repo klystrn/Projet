@@ -238,10 +238,11 @@
        mark+name lockup (placeholder monogram, not a photo/vector logo)
        rather than the old plain text wordmark; swap .logo-chip-mark's
        content for a real <img> per partner when they exist. -->
-  <section class="logos wrap" data-carousel-enabled="true">
+  <!-- PLACEHOLDER[partner-logos] -->
+  <section class="logos wrap" data-carousel-enabled="true" data-placeholder="partner-logos">
     <!-- PLACEHOLDER CONTENT: obviously-fictional names, labelled as such.
          Swap for real, permissioned partner logos before any public deploy. -->
-    <p class="logos-label">Placeholder logos, pending real partners</p>
+    <p class="logos-label" data-placeholder="partner-logos-label">Placeholder logos, pending real partners</p>
     <div class="logo-marquee">
       <div class="logo-track" id="logoTrack">
         <a class="logo-chip" href="#challenges"><span class="logo-chip-mark" aria-hidden="true">N</span><span class="logo-chip-name">Northwind</span></a>
@@ -287,7 +288,8 @@
            tied to any one card now that nothing is individually spotlighted.
            PLACEHOLDER: relative countdown from page load, not a real deadline.
            Point data-countdown-hours at a real timestamp with live data. -->
-      <div class="ch-countdown" data-countdown-hours="96" data-reveal>
+      <!-- PLACEHOLDER[countdown]: relative hours-from-load, not a real deadline -->
+      <div class="ch-countdown" data-countdown-hours="96" data-reveal data-placeholder="countdown">
         Next challenge closes in
         <b><span data-cd="d">04</span>d <span data-cd="h">00</span>h <span data-cd="m">00</span>m <span data-cd="s">00</span>s</b>
       </div>
@@ -305,7 +307,8 @@
          hero's own stagger (.08s steps here vs ~.06s there) since six
          tickets spread over the same tight interval as three hero lines
          would read as simultaneous, not sequential. -->
-    <div class="ch-rail" id="chRail" data-reveal-group
+    <!-- PLACEHOLDER[featured-briefs] -->
+    <div class="ch-rail" id="chRail" data-reveal-group data-placeholder="featured-briefs"
          tabindex="0" role="group" aria-label="Featured challenges, scrollable">
       <div class="ch-ticket" data-reveal
         data-brief-company="Anchorpoint" data-brief-discipline="Engineering"
@@ -437,7 +440,7 @@
         <div class="ch-rail-track" aria-hidden="true"><i id="chRailFill"></i></div>
         <a class="ch-viewall" href="challenges.html">View all challenges <span aria-hidden="true">&#8594;</span></a>
       </div>
-      <p class="ch-note">Sample briefs, not live listings. Real challenges appear here once the API is connected.</p>
+      <p class="ch-note" data-placeholder="featured-briefs-note">Sample briefs, not live listings. Real challenges appear here once the API is connected.</p>
     </div>
 
     <!-- ==================== TICKET MODAL ====================
@@ -562,7 +565,8 @@
          company side, the same placeholder company names used elsewhere
          on the site) rather than a named real person. Avatars are
          illustrated, not photographs — see CLAUDE.md "Known issues". -->
-    <div class="t-layout wrap">
+    <!-- PLACEHOLDER[testimonials]: invented quotes, illustrated avatars -->
+    <div class="t-layout wrap" data-placeholder="testimonials">
       <article class="t-spot" id="tSpot" data-side="business">
         <span class="t-spot-mark" aria-hidden="true">&ldquo;</span>
         <p class="t-spot-quote" id="tSpotQuote">We got a working solution to a real backlog item out of it. The hire was almost a bonus.</p>

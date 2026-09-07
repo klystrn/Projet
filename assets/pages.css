@@ -47,6 +47,13 @@
    ========================================================================== */
 .story-scroll{position:relative;}
 .story-stage{display:flex; align-items:center;}
+/* width:100% on the inner .wrap, not just its own margin-inline:auto — the
+   same trap .faq-group hit. .story-stage is a flex container (it has to be,
+   to centre the list vertically in the sticky 100vh box), so the .wrap
+   inside it is a flex item and shrinks to fit-content instead of filling to
+   var(--maxw). Measured before the fix: the story list started at x=335 on
+   a 1440px viewport while every other section on the page started at 132. */
+.story-stage > .wrap{width:100%;}
 .story-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; width:100%;}
 .story-item{
   display:flex; gap:20px; align-items:flex-start;
