@@ -55,7 +55,17 @@
       that picked level for exactly that reason). The heading text is
       derived from the summed counts, so it stays correct for free.
 
-   5. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
+   5. COMPANY OVERVIEW.  The company view carries its own charts: a hiring
+      funnel, a 12-month submissions column chart, a per-brief table and a
+      discipline split. All of them are plain elements sized by percentage
+      (no charting library), and all of their figures are derived from the
+      same brief table, so they cannot contradict each other. Feed them from
+      the API the same way — the funnel wants stage counts, the columns want
+      12 monthly counts, the table wants a row per brief, the split wants
+      per-discipline shares. buildHeat()'s targetTotal is what keeps the
+      heatmap's own heading agreeing with the submissions figure beside it.
+
+   6. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
       View submission buttons are inert placeholders (href="#"). The Edit
       profile dialog is deliberately real but local: it writes to
       localStorage["projet:profile"] and says so in its own copy. Point it
@@ -103,7 +113,7 @@
     company: {
       initials: "NW",
       name: "Nordwave",
-      sub: "Hiring · 1 open brief",
+      sub: "Hiring · 3 open briefs",
       handle: "@nordwave",
       bio: "Series A team in Singapore. We post briefs straight off our own backlog.",
       org: "Nordwave · Product & Platform",
@@ -112,9 +122,9 @@
       tagsLabel: "Hiring for",
       tags: ["Product", "Front-end"],
       stats: [
-        { label: "Open briefs", value: "1" },
-        { label: "Submissions", value: "38" },
-        { label: "Interviews", value: "4" }
+        { label: "Open briefs", value: "3" },
+        { label: "Submissions", value: "96" },
+        { label: "Hires made", value: "2" }
       ],
       cta: "Post a challenge"
     }
@@ -207,6 +217,18 @@
 
     // the heatmap re-seeds per role: different totals, different story
     buildHeat(isCompany);
+
+    /* The activity feed is role-specific too. Before this the company view
+       showed the student's own history ("Scored 85, ranked #4") because
+       there was only one feed in the markup — a company account tracks
+       brief- and candidate-level events instead. */
+    var feedStudent = document.getElementById("dpFeedStudent");
+    var feedCompany = document.getElementById("dpFeedCompany");
+    if (feedStudent) feedStudent.hidden = isCompany;
+    if (feedCompany) feedCompany.hidden = !isCompany;
+    setText("dpActTitle", isCompany ? "Workspace activity" : "Recent activity");
+    var shownFeed = isCompany ? feedCompany : feedStudent;
+    if (shownFeed) setText("dpActCount", shownFeed.children.length + " events");
 
     var url = new URL(window.location.href);
     url.searchParams.set("view", currentView);
@@ -434,6 +456,21 @@
     var labels = [];
     var lastMonth = -1;
     var noun = isCompany ? "submission" : "contribution";
+    var cells = [], weights = [];
+    /* How many days see any activity at all, and how many events to spread
+       across them. Both are per-role because the two grids describe
+       different things: a builder contributes fairly often in small
+       amounts, a company receives submissions in bursts around its briefs'
+       deadlines, so the company grid is sparser but heavier where it lands.
+
+       targetTotal matters for more than realism. The company overview
+       states "96 submissions" in its metrics row, its funnel and its brief
+       table, so a heatmap that summed to its own unrelated figure (486, as
+       it did) put two contradictory numbers for the same quantity on one
+       screen. Deriving the counts FROM the target is what keeps the
+       heading honest, rather than hoping the two happen to agree. */
+    var activeRate = isCompany ? 0.07 : 0.30;
+    var targetTotal = isCompany ? 96 : 214;
 
     for (var w = 0; w < WEEKS; w++) {
       var weekStart = new Date(end);
@@ -444,33 +481,53 @@
       lastMonth = m;
 
       for (var d = 0; d < DAYS; d++) {
-        var r = rand();
-        // heavily weighted to empty: real activity is bursty, and a grid
-        // that is mostly lit reads as noise rather than as a history.
-        // `level` is the bucketed intensity that drives the cell's colour;
-        // `count` is a real number for the hover tooltip, picked from
-        // within that same bucket's range off the same draw so the two
-        // never disagree (a level-4 cell can never show a tooltip with a
-        // lower count than a level-3 one next to it).
-        var level, count;
-        if (r > 0.955) { level = 4; count = 8 + Math.floor((r - 0.955) / 0.045 * 5); }
-        else if (r > 0.90) { level = 3; count = 5 + Math.floor((r - 0.90) / 0.055 * 3); }
-        else if (r > 0.82) { level = 2; count = 3 + Math.floor((r - 0.82) / 0.08 * 2); }
-        else if (r > 0.70) { level = 1; count = 1 + Math.floor((r - 0.70) / 0.12 * 2); }
-        else { level = 0; count = 0; }
-
         var cellDate = new Date(weekStart);
         cellDate.setDate(cellDate.getDate() + d);
-
         var cell = document.createElement("i");
-        cell.setAttribute("data-lv", level);
-        cell.setAttribute("data-count", count);
         cell.setAttribute("data-date", formatHeatDate(cellDate));
         cell.setAttribute("data-noun", noun);
+        cells.push(cell);
+        // weight only for now — the actual counts need the total of these,
+        // so they are assigned in a second pass below
+        weights.push(rand() > (1 - activeRate) ? 0.25 + rand() : 0);
         frag.appendChild(cell);
-        total += count;
       }
     }
+    /* Second pass: hand out targetTotal across the active days in
+       proportion to their weights, then derive each cell's LEVEL from the
+       count it actually got. Deriving the colour from the number (rather
+       than drawing them independently) is what guarantees a darker cell
+       can never show a smaller tooltip figure than a lighter one beside
+       it — they are the same fact, rendered twice. */
+    var weightSum = 0;
+    weights.forEach(function (w) { weightSum += w; });
+    var counts = weights.map(function (w) {
+      return weightSum > 0 && w > 0 ? Math.max(1, Math.round(targetTotal * w / weightSum)) : 0;
+    });
+    /* Rounding each day independently lands a few either side of the target
+       (97 against a stated 96, in practice). Since the whole point of the
+       target is that the heading agrees with the metrics row, walk the
+       difference off the busiest days — they absorb +/-1 without changing
+       which colour bucket they fall in, whereas a 1-count day would flip to
+       0 and leave a hole in the grid. */
+    var drift = targetTotal - counts.reduce(function (a, n) { return a + n; }, 0);
+    var order = counts.map(function (n, i) { return i; })
+      .filter(function (i) { return counts[i] > 0; })
+      .sort(function (a, b) { return counts[b] - counts[a]; });
+    for (var k = 0; drift !== 0 && order.length; k++) {
+      var idx = order[k % order.length];
+      if (drift > 0) { counts[idx]++; drift--; }
+      else if (counts[idx] > 1) { counts[idx]--; drift++; }
+      if (k > order.length * 4) break; // nothing left that can absorb it
+    }
+    cells.forEach(function (cell, i) {
+      var count = counts[i];
+      var level = count === 0 ? 0 : count <= 2 ? 1 : count <= 4 ? 2 : count <= 7 ? 3 : 4;
+      cell.setAttribute("data-lv", level);
+      cell.setAttribute("data-count", count);
+      total += count;
+    });
+
     grid.appendChild(frag);
     wireHeatTooltip(grid);
 

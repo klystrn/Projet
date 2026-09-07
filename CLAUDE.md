@@ -269,6 +269,51 @@ listener is even registered for a visitor who's never going to see the pin.
 
 ## v3.4 updates (Sep 2026) — read this before the auth section just below
 
+**Company dashboard built out into a real second dashboard (Sep 2026).**
+Asked for directly: "the existing dashboard is for students, create a second
+one for companies... more metrics and charts, including a heatmap... similar
+layout... company-level tracking." It keeps the student view's layout
+language (profile rail, tabs, metric row, heatmap card, sections) and adds
+what a hiring account actually tracks:
+- **Six metrics, not three**, as a 3x2 grid (`.dp-metrics--six`). `auto-fit`
+  was tried first and orphaned the sixth card on its own row. Each carries a
+  period-on-period delta (`.dp-delta`), with direction in the +/-/0 sign
+  rather than colour alone.
+- **Hiring funnel** (`.dp-funnel`), **12-month submissions column chart**
+  (`.dp-cols`), **per-brief table** (`.dp-table`, a real `<table>` — several
+  briefs, same columns, which is what a table is for), and a **discipline
+  split** (`.dp-split`, one segmented bar rather than a pie, because the
+  parts are being compared along one axis).
+- All of it is plain elements sized by percentage. **No charting library** —
+  same dependency-free rule as the rest of the site — and every bar states
+  its own figure as text beside it, which is why the bars are `aria-hidden`.
+- **The activity feed is per-role now** (`#dpFeedStudent` / `#dpFeedCompany`).
+  Before this the company view showed the student's own history ("Scored 85,
+  ranked #4"), because there was only one feed in the markup.
+
+**Every company figure derives from the brief table, deliberately.** A first
+pass had the charts disagreeing with each other on the same screen: the
+discipline split said Product 36% when the table said 50%, the monthly bars
+summed to 125 against a stated 96, the table's own note credited the wrong
+discipline with the best clear-rate (Engineering 33% when Data is 36%), and
+the heatmap heading read 486 against a metrics row saying 96. All four are
+now computed from the same source (96 submissions / 31 above bar across 5
+briefs). **If you change one of those numbers, re-derive the rest** — a
+dashboard whose own figures contradict each other is worse than no
+dashboard.
+
+**buildHeat() takes a target total now.** It used to draw each cell's level
+independently and let the total fall where it may, which is what produced
+that 486. It now assigns weights per day, distributes `targetTotal` across
+them in proportion, walks off the rounding drift on the busiest days (so the
+sum lands exactly on target rather than a point either side), and **derives
+each cell's level from the count it actually got** — so a darker cell can
+never show a smaller tooltip figure than a lighter one beside it; they are
+the same fact rendered twice. Company: 96 across ~26 active days, sparse and
+bursty, which is how submissions actually arrive around deadlines. Student:
+214 across ~30% of days.
+
+
 **Dashboard: the page-header block above the profile grid is gone
 entirely** — eyebrow ("Student dashboard" / "Company dashboard"), the `<h1>`
 ("Your proof, in one place." / "Your shortlist, already ranked."), the lede

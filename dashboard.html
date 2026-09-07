@@ -255,10 +255,63 @@
 
             <!-- ===== COMPANY VIEW ===== -->
             <section id="viewCompany" hidden>
-              <div class="dp-metrics">
-                <div class="dp-metric"><b>38</b><span>Submissions</span></div>
-                <div class="dp-metric"><b>12</b><span>Above your bar</span></div>
-                <div class="dp-metric"><b>6d</b><span>Until close</span></div>
+              <!-- Six metrics rather than the student view's three: a company
+                   is tracking a pipeline, not a personal record, so the row
+                   carries the whole funnel's headline numbers at once. Each
+                   one shows a period-on-period delta, which is the thing a
+                   hiring lead actually reads a dashboard for. -->
+              <div class="dp-metrics dp-metrics--six">
+                <div class="dp-metric"><b>3</b><span>Open briefs</span><i class="dp-delta is-up">+1</i></div>
+                <div class="dp-metric"><b>96</b><span>Submissions</span><i class="dp-delta is-up">+38</i></div>
+                <div class="dp-metric"><b>31</b><span>Above your bar</span><i class="dp-delta is-up">+12</i></div>
+                <div class="dp-metric"><b>14</b><span>Shortlisted</span><i class="dp-delta is-up">+5</i></div>
+                <div class="dp-metric"><b>9</b><span>Interviews</span><i class="dp-delta is-up">+4</i></div>
+                <div class="dp-metric"><b>2</b><span>Hires</span><i class="dp-delta is-flat">0</i></div>
+              </div>
+
+              <!-- Two charts side by side. Both are drawn with plain divs
+                   sized by percentage rather than any charting library
+                   (dependency-free, same as the rest of the site), and both
+                   state every figure they encode as real text next to the
+                   bar, so the visual is never the only way to read the
+                   number. That is why the bars themselves are aria-hidden:
+                   they would otherwise be announced as meaningless. -->
+              <div class="dp-chart-row">
+                <div class="dp-section dp-chart-card">
+                  <div class="dp-section-head">
+                    <h3>Hiring funnel</h3>
+                    <span class="dp-count">Across all briefs</span>
+                  </div>
+                  <ol class="dp-funnel">
+                    <li><span class="dp-funnel-label">Submissions</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:100%"></i></span><b>96</b></li>
+                    <li><span class="dp-funnel-label">Above bar</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:32%"></i></span><b>31</b></li>
+                    <li><span class="dp-funnel-label">Shortlisted</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:15%"></i></span><b>14</b></li>
+                    <li><span class="dp-funnel-label">Interviewed</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:9%"></i></span><b>9</b></li>
+                    <li><span class="dp-funnel-label">Hired</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:2%"></i></span><b>2</b></li>
+                  </ol>
+                  <p class="dp-chart-note">2 hires from 96 submissions, a 2.1% end-to-end rate. 31 of 96 cleared your scoring bar.</p>
+                </div>
+
+                <div class="dp-section dp-chart-card">
+                  <div class="dp-section-head">
+                    <h3>Submissions by month</h3>
+                    <span class="dp-count">Last 12 months</span>
+                  </div>
+                  <!-- Heights are each month's count as a share of the peak
+                       month, and the twelve counts sum to the same 96 the
+                       metrics row, the funnel and the brief table all state:
+                       3+4+2+6+7+5+9+8+11+10+14+17. A chart on the same screen
+                       as its own source data has to add up to it. -->
+                  <div class="dp-cols" aria-hidden="true">
+                    <i style="--h:18%"><span>Oct</span></i><i style="--h:24%"><span>Nov</span></i>
+                    <i style="--h:12%"><span>Dec</span></i><i style="--h:35%"><span>Jan</span></i>
+                    <i style="--h:41%"><span>Feb</span></i><i style="--h:29%"><span>Mar</span></i>
+                    <i style="--h:53%"><span>Apr</span></i><i style="--h:47%"><span>May</span></i>
+                    <i style="--h:65%"><span>Jun</span></i><i style="--h:59%"><span>Jul</span></i>
+                    <i style="--h:82%"><span>Aug</span></i><i class="is-now" style="--h:100%"><span>Sep</span></i>
+                  </div>
+                  <p class="dp-chart-note">Busiest month so far is September with 17 submissions, up from 2 in December.</p>
+                </div>
               </div>
 
               <div class="dp-section dp-heat-card">
@@ -274,6 +327,88 @@
                   </div>
                 </div>
                 <p class="dp-heat-note" id="dpHeatNoteCo">Submissions received across every brief you have posted.</p>
+              </div>
+
+              <!-- Per-brief tracking. A real <table>: this is genuinely
+                   tabular (several briefs, same columns), which is exactly
+                   what a table is for and what gives a screen reader row and
+                   column association for free. The fill bar in the last
+                   column is decorative on top of the number beside it, not
+                   instead of it. -->
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h3>Your briefs</h3>
+                  <span class="dp-count">3 open &middot; 2 closed</span>
+                </div>
+                <div class="dp-table-scroll">
+                  <table class="dp-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Brief</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Subs</th>
+                        <th scope="col">Above bar</th>
+                        <th scope="col">Top score</th>
+                        <th scope="col">Closes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><b>Onboarding conversion</b><span>Product</span></td>
+                        <td><span class="cl-pill" data-status="filling">Filling fast</span></td>
+                        <td>38</td><td>12</td><td>94</td><td>6 days</td>
+                      </tr>
+                      <tr>
+                        <td><b>Cut checkout API latency</b><span>Engineering</span></td>
+                        <td><span class="cl-pill" data-status="closing">Closing soon</span></td>
+                        <td>27</td><td>9</td><td>91</td><td>2 days</td>
+                      </tr>
+                      <tr>
+                        <td><b>Stock-alert dashboard</b><span>Design</span></td>
+                        <td><span class="cl-pill" data-status="new">New</span></td>
+                        <td>7</td><td>2</td><td>78</td><td>13 days</td>
+                      </tr>
+                      <tr>
+                        <td><b>Churn signal pipeline</b><span>Data</span></td>
+                        <td><span class="cl-pill" data-status="closed">Closed</span></td>
+                        <td>14</td><td>5</td><td>88</td><td>&mdash;</td>
+                      </tr>
+                      <tr>
+                        <td><b>Referral loop prototype</b><span>Product</span></td>
+                        <td><span class="cl-pill" data-status="closed">Closed</span></td>
+                        <td>10</td><td>3</td><td>82</td><td>&mdash;</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="dp-chart-note">96 submissions across 5 briefs. Data briefs clear your bar most often, at 36%.</p>
+              </div>
+
+              <!-- Where the submissions come from. A single segmented bar
+                   rather than a pie: the parts are being compared against
+                   each other along one axis, which a bar does better and an
+                   inline SVG pie would only make harder to label. -->
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h3>Submissions by discipline</h3>
+                  <span class="dp-count">All time</span>
+                </div>
+                <!-- Shares are computed from the brief table above, not
+                     picked to look tidy: Product 48 of 96, Engineering 27,
+                     Data 14, Design 7. Ordered biggest first so the bar and
+                     the key read in the same direction. -->
+                <div class="dp-split" aria-hidden="true">
+                  <i data-seg="product" style="width:50%"></i>
+                  <i data-seg="engineering" style="width:28%"></i>
+                  <i data-seg="data" style="width:15%"></i>
+                  <i data-seg="design" style="width:7%"></i>
+                </div>
+                <ul class="dp-split-key">
+                  <li><i data-seg="product"></i>Product <b>50%</b></li>
+                  <li><i data-seg="engineering"></i>Engineering <b>28%</b></li>
+                  <li><i data-seg="data"></i>Data <b>15%</b></li>
+                  <li><i data-seg="design"></i>Design <b>7%</b></li>
+                </ul>
               </div>
 
               <div class="dp-section">
@@ -380,7 +515,7 @@
                 <span class="dp-count" id="dpActCount">6 events</span>
               </div>
               <!-- PLACEHOLDER[dashboard-activity] -->
-              <ol class="dp-feed" id="dpFeed" data-placeholder="dashboard-activity">
+              <ol class="dp-feed" id="dpFeedStudent" data-placeholder="dashboard-activity">
                 <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
                   <div><b>Shortlisted for interview</b><span>Nordwave &middot; Onboarding conversion</span></div><time>28 Aug 2026</time></li>
                 <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
@@ -393,6 +528,24 @@
                   <div><b>Submitted your solution</b><span>Fieldstone &middot; Cut onboarding drop-off</span></div><time>22 Jul 2026</time></li>
                 <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
                   <div><b>Joined Projet</b><span>Account created</span></div><time>11 Feb 2026</time></li>
+              </ol>
+              <!-- The company account tracks a pipeline, not a personal
+                   record, so its feed is brief- and candidate-level events.
+                   dashboard.js swaps which of the two is shown; before this
+                   the company view was showing the student's own history. -->
+              <ol class="dp-feed" id="dpFeedCompany" data-placeholder="dashboard-activity" hidden>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
+                  <div><b>Hired Tan Wei Jie</b><span>Onboarding conversion &middot; offer accepted</span></div><time>2 Sep 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
+                  <div><b>3 interviews booked</b><span>Onboarding conversion &middot; shortlist unlocked</span></div><time>29 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
+                  <div><b>12 submissions cleared your bar</b><span>Onboarding conversion &middot; 38 scored</span></div><time>24 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Brief closed to new entries</b><span>Churn signal pipeline &middot; 14 submissions</span></div><time>18 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
+                  <div><b>Posted a new brief</b><span>Cut checkout API latency &middot; Engineering</span></div><time>11 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Workspace created</b><span>Nordwave joined Projet</span></div><time>14 Jan 2026</time></li>
               </ol>
             </div>
           </div>

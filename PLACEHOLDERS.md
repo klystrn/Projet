@@ -34,7 +34,8 @@ behind it becomes real.
 | `sample-briefs` | `challenges.html` | Twelve sample briefs with invented statuses, activity heatmaps, effort estimates and skills. | The API serves live challenges. Also remove `.cl-notice` and the page's `<meta name="robots" content="noindex">`, and add the page to `sitemap.xml`. |
 | `dashboard-entries` | `dashboard.html` | Three past-hackathon rows, plus every `data-hk-*` payload behind their detail modal. | `BACKEND-HANDOFF.md` seam 3. |
 | `dashboard-candidates` | `dashboard.html` | Five ranked candidates in the company view. | `BACKEND-HANDOFF.md` seam 2. |
-| `dashboard-activity` | `dashboard.html` | Six activity-feed events. | Real account events. |
+| `dashboard-activity` | `dashboard.html` | Two activity feeds, one per role (`#dpFeedStudent`, `#dpFeedCompany`), six events each. | Real account events. |
+| _(company overview)_ | `dashboard.html` | The company view's six metrics, hiring funnel, monthly-submissions chart, brief table and discipline split are all sample figures. They are internally consistent by construction (every number derives from the brief table's 96 submissions / 31 above bar), so if you change one, re-derive the rest. | The API serves real company data. |
 
 ## Not in the table, but also not real
 

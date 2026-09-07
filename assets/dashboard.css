@@ -440,3 +440,105 @@ button.dp-card .dp-score span{display:block;}
    frame. Nothing is lost: it visualises the same history the entries list
    below it already states row by row. */
 .no-js .dp-heat-card{display:none;}
+
+/* ==========================================================================
+   COMPANY DASHBOARD
+   The company account tracks a pipeline across several briefs, so its
+   overview carries more numbers and more charts than the student view's
+   personal record. Everything below is drawn with plain elements sized by
+   percentage — no charting library, same dependency-free rule as the rest
+   of the site — and every bar states its own figure as real text beside it,
+   which is why the bars themselves are aria-hidden rather than announced.
+   ========================================================================== */
+
+/* Six metrics as a clean 3x2, reusing the student row's own 3-column rhythm
+   rather than squeezing six across. auto-fit was tried first and orphaned the
+   sixth card on a row of its own at desktop widths, which read as a mistake
+   rather than a grid. */
+.dp-metrics--six{grid-template-columns:repeat(3,1fr);}
+@media (max-width:760px){ .dp-metrics--six{grid-template-columns:1fr 1fr;} }
+.dp-metric{position:relative;}
+.dp-delta{
+  position:absolute; top:12px; right:13px;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  font-style:normal; color:var(--muted);
+}
+/* Direction is carried by the +/-/0 sign in the text itself, not by colour
+   alone — the tint is a reinforcement, not the message. */
+.dp-delta.is-up{color:var(--accent-deep);}
+.dp-delta.is-flat{color:var(--muted);}
+
+.dp-chart-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:30px;}
+.dp-chart-card{
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  background:var(--paper); padding:18px 20px 16px; margin-bottom:0;
+}
+.dp-chart-card .dp-section-head{margin-bottom:16px;}
+.dp-chart-card h3{font-size:15px;}
+.dp-chart-note{margin-top:14px; font-size:12.5px; line-height:1.5; color:var(--muted);}
+
+/* ---------- funnel ---------- */
+.dp-funnel{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.dp-funnel li{display:grid; grid-template-columns:88px 1fr auto; gap:12px; align-items:center;}
+.dp-funnel-label{font-size:12.5px; color:var(--ink-soft);}
+.dp-funnel-bar{display:block; height:10px; border-radius:99px; background:var(--line); overflow:hidden;}
+.dp-funnel-bar i{display:block; height:100%; border-radius:99px; background:var(--grad-accent);}
+.dp-funnel b{font-family:'JetBrains Mono',monospace; font-size:13px; min-width:26px; text-align:right;}
+
+/* ---------- monthly columns ---------- */
+.dp-cols{display:flex; align-items:flex-end; gap:6px; height:132px;}
+.dp-cols i{
+  flex:1; display:flex; align-items:flex-end; justify-content:center;
+  height:var(--h); min-height:4px; border-radius:5px 5px 0 0;
+  background:var(--accent-edge); position:relative;
+}
+/* the current month reads as the point of the chart, so it gets the solid
+   accent while the history behind it stays as a wash */
+.dp-cols i.is-now{background:var(--accent-deep);}
+.dp-cols i span{
+  position:absolute; bottom:-18px; font-family:'JetBrains Mono',monospace;
+  font-size:9px; color:var(--muted);
+}
+.dp-cols{margin-bottom:22px;}
+
+/* ---------- brief table ---------- */
+.dp-table-scroll{overflow-x:auto;}
+.dp-table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+.dp-table th, .dp-table td{text-align:left; padding:12px 10px; border-bottom:1px solid var(--line);}
+.dp-table th{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+}
+.dp-table tbody tr:last-child td{border-bottom:0;}
+.dp-table td b{display:block; font-size:14px;}
+.dp-table td span{
+  display:block; margin-top:2px; font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:var(--muted);
+}
+.dp-table td:first-child{min-width:180px;}
+/* the numeric columns read as data, not prose */
+.dp-table td:not(:first-child):not(:nth-child(2)){font-family:'JetBrains Mono',monospace; font-weight:700;}
+/* a fifth status the challenges page does not need: a brief that has closed
+   to new entries. Neutral by design — it is the absence of urgency. */
+.cl-pill[data-status="closed"]{background:var(--paper-warm); border-color:var(--line); color:var(--muted);}
+
+/* ---------- discipline split ---------- */
+.dp-split{display:flex; height:14px; border-radius:99px; overflow:hidden; gap:2px;}
+.dp-split i{display:block; height:100%;}
+.dp-split-key{
+  list-style:none; margin:14px 0 0; padding:0;
+  display:flex; flex-wrap:wrap; gap:8px 20px;
+}
+.dp-split-key li{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-soft);}
+.dp-split-key i{width:10px; height:10px; border-radius:3px; flex:none;}
+.dp-split-key b{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--ink);}
+/* Four steps down the mode accent, the same ladder the heatmap uses, so the
+   two charts read as one family rather than introducing a second palette. */
+[data-seg="product"]{background:var(--accent-deep);}
+[data-seg="engineering"]{background:var(--accent);}
+[data-seg="design"]{background:var(--accent-edge);}
+[data-seg="data"]{background:var(--accent-wash);}
+
+@media (max-width:900px){
+  .dp-chart-row{grid-template-columns:1fr;}
+}
