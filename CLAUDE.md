@@ -1616,6 +1616,84 @@ logic, and `Emulation.setEmulatedMedia` to confirm the reduced-motion JS
 actually flips the right attributes. **If a future session needs to
 visually confirm video playback in this sandbox, expect the same wall.**
 
+**The video is GONE too — the backdrop is drawn in CSS now (Aug 2026).**
+Reported blurry a FOURTH time, and correctly: the "4K" video carries no
+real detail either. Measured it — downscale a frame to 1080p and blow it
+back up to 3840 and you lose almost nothing (**48.1dB** PSNR); even a
+720p round trip holds **45.4dB**, about the same delta as a good
+re-encode. It was an AI upscale: 3840x2160 of container, ~720p of actual
+information. Every raster in this repo's fluid/spectrum family has now
+failed the same way, so the whole approach was abandoned rather than
+retried a fifth time. Two problems died with it: the softness, and the
+framing — a 16:9 source behind a half-covering panel only ever showed as
+a narrow portrait sliver, with no control over the crop.
+
+**The Signal Field** (`.auth-field` in `assets/auth.css`) is the
+replacement, chosen from a three-direction canvas (see below). Layered
+`radial-gradient` blooms, two outlined rings, and the brand mark —
+`assets/apple-touch-icon.png`, the only raster left, a 180px PNG shown at
+180px so it never upscales. Pin-sharp at any DPI by construction, crops
+cleanly at any width, ~20KB instead of 6.2MB. `assets/auth-bg.mp4` and
+`assets/auth-bg-poster.webp` were deleted, not archived — they were a
+one-round experiment reproducible from `fluid_animation_3500ms.mp4` in a
+single ffmpeg command, and 6.2MB is real weight to carry for that.
+
+**It animates, and the layering is the whole trick.** Three things move,
+and each rule below exists because getting it wrong is silent:
+
+- **Mode swap.** Every layer rides one shared `--field-x` (`25vw` in
+  login, `-25vw` in signup), scaled per layer — blooms `.55`, rings
+  `.82`, mark `1.0` — so the scene parallaxes as one body instead of
+  sliding as a flat sheet. `vw` because the stage IS the viewport, so
+  `25vw` is exactly a quarter of it: the mark travels from the centre of
+  one half to the centre of the other, always landing dead-centre in
+  whichever half the panel is NOT covering. That also fixed the
+  "captures too much attention while being at the edges" note — it is
+  never near an edge now.
+- **The mark carries THREE transforms on THREE nested elements**
+  (`.af-mark` mode travel / `.af-mark-in` entrance pop / the `<img>`
+  spin). Put any two on one element and the last silently wins. The spin
+  is 90s per revolution — ambient, not a spinner.
+- **The entrance uses `@keyframes`, not transitions**, and this is not a
+  style preference. A transition-based entrance needs its stagger as
+  `transition-delay`, which would then also delay the mode-swap
+  transitions on those same elements — the mark would lag ~.22s behind
+  the panel on every switch, reading as jank rather than depth.
+  Animations run on their own timeline, so the two never touch.
+  Second rule: **anything carrying a mode transform animates opacity
+  only** — an animated transform overrides the element's own for the
+  animation's whole duration, which would strand the blooms and rings on
+  the wrong side of the stage. Scale and rise go on nested elements that
+  own no mode transform (`.af-mark-in`, `.auth-card`).
+  `animation-fill-mode:backwards` holds the from-state through the delay
+  so nothing flashes in early. No JS and no class involved — it runs on
+  load for everyone, and site.css's global reduced-motion guard collapses
+  it to its end state (a 360deg spin ends where it starts, so that
+  settles clean too).
+
+**A tuning note worth keeping**: the first pass positioned the blooms
+off-centre (`at 62% 30%` etc.), which looked right in a static mockup and
+was nearly black in practice — the panel hides half the stage, so a bloom
+centred in one half is switched off half the time. They are centred and
+oversized now, and the mark's own glow (`.af-mark::before`, riding the
+full `--field-x`) is what guarantees the exposed half is always lit.
+
+`assets/auth.js` no longer touches the backdrop at all — the previous
+video needed JS to be stoppable, since CSS cannot pause an autoplaying
+`<video>`; CSS animations need no such help.
+
+**Nav CTAs now say "Sign up", not "Log in" (Aug 2026)**, asked for
+directly: the primary nav action should send people to the signup page by
+default. Changed on both the desktop `.btn-sm` CTA and the mobile-menu
+CTA across `index.html`, `challenges.html`, `about.html` and `faq.html`.
+**The footer is deliberately untouched** — it carries both "Log in" and
+"Sign up" as a sitemap-style list, and the ask was about the nav bar.
+Note the hrefs are written as plain `signup.html` but arrive as
+`signup.html?role=builder|business`: `landing.js` rewrites every
+`a[href^="signup.html"]` to carry the current audience mode, which is
+pre-existing behaviour and means the nav CTA now prefills the signup role
+picker for free.
+
 ---
 
 **Everything from here through the next `---` describes the v2
@@ -2020,11 +2098,14 @@ chooser is gone — harmless, just never populated.
    and marked "soon", the same honesty convention the auth forms use. Swap
    each `<span>` back to an `<a href="…">` as its page ships.
 5. **`assets/fluid_animation_3500ms.mp4` (18.7MB, 3840x2160) is the raw
-   master export** and is not referenced by any page directly — two derived
-   files are: `assets/fluid-loop.mp4` (final CTA) and, as of Aug 2026,
-   `assets/auth-bg.mp4` (the login/signup full-bleed background — see
-   "Background image" further up for why this one gets the full 3840x2160
-   kept rather than downscaled). `assets/fluid-loop.mp4`
+   master export** and is not referenced by any page. One derived file is:
+   `assets/fluid-loop.mp4` (final CTA). **Its resolution is a lie worth
+   knowing about** — it is 3840x2160 of container around roughly 720p of
+   real detail (an AI upscale; measured at 48.1dB for a 1080p round trip,
+   45.4dB for a 720p one, i.e. almost nothing lost by throwing away
+   three-quarters of the pixels). Do not reach for it expecting a sharp
+   4K source; the login/signup background tried exactly that and had to be
+   rebuilt in CSS. `assets/fluid-loop.mp4`
    is what ships (final CTA only now — not the hero, not testimonials).
    **Re-encoded at 1920x1080 (was 1280x720):** the final CTA renders up to
    ~1176px wide, so 720p was being upscaled ~1.8x on a retina display.

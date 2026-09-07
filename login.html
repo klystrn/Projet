@@ -31,15 +31,23 @@
 
   .auth-panel is a full-height column exactly half the stage's width
   (same proportions as v2's own two-column grid) that slides to the
-  opposite half on a mode switch; .auth-bg behind it is the full-bleed
-  fluid background, panning a smaller amount in the same direction.
+  opposite half on a mode switch; .auth-field behind it is the CSS-drawn
+  backdrop, parallaxing across in the same direction.
 -->
 <div class="auth-stage" id="authStage" data-mode="login">
 
-  <video class="auth-bg" id="authBgVideo" autoplay muted loop playsinline
-         poster="assets/auth-bg-poster.webp" aria-hidden="true">
-    <source src="assets/auth-bg.mp4" type="video/mp4">
-  </video>
+  <div class="auth-field" aria-hidden="true">
+    <div class="af-bloom af-bloom-warm"></div>
+    <div class="af-bloom af-bloom-cool"></div>
+    <div class="af-bloom af-bloom-violet"></div>
+    <div class="af-ring af-ring-1"></div>
+    <div class="af-ring af-ring-2"></div>
+    <div class="af-mark">
+      <div class="af-mark-in">
+        <img src="assets/apple-touch-icon.png" alt="" width="180" height="180">
+      </div>
+    </div>
+  </div>
   <div class="auth-scrim" aria-hidden="true"></div>
 
   <a href="index.html" class="auth-logo" aria-label="Projet home">

@@ -48,22 +48,10 @@
     });
   });
 
-  /* prefers-reduced-motion can't be honoured by CSS alone for an
-     autoplaying <video> — same limitation this site already hit and
-     fixed once for the (now-retired) final-CTA background video. Freeze
-     it on its poster/first frame instead of leaving it looping for
-     exactly the visitors who asked it not to. No-js visitors still get
-     the moving video (there is no way to stop it without running this),
-     the same accepted tradeoff the earlier fix made. */
-  var bgVideo = document.getElementById("authBgVideo");
-  if (bgVideo && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    bgVideo.removeAttribute("autoplay");
-    bgVideo.autoplay = false;
-    var stop = function () { bgVideo.pause(); bgVideo.currentTime = 0; };
-    stop();
-    // Chrome can kick off playback again once enough data arrives, so hold
-    // it down until the element has actually settled.
-    bgVideo.addEventListener("play", stop);
-    bgVideo.addEventListener("loadeddata", stop);
-  }
+  /* Nothing here drives the backdrop. The Signal Field's entrance, its
+     parallax across a mode swap and the mark's slow spin are all CSS —
+     keyframes and transitions on data-mode — so they work with this file
+     absent and honour prefers-reduced-motion through site.css's global
+     guard. That is deliberate: the previous <video> backdrop needed JS to
+     be stoppable at all, because CSS cannot pause an autoplaying video. */
 })();
