@@ -63,6 +63,14 @@
 
     var closeBtn = document.getElementById("cmClose");
     var tagEl = document.getElementById("cmTag");
+    var coEl = document.getElementById("cmCo");
+    var statusEl = document.getElementById("cmStatus");
+    var postedEl = document.getElementById("cmPosted");
+    var effortEl = document.getElementById("cmEffort");
+    var skillsEl = document.getElementById("cmSkills");
+    var formatEl = document.getElementById("cmFormat");
+    var heatEl = document.getElementById("cmHeat");
+    var heatNoteEl = document.getElementById("cmHeatNote");
     var titleEl = document.getElementById("cmTitle");
     var bodyEl = document.getElementById("cmBody");
     var fillEl = document.getElementById("cmFillIn");
@@ -84,7 +92,11 @@
         var submitted = parseInt(card.getAttribute("data-brief-submitted"), 10) || 0;
         var cardFill = card.querySelector(".cl-fill-in");
 
-        tagEl.textContent = discipline + (company ? " · " + company : "");
+        // two separate fields now, not one string joined by a middot
+        tagEl.textContent = discipline;
+        coEl.textContent = company;
+        statusEl.textContent = card.getAttribute("data-brief-status-label") || "Open";
+        statusEl.setAttribute("data-status", card.getAttribute("data-brief-status") || "open");
         titleEl.textContent = card.getAttribute("data-brief-title") || "";
         bodyEl.textContent = card.getAttribute("data-brief-body") || "";
         // mirrors the card's own timeline fill exactly rather than
@@ -92,6 +104,33 @@
         fillEl.style.width = cardFill ? cardFill.style.width : "0%";
         submittedEl.textContent = submitted;
         deadlineEl.textContent = card.getAttribute("data-brief-deadline") || "";
+        postedEl.textContent = card.getAttribute("data-brief-posted") || "\u2014";
+        effortEl.textContent = card.getAttribute("data-brief-effort") || "\u2014";
+        skillsEl.textContent = card.getAttribute("data-brief-skills") || "\u2014";
+        formatEl.textContent = card.getAttribute("data-brief-format") || "\u2014";
+
+        /* Rebuilt from scratch on every open rather than reusing the last
+           card's cells: the levels differ per brief, and a stale cell left
+           over from a previous open would be a silently wrong data point,
+           not just a cosmetic glitch. */
+        var activity = (card.getAttribute("data-brief-activity") || "").split(",")
+          .map(function (n) { return Math.max(0, Math.min(4, parseInt(n, 10) || 0)); });
+        heatEl.textContent = "";
+        var busiest = 0, quiet = 0;
+        activity.forEach(function (level) {
+          var cell = document.createElement("i");
+          cell.setAttribute("data-lv", level);
+          heatEl.appendChild(cell);
+          if (level > busiest) busiest = level;
+          if (level === 0) quiet++;
+        });
+        // the same information as the grid, in a sentence, so the chart is
+        // never the only way to get at it
+        heatNoteEl.textContent = activity.length
+          ? "Last " + activity.length + " days. Busiest day: " + busiest +
+            " submission" + (busiest === 1 ? "" : "s") + ". " +
+            quiet + " day" + (quiet === 1 ? "" : "s") + " with none."
+          : "";
 
         modal.showModal();
       });

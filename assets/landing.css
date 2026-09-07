@@ -72,6 +72,15 @@
      both audience accents by construction, so it reads as the brand
      spectrum rather than as "whichever accent is currently on". */
   --grad-cta:linear-gradient(152deg, rgba(255,91,36,.34) 0%, rgba(122,63,143,.19) 46%, rgba(47,107,255,.30) 100%);
+  /* --grad-accent-deep : a lower-key --grad-accent. Same 135deg sweep, but
+     both stops pulled down so the fill reads as brand colour rather than
+     as a light source. Flagged on the challenges page, where twelve of
+     these buttons sit in one grid and the bright amber/periwinkle endpoint
+     of --grad-accent stacked up into glare. Kept as its own token instead
+     of darkening --grad-accent itself, which also paints the hero CTA, the
+     mode indicator and the scroll-progress bar, none of which were part of
+     the ask. */
+  --grad-accent-deep:linear-gradient(135deg, #e04d19 0%, #ff7f42 100%);
   --accent-wash:rgba(255,91,36,.10);
   --accent-edge:rgba(255,91,36,.30);
   --accent-glow-shadow:0 26px 60px -30px rgba(255,91,36,.55);
@@ -89,6 +98,7 @@ html[data-audience="business"]{
   --grad-glow:radial-gradient(60% 55% at 78% 12%, rgba(47,107,255,.26) 0%, rgba(47,107,255,0) 68%);
   --grad-rule:linear-gradient(90deg, transparent, var(--blue) 22%, var(--blue-lift) 55%, transparent);
   --grad-dark:linear-gradient(155deg, #131a33 0%, var(--navy-deep) 78%);
+  --grad-accent-deep:linear-gradient(135deg, var(--blue-deep) 0%, #4a7dff 100%);
   --accent-wash:rgba(47,107,255,.12);
   --accent-edge:rgba(47,107,255,.34);
   --accent-glow-shadow:0 26px 60px -30px rgba(47,107,255,.6);

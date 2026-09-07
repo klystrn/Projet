@@ -81,17 +81,38 @@
 /* No hover animation on the card itself (asked for explicitly) — only
    .cl-view-brief, the button inside it, reacts to hover now. */
 .cl-card-top{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+/* Discipline and company are two separate fields now, not one string
+   joined by a middot (asked for explicitly). Deliberately given different
+   treatments rather than two identical chips: the discipline is a
+   category, so it keeps the outlined chip; the company is a name, so it
+   reads as plain type. Two chips side by side would have implied they were
+   the same kind of value. */
 .cl-tag{
   font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
   letter-spacing:.06em; text-transform:uppercase;
   padding:4px 10px; border-radius:999px;
   background:var(--paper-warm); border:1px solid var(--line); color:var(--muted);
 }
+.cl-co{
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:700;
+  color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* Status pills. Four states rather than a hardcoded OPEN on every card,
+   asked for directly. They escalate within the brand palette instead of
+   reaching for a red/amber/green traffic-light set the site does not own:
+   New is calm ink, Open is the resting accent wash, Filling fast tightens
+   that wash, Closing soon goes solid. So the ladder reads by weight, which
+   also means it survives the audience toggle (every accent below is a mode
+   token, so company mode renders the same ladder in blue). */
 .cl-pill{
+  margin-left:auto;
   font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
   letter-spacing:.06em; padding:4px 10px; border-radius:999px; white-space:nowrap;
-  background:rgba(255,91,36,.1); border:1px solid rgba(255,91,36,.34); color:var(--orange-deep);
+  background:var(--accent-wash); border:1px solid var(--accent-edge); color:var(--accent-deep);
 }
+.cl-pill[data-status="new"]{background:var(--ink); border-color:var(--ink); color:#fff;}
+.cl-pill[data-status="filling"]{background:var(--accent-wash); border-color:var(--accent); color:var(--accent-deep);}
+.cl-pill[data-status="closing"]{background:var(--accent-deep); border-color:transparent; color:#fff;}
 .cl-card h2{font-size:18.5px; line-height:1.25; letter-spacing:-.01em;}
 .cl-card p{font-size:14.5px; line-height:1.6; color:var(--ink-soft);}
 
@@ -100,9 +121,12 @@
    a submission cap (there isn't one) — just a read on how close a brief is
    to closing, at a glance. */
 .cl-fill{height:5px; border-radius:99px; background:var(--line); overflow:hidden;}
-/* --accent-deep (was the fixed --orange-deep) so this re-tints with the
-   audience toggle same as every other accent-carrying surface. */
-.cl-fill-in{height:100%; background:var(--accent-deep); border-radius:99px;}
+/* A gradient rather than the flat --accent-deep it used to be (asked for).
+   --grad-accent, not --grad-accent-deep: on a 5px bar the brighter sweep is
+   what makes the gradient legible at all, and unlike the buttons there is
+   only ever one of these per card, so it cannot stack into glare. Still a
+   mode token, so it re-tints with the audience toggle. */
+.cl-fill-in{height:100%; background:var(--grad-accent); border-radius:99px;}
 
 .cl-meta{
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
@@ -122,7 +146,7 @@
    as .btn-accent elsewhere on the site (re-tints blue in company mode). */
 .cl-view-brief{
   margin-top:auto; padding:12px; border-radius:999px; border:0; cursor:pointer;
-  background:var(--grad-accent); color:#fff; font-family:'Satoshi',sans-serif;
+  background:var(--grad-accent-deep); color:#fff; font-family:'Satoshi',sans-serif;
   font-size:13.5px; font-weight:700; box-shadow:var(--accent-glow-shadow);
   transition:filter .2s var(--ease), transform .2s var(--ease);
 }
@@ -187,6 +211,47 @@
 .cl-modal-stats div{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
 .cl-modal-stats b{display:block; font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
 .cl-modal-stats span{display:block; margin-top:4px; font-size:11px; color:var(--muted);}
+/* ---------- expanded brief detail ----------
+   A real table for the label/value pairs, and a 14-cell activity grid.
+   Both sit between the stats row and the submit button, so the dialog
+   reads top to bottom as: what it is, how far along, the particulars,
+   how busy it has been, then the action. */
+.cl-modal-table{width:100%; border-collapse:collapse; margin-top:4px; font-size:13.5px;}
+.cl-modal-table th, .cl-modal-table td{
+  text-align:left; padding:9px 0; border-bottom:1px solid var(--line); vertical-align:top;
+}
+.cl-modal-table tr:last-child th, .cl-modal-table tr:last-child td{border-bottom:0;}
+.cl-modal-table th{
+  width:38%; font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+}
+.cl-modal-table td{color:var(--ink); font-weight:600;}
+
+.cl-activity{margin-top:6px;}
+.cl-activity-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:9px;
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+}
+.cl-activity-scale{display:flex; align-items:center; gap:3px; font-size:10px; letter-spacing:0; text-transform:none;}
+/* the grid itself: fixed 14 columns so a cell is never wider than it is
+   tall, which is what keeps it reading as a heatmap rather than a bar row */
+.cl-heat{display:grid; grid-template-columns:repeat(14, 1fr); gap:4px;}
+.cl-heat i, .cl-activity-scale i{
+  display:block; aspect-ratio:1; border-radius:3px; background:var(--line);
+}
+.cl-activity-scale i{width:9px; height:9px; aspect-ratio:auto;}
+/* Four steps of the mode accent over the empty-cell colour. Uses colour
+   alone by design and that is fine here: the same numbers are stated in
+   .cl-activity-note underneath, and the grid is aria-hidden, so nothing is
+   only available to someone who can tell the shades apart. */
+.cl-heat i[data-lv="0"], .cl-activity-scale i[data-lv="0"]{background:var(--line);}
+.cl-heat i[data-lv="1"], .cl-activity-scale i[data-lv="1"]{background:var(--accent-wash);}
+.cl-heat i[data-lv="2"], .cl-activity-scale i[data-lv="2"]{background:var(--accent-edge);}
+.cl-heat i[data-lv="3"], .cl-activity-scale i[data-lv="3"]{background:var(--accent);}
+.cl-heat i[data-lv="4"], .cl-activity-scale i[data-lv="4"]{background:var(--accent-deep);}
+.cl-activity-note{margin-top:9px; font-size:12px; color:var(--muted); line-height:1.5;}
+
 .cl-modal-submit{width:100%; text-align:center; margin-top:4px;}
 @media (max-width:640px){
   .cl-modal-inner{padding:30px 22px 24px;}
