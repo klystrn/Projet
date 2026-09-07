@@ -180,3 +180,251 @@ body.dash-page{background:var(--paper-warm);}
   .dp-head-row{flex-direction:column;}
   .dp-listfoot-actions .btn{flex:1;}
 }
+
+/* ==========================================================================
+   PROFILE COLUMN — GitHub-profile shape
+   Avatar, name, handle, bio, Edit profile, then details / skills / stats
+   blocks. The rail was already 300px wide; what changed is what goes in it
+   and the order, which now follows the reference the founder supplied.
+   ========================================================================== */
+.dp-handle{
+  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted);
+  margin:2px 0 12px;
+}
+.dp-bio{font-size:14px; line-height:1.6; color:var(--ink-soft); margin-bottom:16px;}
+.dp-edit{width:100%; justify-content:center; margin-bottom:20px;}
+
+.dp-details{list-style:none; margin:0 0 4px; padding:0; display:flex; flex-direction:column; gap:9px;}
+.dp-details li{display:flex; align-items:flex-start; gap:9px; font-size:13.5px; color:var(--ink-soft); line-height:1.45;}
+.dp-det-ic{flex:none; margin-top:1px; font-size:9px; line-height:1.6; color:var(--accent);}
+
+.dp-rail-block{margin-top:22px;}
+.dp-rail-h{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  margin:0 0 10px; line-height:1.4;
+}
+/* .dp-tags/.dp-stat keep their own existing rules; only the bottom margin
+   moves, since they now sit inside a labelled block rather than free in
+   the rail. */
+.dp-rail-block .dp-tags{margin-bottom:0;}
+
+/* ==========================================================================
+   TABS
+   ========================================================================== */
+.dp-tabs{
+  display:flex; gap:4px; margin-bottom:24px;
+  border-bottom:1px solid var(--line);
+}
+.dp-tabs button{
+  appearance:none; background:none; border:0; cursor:pointer;
+  padding:11px 16px; margin-bottom:-1px;
+  font-family:inherit; font-size:14px; font-weight:700; color:var(--muted);
+  border-bottom:2px solid transparent;
+  transition:color .2s var(--ease), border-color .2s var(--ease);
+}
+.dp-tabs button:hover{color:var(--ink);}
+.dp-tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent);}
+.dp-tabs button:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink); border-radius:6px;}
+/* the panel itself is a focus target (tabindex=0) for the tab pattern, but
+   it is a container, not a control — no ring wanted on a mouse click */
+.dp-tabpanel:focus{outline:none;}
+.dp-tabpanel[hidden]{display:none;}
+
+/* ==========================================================================
+   CONTRIBUTION HEATMAP
+   53 weeks x 7 days, built by dashboard.js. Columns are weeks, so the grid
+   flows top-to-bottom then left-to-right — grid-auto-flow:column with 7
+   explicit rows is what gives that without positioning every cell.
+   ========================================================================== */
+.dp-heat-card{
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  background:var(--paper); padding:18px 20px 16px;
+}
+.dp-heat-card .dp-section-head{margin-bottom:14px;}
+.dp-heat-card h3{font-size:15px;}
+.dp-heat-legend{
+  display:flex; align-items:center; gap:3px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted);
+}
+/* horizontal scroll rather than squeezing the cells: a year of weeks has a
+   real minimum width, and a squashed heatmap stops being readable long
+   before it stops fitting */
+.dp-heat-scroll{overflow-x:auto; padding-bottom:4px;}
+.dp-heat-body{display:flex; gap:6px;}
+.dp-heat-days{
+  display:flex; flex-direction:column; justify-content:space-around;
+  flex:none; width:26px; padding:1px 0;
+  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted);
+}
+.dp-heat-months{
+  display:flex; margin-left:32px; margin-bottom:5px;
+  font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--muted);
+}
+.dp-heat-months span{flex:none;}
+.dp-heat{
+  display:grid; grid-template-rows:repeat(7, 11px); grid-auto-flow:column;
+  grid-auto-columns:11px; gap:3px;
+}
+.dp-heat i, .dp-heat-legend i{display:block; width:11px; height:11px; border-radius:2px; background:var(--line);}
+.dp-heat-legend i{width:9px; height:9px;}
+/* Four steps of the mode accent, same ladder as challenges.html's own brief
+   heatmap so the two read as one idiom. Colour-only and aria-hidden by
+   design: the total is stated in the heading above it, so the grid is never
+   the only route to the number. */
+.dp-heat i[data-lv="1"], .dp-heat-legend i[data-lv="1"]{background:var(--accent-wash);}
+.dp-heat i[data-lv="2"], .dp-heat-legend i[data-lv="2"]{background:var(--accent-edge);}
+.dp-heat i[data-lv="3"], .dp-heat-legend i[data-lv="3"]{background:var(--accent);}
+.dp-heat i[data-lv="4"], .dp-heat-legend i[data-lv="4"]{background:var(--accent-deep);}
+.dp-heat-note{margin-top:12px; font-size:12.5px; color:var(--muted);}
+
+/* ==========================================================================
+   ACTIVITY FEED
+   ========================================================================== */
+.dp-feed{list-style:none; margin:0; padding:0;}
+.dp-feed-item{
+  position:relative; display:flex; align-items:flex-start; gap:14px;
+  padding:14px 0 14px 4px; border-top:1px solid var(--line);
+}
+.dp-feed-item:first-child{border-top:0;}
+.dp-feed-item div{flex:1; min-width:0;}
+.dp-feed-item b{display:block; font-size:14.5px; margin-bottom:2px;}
+.dp-feed-item span{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);}
+.dp-feed-item time{
+  flex:none; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted);
+  white-space:nowrap; padding-top:2px;
+}
+.dp-feed-dot{
+  flex:none; width:9px; height:9px; border-radius:50%; margin-top:6px;
+  background:var(--line); border:2px solid var(--paper); box-shadow:0 0 0 1.5px var(--line);
+}
+.dp-feed-dot[data-kind="score"]{background:var(--accent); box-shadow:0 0 0 1.5px var(--accent);}
+.dp-feed-dot[data-kind="win"]{background:var(--accent-deep); box-shadow:0 0 0 1.5px var(--accent-deep);}
+
+/* ==========================================================================
+   HACKATHON ROWS AS BUTTONS
+   The rows are <button> now so the detail modal is keyboard-reachable.
+   Buttons bring UA styling that has to be undone, and text-align/font are
+   the two that bite: a button centres its text and does NOT inherit the
+   page font.
+   ========================================================================== */
+button.dp-card{
+  width:100%; text-align:left; font-family:inherit; font-size:inherit; color:inherit;
+  cursor:pointer;
+  transition:border-color .18s var(--ease), box-shadow .18s var(--ease), transform .18s var(--ease);
+}
+button.dp-card:hover{border-color:var(--accent); box-shadow:0 12px 26px -20px rgba(20,19,15,.4); transform:translateY(-1px);}
+button.dp-card:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+button.dp-card .dp-card-title{display:block;}
+button.dp-card .dp-card-meta{display:block;}
+button.dp-card .dp-card-body{flex:1; min-width:0;}
+button.dp-card .dp-score{display:block;}
+button.dp-card .dp-score b{display:block;}
+button.dp-card .dp-score span{display:block;}
+
+/* ==========================================================================
+   MODALS — entry detail and profile editor
+   ========================================================================== */
+.dp-modal{
+  border:0; border-radius:var(--radius-xl); padding:0;
+  width:min(560px, calc(100vw - 40px)); max-height:min(86vh, 760px);
+  box-shadow:0 40px 90px -30px rgba(20,19,15,.5);
+}
+.dp-modal::backdrop{background:rgba(20,19,15,.6); backdrop-filter:blur(2px);}
+.dp-modal-inner{position:relative; padding:32px 30px 28px; display:flex; flex-direction:column; gap:12px;}
+.dp-modal-close{
+  position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--line); background:#fff; cursor:pointer;
+  font-size:18px; line-height:1; color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center;
+}
+.dp-modal-close:hover{border-color:var(--ink); color:var(--ink);}
+.dp-modal-close:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.dp-modal-top{display:flex; align-items:center; gap:10px; padding-right:36px;}
+.dp-modal-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--accent-deep);
+}
+.dp-modal-top .dp-pill{margin-left:auto;}
+.dp-modal h2{font-size:22px; line-height:1.25; padding-right:36px; margin:0;}
+.dp-modal-sub{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted); margin:0;}
+.dp-modal-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:4px;}
+.dp-modal-stats div{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
+.dp-modal-stats b{display:block; font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
+.dp-modal-stats span{display:block; margin-top:4px; font-size:11px; color:var(--muted);}
+.dp-modal-h{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  margin:10px 0 0; line-height:1.4;
+}
+.dp-modal-inner > p{font-size:14.5px; line-height:1.6; color:var(--ink-soft); margin:0;}
+.dp-modal-quote{
+  border-left:2px solid var(--accent); padding-left:14px; font-style:italic;
+}
+.dp-bars{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.dp-bars li{display:grid; grid-template-columns:1fr auto; gap:4px 12px; align-items:center;}
+.dp-bars span{font-size:13px; color:var(--ink-soft);}
+.dp-bars b{font-family:'JetBrains Mono',monospace; font-size:13px;}
+.dp-bars .dp-bar{
+  grid-column:1 / -1; height:5px; border-radius:99px; background:var(--line); overflow:hidden;
+}
+.dp-bars .dp-bar i{display:block; height:100%; border-radius:99px; background:var(--grad-accent);}
+.dp-modal-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+.dp-modal-actions .btn{flex:1; justify-content:center; white-space:nowrap;}
+
+/* ---------- profile editor ---------- */
+.dp-modal-note{font-size:12.5px; color:var(--muted); margin:0;}
+.dp-field{display:block;}
+.dp-field span{
+  display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:var(--ink);
+}
+.dp-field input, .dp-field textarea{
+  width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--line);
+  background:#fff; font-family:inherit; font-size:14px; color:var(--ink); resize:vertical;
+}
+.dp-field input:hover, .dp-field textarea:hover{border-color:var(--ink-soft);}
+.dp-field input:focus-visible, .dp-field textarea:focus-visible{
+  outline:none; border-color:transparent; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+}
+/* Animated reveal rather than display:none/block, the same fix the auth
+   forms needed: the dialog is centred, so a status line appearing at its
+   full height re-centres the whole modal instead of just growing it. */
+.dp-modal-status{
+  max-height:0; opacity:0; overflow:hidden; margin:0;
+  font-size:12.5px; font-weight:700; color:var(--accent-deep);
+  transition:max-height .22s var(--ease), opacity .22s var(--ease);
+}
+.dp-modal-status.is-shown{max-height:3em; opacity:1;}
+
+@media (max-width:900px){
+  .dp-grid{grid-template-columns:1fr;}
+  .dp-modal-actions .btn{flex:1 1 100%;}
+}
+@media (max-width:640px){
+  .dp-modal-inner{padding:28px 20px 22px;}
+  .dp-modal-stats{grid-template-columns:1fr 1fr;}
+}
+/* ---------- no-js ----------
+   Without JS the rows cannot open anything (showModal() is a JS call), so
+   they stop pretending to be controls — same contract as .no-js
+   .cl-view-brief on challenges.html and .ch-view-btn on the home page.
+   The row keeps all its inline data either way. */
+.no-js button.dp-card{cursor:default;}
+.no-js button.dp-card:hover{border-color:var(--line); box-shadow:none; transform:none;}
+.no-js .dp-edit{display:none;}
+
+/* The tab strip cannot switch panels without JS, so it goes and BOTH panels
+   render stacked instead. This is the load-bearing one: leaving the tabs on
+   screen would strand the whole activity feed behind a control that does
+   nothing, which is exactly the "content gated behind an effect that might
+   not run" case this site does not allow anywhere else. */
+.no-js .dp-tabs{display:none;}
+.no-js .dp-tabpanel[hidden]{display:block;}
+.no-js .dp-tabpanel + .dp-tabpanel{margin-top:8px;}
+
+/* The heatmap's cells are generated, so with no JS this card is a heading,
+   a legend and an empty box — and its heading would state a total nothing
+   on the page can back up. Hidden outright rather than left as a hollow
+   frame. Nothing is lost: it visualises the same history the entries list
+   below it already states row by row. */
+.no-js .dp-heat-card{display:none;}

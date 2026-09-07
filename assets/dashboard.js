@@ -7,13 +7,16 @@
 
    FRONT END ONLY. Every value on the page is sample data.
 
-   BACKEND HOOKS (Andrei) — three seams, nothing else to rewire:
+   BACKEND HOOKS (Andrei) — five seams, nothing else to rewire:
 
-   1. WHICH VIEW.  Right now the view comes from ?view=student|company (or
-      the saved audience mode, set via the nav's own For students/For
-      companies toggle — there is no dashboard-specific view switch any
-      more). Once auth exists, the account type should decide it: call
-      setView(roleFromSession) directly instead of reading ?view=/localStorage.
+   1. WHICH VIEW.  Right now the view comes from ?view=student|company, else
+      the saved audience mode. There is no view switch on this page at all
+      any more: reaching the dashboard means you are signed in, so the
+      audience is a fact about the account rather than a preference, and the
+      nav's For students / For companies toggle is deliberately absent here.
+      Once auth exists, call setView(roleFromSession) directly instead of
+      reading ?view=. setView() is also what re-tints the page, by setting
+      html[data-audience] — nothing else needs to know about the role.
 
    2. PROFILE + LISTS.  Set data-endpoint on <body class="dash-page"> and
       this file will fetch it and fill the slots. Suggested shape — the
@@ -22,7 +25,10 @@
         {
           "role": "student" | "company",
           "profile": { "initials": "CL", "name": "Chloe Lim",
-                       "sub": "SUTD · Year 3", "tags": ["Figma", "A11y"],
+                       "handle": "@chloelim", "bio": "...",
+                       "org": "SUTD · Year 3", "loc": "Singapore",
+                       "joined": "Joined February 2026",
+                       "tagsLabel": "Skills", "tags": ["Figma", "A11y"],
                        "stats": [{ "label": "Avg. score", "value": "83" }] },
           "metrics": [{ "value": "85", "label": "Latest score" }],
           "entries": [ ... ]        // student: past challenges
@@ -32,8 +38,26 @@
       An empty `entries` array is what should drive the student empty state —
       showEmpty(true) below already handles the swap.
 
-   3. ACTIONS.  The Schedule / Compare / Book interviews / Edit profile
-      buttons are inert placeholders (href="#"). Point them at real routes.
+   3. ENTRY DETAIL.  Each past-hackathon row carries its whole modal payload
+      as data-hk-* attributes (title, company, discipline, date, rank,
+      entrants, score, fit, status, status-kind, solution, breakdown,
+      feedback), read fresh on every open. Render those attributes from the
+      API and the modal needs no changes. `breakdown` is a comma-separated
+      "Label:score" list.
+
+   4. HEATMAP.  buildHeat() currently fills the grid from a seeded PRNG so
+      the sample history is at least stable across reloads. Replace its body
+      with real per-day counts: it wants 53 weeks x 7 days of levels 0-4,
+      oldest first, column by column. The heading text is derived from the
+      same data, so it stays correct for free.
+
+   5. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
+      View submission buttons are inert placeholders (href="#"). The Edit
+      profile dialog is deliberately real but local: it writes to
+      localStorage["projet:profile"] and says so in its own copy. Point it
+      at a PATCH endpoint and delete the localStorage read/write — the
+      re-apply hook (reapplyProfileEdits) is the only other thing it
+      touches.
    ========================================================================== */
 (function () {
   "use strict";
@@ -44,7 +68,6 @@
   var viewStudent = document.getElementById("viewStudent");
   var viewStudentEmpty = document.getElementById("viewStudentEmpty");
   var viewCompany = document.getElementById("viewCompany");
-  var switchEl = document.getElementById("dpViewSwitch");
 
   var eyebrow = document.getElementById("dpEyebrow");
   var heading = document.getElementById("dpHeading");
@@ -65,6 +88,12 @@
       initials: "CL",
       name: "Chloe Lim",
       sub: "SUTD · Year 3 Design & AI",
+      handle: "@chloelim",
+      bio: "Design engineer in training. I like interfaces that survive contact with real users.",
+      org: "SUTD · Year 3 Design & AI",
+      loc: "Singapore",
+      joined: "Joined February 2026",
+      tagsLabel: "Skills",
       tags: ["Figma", "Front-end", "A11y"],
       stats: [
         { label: "Challenges done", value: "3" },
@@ -80,6 +109,12 @@
       initials: "NW",
       name: "Nordwave",
       sub: "Hiring · 1 open brief",
+      handle: "@nordwave",
+      bio: "Series A team in Singapore. We post briefs straight off our own backlog.",
+      org: "Nordwave · Product & Platform",
+      loc: "Singapore",
+      joined: "Joined January 2026",
+      tagsLabel: "Hiring for",
       tags: ["Product", "Front-end"],
       stats: [
         { label: "Open briefs", value: "1" },
@@ -92,6 +127,19 @@
 
   var currentView = "student";
 
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el && value != null) el.textContent = value;
+  }
+
+  /* Set by the edit-profile block below. setProfile() paints the sample (or
+     API) profile into the rail, so any locally-saved edit has to be
+     re-applied on top of it afterwards or a role switch would silently
+     revert the visitor's own changes. A hook here rather than wrapping the
+     public ProjetDashboard.setView: that object is assigned at the very end
+     of this file and would overwrite any wrapper installed before it. */
+  var reapplyProfileEdits = null;
+
   function setProfile(p) {
     if (eyebrow) eyebrow.textContent = p.eyebrow;
     if (heading) heading.textContent = p.heading;
@@ -99,6 +147,12 @@
     if (avatar) avatar.textContent = p.initials;
     if (nameEl) nameEl.textContent = p.name;
     if (subEl) subEl.textContent = p.sub;
+    setText("dpHandle", p.handle);
+    setText("dpBio", p.bio);
+    setText("dpDetOrg", p.org);
+    setText("dpDetLoc", p.loc);
+    setText("dpDetJoined", p.joined);
+    setText("dpTagsH", p.tagsLabel);
     if (tagsEl) {
       tagsEl.innerHTML = "";
       p.tags.forEach(function (t) {
@@ -123,6 +177,7 @@
       });
     }
     if (railCta) railCta.textContent = p.cta;
+    if (reapplyProfileEdits) reapplyProfileEdits();
   }
 
   /* Student empty state. Exposed so a real API can flip it from an empty
@@ -145,26 +200,21 @@
 
     setProfile(PROFILES[currentView]);
 
-    if (switchEl) {
-      switchEl.querySelectorAll(".dp-viewopt").forEach(function (b) {
-        b.setAttribute("aria-current", b.getAttribute("data-view") === currentView ? "true" : "false");
-      });
-      // reuse the sliding pill from the audience toggle
-      var ind = switchEl.querySelector(".mode-indicator");
-      if (ind) ind.style.transform = isCompany ? "translateX(100%)" : "translateX(0)";
-    }
+    /* Reaching this page means you are signed in, so the audience is a
+       property of the ACCOUNT, not a preference to toggle — the nav's
+       For students / For companies switch is deliberately absent here (see
+       dashboard.html). Setting the attribute is therefore the only thing
+       that re-tints the page, and it has to happen after landing.js has
+       applied whatever was in localStorage on load; this file loads second,
+       so it wins.
 
-    // Keep the page-wide accent in step: company view should read blue, the
-    // same way the marketing page does. landing.js owns this attribute, so
-    // setting it here keeps both toggles telling the same story.
+       Deliberately does NOT write projet:audience back. The visitor's
+       marketing-site preference is theirs; their account role should not
+       silently overwrite it just because they opened their dashboard. */
     document.documentElement.setAttribute("data-audience", isCompany ? "business" : "builder");
-    try { localStorage.setItem("projet:audience", isCompany ? "business" : "builder"); } catch (e) { /* ignore */ }
-    document.querySelectorAll(".mode-switch").forEach(function (sw) {
-      sw.querySelectorAll(".mode-opt").forEach(function (b) {
-        var want = isCompany ? "business" : "builder";
-        b.setAttribute("aria-current", b.getAttribute("data-audience") === want ? "true" : "false");
-      });
-    });
+
+    // the heatmap re-seeds per role: different totals, different story
+    buildHeat(isCompany);
 
     var url = new URL(window.location.href);
     url.searchParams.set("view", currentView);
@@ -183,22 +233,6 @@
     setView(saved === "business" ? "company" : "student");
   })();
 
-  if (switchEl) {
-    switchEl.addEventListener("click", function (e) {
-      var btn = e.target.closest(".dp-viewopt");
-      if (!btn) return;
-      setView(btn.getAttribute("data-view"));
-    });
-  }
-
-  // the nav audience toggle should move this page's view too
-  document.querySelectorAll(".mode-switch").forEach(function (sw) {
-    sw.addEventListener("click", function (e) {
-      var btn = e.target.closest(".mode-opt");
-      if (!btn) return;
-      setView(btn.getAttribute("data-audience") === "business" ? "company" : "student");
-    });
-  });
 
   /* ---------------- company view: candidate filter ----------------
      Progressive enhancement: every card is rendered in the HTML, so with no
@@ -269,5 +303,339 @@
   })();
 
   // expose the two seams a backend needs to drive
+
+  /* ---------------- contribution heatmap ----------------
+     53 weeks x 7 days, the GitHub profile idiom the founder pointed at.
+
+     Cells are generated rather than authored: 371 <i> elements in the HTML
+     would be unreadable markup for a chart whose values are all sample data
+     anyway. The number the grid encodes is written into the heading as real
+     text, so a no-js visitor loses the picture but never the figure.
+
+     Values come from a small seeded PRNG, not Math.random: the grid has to
+     be stable across a re-render (a role switch re-runs this) and across
+     reloads, or the same account would appear to have a different history
+     every time the page was opened. */
+  function seeded(seed) {
+    var h = 2166136261;
+    for (var i = 0; i < seed.length; i++) {
+      h ^= seed.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return function () {
+      h += 0x6D2B79F5;
+      var t = h;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function buildHeat(isCompany) {
+    /* Declared inside, not as a module-level var: setView() calls this from
+       an IIFE near the top of the file, which runs BEFORE any var further
+       down has been assigned. A hoisted `var MONTHS` would still be
+       undefined at that point and this would throw on MONTHS[m] — which is
+       exactly what it did, silently, leaving an empty grid and a stale
+       heading. Function declarations hoist with their body; var
+       initialisers do not. */
+    var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var grid = document.getElementById(isCompany ? "dpHeatCo" : "dpHeat");
+    var months = document.getElementById(isCompany ? "dpHeatMonthsCo" : "dpHeatMonths");
+    var title = document.getElementById(isCompany ? "dpHeatTitleCo" : "dpHeatTitle");
+    if (!grid) return;
+
+    var WEEKS = 53, DAYS = 7;
+    var rand = seeded(isCompany ? "projet:company:v1" : "projet:student:v1");
+    grid.textContent = "";
+
+    // The grid ends on the current week, so the last column is "this week"
+    // and the month labels below line up with real calendar months.
+    var end = new Date();
+    end.setHours(0, 0, 0, 0);
+    end.setDate(end.getDate() - end.getDay()); // back to the week's Sunday
+
+    var total = 0;
+    var frag = document.createDocumentFragment();
+    var labels = [];
+    var lastMonth = -1;
+
+    for (var w = 0; w < WEEKS; w++) {
+      var weekStart = new Date(end);
+      weekStart.setDate(weekStart.getDate() - (WEEKS - 1 - w) * 7);
+      var m = weekStart.getMonth();
+      // one label per month, at the first week that lands in it
+      labels.push(m !== lastMonth ? MONTHS[m] : "");
+      lastMonth = m;
+
+      for (var d = 0; d < DAYS; d++) {
+        var r = rand();
+        // heavily weighted to empty: real activity is bursty, and a grid
+        // that is mostly lit reads as noise rather than as a history
+        var level = r > 0.955 ? 4 : r > 0.90 ? 3 : r > 0.82 ? 2 : r > 0.70 ? 1 : 0;
+        var cell = document.createElement("i");
+        cell.setAttribute("data-lv", level);
+        frag.appendChild(cell);
+        total += level;
+      }
+    }
+    grid.appendChild(frag);
+
+    if (months) {
+      months.textContent = "";
+      labels.forEach(function (label) {
+        var sp = document.createElement("span");
+        sp.textContent = label;
+        // 11px cell + 3px gap, matching .dp-heat's own grid in dashboard.css
+        sp.style.width = "14px";
+        months.appendChild(sp);
+      });
+    }
+    if (title) {
+      title.textContent = total + (isCompany ? " submissions received" : " contributions") +
+        " in the last year";
+    }
+  }
+
+  /* ---------------- tabs ----------------
+     A real tablist: aria-selected drives the styling, panels carry
+     role="tabpanel", and the tab strip uses roving tabindex plus arrow-key
+     navigation, which is what makes the pattern actually behave like tabs
+     for a keyboard user rather than just look like them. */
+  (function () {
+    var strip = document.getElementById("dpTabs");
+    if (!strip) return;
+    var tabs = Array.prototype.slice.call(strip.querySelectorAll('[role="tab"]'));
+    if (!tabs.length) return;
+
+    function select(tab, moveFocus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute("aria-controls"));
+        if (panel) panel.hidden = !on;
+      });
+      if (moveFocus) tab.focus();
+    }
+
+    strip.addEventListener("click", function (e) {
+      var tab = e.target.closest('[role="tab"]');
+      if (tab) select(tab, false);
+    });
+    strip.addEventListener("keydown", function (e) {
+      var i = tabs.indexOf(document.activeElement);
+      if (i === -1) return;
+      var next = null;
+      if (e.key === "ArrowRight") next = tabs[(i + 1) % tabs.length];
+      else if (e.key === "ArrowLeft") next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === "Home") next = tabs[0];
+      else if (e.key === "End") next = tabs[tabs.length - 1];
+      if (!next) return;
+      e.preventDefault();
+      select(next, true);
+    });
+  })();
+
+  /* ---------------- hackathon entry modal ----------------
+     Same native <dialog> pattern as the two brief modals elsewhere on the
+     site, including the pointer-opened-then-Escape focus-ring suppression
+     (see suppressReturnRing in landing.js for why that case is special). */
+  (function () {
+    var modal = document.getElementById("hkModal");
+    var list = document.getElementById("dpEntries");
+    if (!modal || !list || typeof modal.showModal !== "function") return;
+
+    var closeBtn = document.getElementById("hkClose");
+    var lastTrigger = null, pointerOpened = false;
+
+    function fill(row) {
+      var get = function (k) { return row.getAttribute("data-hk-" + k) || ""; };
+      document.getElementById("hkTag").textContent = get("discipline");
+      document.getElementById("hkTitle").textContent = get("title");
+      document.getElementById("hkSub").textContent =
+        get("company") + " · " + get("date") + " · " + get("entrants") + " entrants";
+      document.getElementById("hkRank").textContent = "#" + get("rank");
+      document.getElementById("hkScore").textContent = get("score");
+      document.getElementById("hkFit").textContent = get("fit") + "%";
+      document.getElementById("hkSolution").textContent = get("solution");
+      document.getElementById("hkFeedback").textContent = "“" + get("feedback") + "”";
+
+      var status = document.getElementById("hkStatus");
+      status.textContent = get("status");
+      status.classList.toggle("is-quiet", get("status-kind") === "quiet");
+
+      // "Problem framing:88,Execution:86" -> one labelled bar each
+      var bars = document.getElementById("hkBars");
+      bars.textContent = "";
+      get("breakdown").split(",").forEach(function (pair) {
+        var bits = pair.split(":");
+        if (bits.length !== 2) return;
+        var li = document.createElement("li");
+        var label = document.createElement("span");
+        label.textContent = bits[0].trim();
+        var val = document.createElement("b");
+        val.textContent = bits[1].trim();
+        var track = document.createElement("div");
+        track.className = "dp-bar";
+        var fillEl = document.createElement("i");
+        fillEl.style.width = Math.max(0, Math.min(100, parseInt(bits[1], 10) || 0)) + "%";
+        track.appendChild(fillEl);
+        li.appendChild(label);
+        li.appendChild(val);
+        li.appendChild(track);
+        bars.appendChild(li);
+      });
+    }
+
+    list.addEventListener("click", function (e) {
+      var row = e.target.closest("[data-hk]");
+      if (!row) return;
+      pointerOpened = e.detail > 0;
+      lastTrigger = row;
+      fill(row);
+      modal.showModal();
+    });
+    closeBtn.addEventListener("click", function () { modal.close(); });
+    modal.addEventListener("click", function (e) { if (e.target === modal) modal.close(); });
+    modal.addEventListener("cancel", function () {
+      var sup = window.ProjetUI && window.ProjetUI.suppressReturnRing;
+      if (pointerOpened && sup) sup(lastTrigger);
+    });
+  })();
+
+  /* ---------------- edit profile ----------------
+     Semi-functional on purpose, and honest about it: the edits are real and
+     they persist, but only into localStorage on this device. The dialog says
+     so in its own copy rather than implying a saved account, which is the
+     same rule the auth forms and the footer capture already follow — never
+     fake a save that did not happen.
+
+     Only the student profile is editable. The company profile is an org
+     record, and letting one browser rewrite it locally would imply an
+     ownership model that does not exist yet. */
+  (function () {
+    var modal = document.getElementById("editModal");
+    var openBtn = document.getElementById("dpEditBtn");
+    if (!modal || !openBtn || typeof modal.showModal !== "function") return;
+
+    var STORE = "projet:profile";
+    var form = document.getElementById("editForm");
+    var statusEl = document.getElementById("editStatus");
+    var fields = {
+      name: document.getElementById("editName"),
+      org: document.getElementById("editOrg"),
+      loc: document.getElementById("editLoc"),
+      bio: document.getElementById("editBio"),
+      tags: document.getElementById("editTags")
+    };
+
+    function read() {
+      try { return JSON.parse(localStorage.getItem(STORE) || "null"); }
+      catch (e) { return null; }
+    }
+
+    // Applied over whatever setProfile() just wrote, so a saved edit
+    // survives a role switch re-render rather than being silently reverted.
+    function apply(data) {
+      if (!data) return;
+      if (data.name) {
+        setText("dpName", data.name);
+        // initials follow the name, the same way the sample profile's do
+        var initials = data.name.trim().split(/\s+/).slice(0, 2)
+          .map(function (w) { return w.charAt(0).toUpperCase(); }).join("");
+        if (initials) setText("dpAvatar", initials);
+        setText("dpHandle", "@" + data.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, ""));
+      }
+      if (data.org) { setText("dpDetOrg", data.org); setText("dpSub", data.org); }
+      if (data.loc) setText("dpDetLoc", data.loc);
+      if (data.bio) setText("dpBio", data.bio);
+      if (data.tags) {
+        var tagsEl2 = document.getElementById("dpTags");
+        var list = data.tags.split(",").map(function (t) { return t.trim(); }).filter(Boolean);
+        if (tagsEl2 && list.length) {
+          tagsEl2.textContent = "";
+          list.forEach(function (t) {
+            var sp = document.createElement("span");
+            sp.className = "dp-tag";
+            sp.textContent = t;
+            tagsEl2.appendChild(sp);
+          });
+        }
+      }
+    }
+
+    function say(msg) {
+      if (!statusEl) return;
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("is-shown", !!msg);
+    }
+
+    function seedForm() {
+      // seeded from what is on the page right now, not from the store, so
+      // the form always opens showing exactly what the visitor can see
+      fields.name.value = (document.getElementById("dpName") || {}).textContent || "";
+      fields.org.value = (document.getElementById("dpDetOrg") || {}).textContent || "";
+      fields.loc.value = (document.getElementById("dpDetLoc") || {}).textContent || "";
+      fields.bio.value = (document.getElementById("dpBio") || {}).textContent || "";
+      var tagsEl2 = document.getElementById("dpTags");
+      fields.tags.value = tagsEl2
+        ? Array.prototype.map.call(tagsEl2.querySelectorAll(".dp-tag"), function (t) {
+            return t.textContent;
+          }).join(", ")
+        : "";
+      say("");
+    }
+
+    var pointerOpened = false;
+    openBtn.addEventListener("click", function (e) {
+      pointerOpened = e.detail > 0;
+      seedForm();
+      modal.showModal();
+      fields.name.focus();
+    });
+    document.getElementById("editClose").addEventListener("click", function () { modal.close(); });
+    modal.addEventListener("click", function (e) { if (e.target === modal) modal.close(); });
+    modal.addEventListener("cancel", function () {
+      var sup = window.ProjetUI && window.ProjetUI.suppressReturnRing;
+      if (pointerOpened && sup) sup(openBtn);
+    });
+
+    form.addEventListener("submit", function (e) {
+      // method="dialog" would close before this runs, so take the wheel
+      e.preventDefault();
+      if (!fields.name.value.trim()) { say("A name is required."); return; }
+      var data = {
+        name: fields.name.value.trim(),
+        org: fields.org.value.trim(),
+        loc: fields.loc.value.trim(),
+        bio: fields.bio.value.trim(),
+        tags: fields.tags.value.trim()
+      };
+      apply(data);
+      var saved = true;
+      try { localStorage.setItem(STORE, JSON.stringify(data)); }
+      catch (err) { saved = false; }
+      // Private mode and full storage both throw here. The page still shows
+      // the edit, so saying "saved" would be a lie by one word.
+      say(saved ? "Saved on this device." : "Applied, but this browser blocked saving it.");
+      setTimeout(function () { modal.close(); }, 650);
+    });
+
+    document.getElementById("editReset").addEventListener("click", function () {
+      try { localStorage.removeItem(STORE); } catch (err) { /* ignore */ }
+      setProfile(PROFILES[currentView]);
+      seedForm();
+      say("Reset to the sample profile.");
+    });
+
+    // Only the student profile is editable, so the override is scoped to it:
+    // a role switch into the company view paints the org record untouched.
+    reapplyProfileEdits = function () {
+      if (currentView === "student") apply(read());
+    };
+    reapplyProfileEdits();
+  })();
+
   window.ProjetDashboard = { setView: setView, showEmpty: showEmpty };
 })();
