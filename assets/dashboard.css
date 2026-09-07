@@ -386,15 +386,31 @@ button.dp-card .dp-score span{display:block;}
 .dp-field input:focus-visible, .dp-field textarea:focus-visible{
   outline:none; border-color:transparent; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
 }
-/* Animated reveal rather than display:none/block, the same fix the auth
-   forms needed: the dialog is centred, so a status line appearing at its
-   full height re-centres the whole modal instead of just growing it. */
-.dp-modal-status{
-  max-height:0; opacity:0; overflow:hidden; margin:0;
-  font-size:12.5px; font-weight:700; color:var(--accent-deep);
-  transition:max-height .22s var(--ease), opacity .22s var(--ease);
+/* The status line must not move the dialog when it appears: this modal is
+   centred, so anything that changes its height re-centres the whole thing
+   rather than just growing it downward.
+
+   The auth forms solve that by animating max-height, and this started as a
+   copy of that. It is better here to reserve the line permanently and
+   animate opacity ALONE — max-height is a layout property, so animating it
+   runs layout every frame, and reserving the space fixes the re-centring
+   more completely anyway: with a constant height the dialog cannot shift
+   even on the frame the message swaps. One line is enough for every string
+   this shows (the longest, "Applied, but this browser blocked saving it.",
+   is ~300px against a ~500px content column). */
+/* Selector deliberately outranks `.dp-modal-inner > p` (0,1,1) above, which
+   would otherwise win on specificity and hand this element 14.5px/1.6 body
+   metrics. That mismatch is not cosmetic here: min-height is reserved in em
+   against the element's OWN font-size, so if the font-size came from
+   somewhere else the reserved box and the rendered line disagreed and the
+   dialog still shifted 6px the first time a message appeared. Measured
+   before this: 17px empty vs 23px with text. */
+.dp-modal-inner > p.dp-modal-status{
+  min-height:1.2em; opacity:0; margin:0;
+  font-size:12.5px; font-weight:700; line-height:1.2; color:var(--accent-deep);
+  transition:opacity .22s var(--ease);
 }
-.dp-modal-status.is-shown{max-height:3em; opacity:1;}
+.dp-modal-inner > p.dp-modal-status.is-shown{opacity:1;}
 
 @media (max-width:900px){
   .dp-grid{grid-template-columns:1fr;}
