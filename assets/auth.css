@@ -107,8 +107,8 @@
 
 /* THE MARK. Three nested elements on purpose — each owns ONE transform,
    so they can never fight: .af-mark carries the mode travel, .af-mark-in
-   carries the entrance pop, and the <img> carries the endless spin. Put
-   any two of those on the same element and the last one wins silently. */
+   carries the entrance pop, and the image itself carries the endless
+   spin. Put any two of those on one element and the last wins silently. */
 .af-mark{
   position:absolute; left:50%; top:50%;
   width:200px; height:200px; margin:-100px 0 0 -100px;
