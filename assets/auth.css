@@ -94,44 +94,72 @@
 .af-bloom-cool{background:radial-gradient(720px 640px at 32% 84%, rgba(47,107,255,.42), rgba(47,107,255,0) 68%);}
 .af-bloom-violet{background:radial-gradient(620px 560px at 66% 58%, rgba(122,63,143,.36), rgba(122,63,143,0) 70%);}
 
-/* concentric rings, centred on the mark and travelling with it */
+/* concentric rings, centred on the mark and travelling WITH it — same
+   translateX expression as .af-mark below, no multiplier of its own. A
+   real bug, caught by measuring rendered centre points rather than just
+   reading the CSS: this used to ride at .82 of --field-x while the mark
+   rode at the full amount, so the two only ever coincided when
+   --field-x was 0 — which it never is, since the mode is always either
+   +25vw or -25vw. At rest the mark measured 65px off from the rings'
+   own centre, which is exactly the "not centralised in the echo circles"
+   report. Rings and mark are one rigid group now; only the blooms behind
+   them keep an independent, slower drift, since they're loose atmosphere
+   rather than something visually attached to the mark. */
 .af-ring{
   position:absolute; left:50%; top:50%; border-radius:50%;
   border:1.5px solid rgba(255,255,255,.18);
-  transform:translate(-50%,-50%) translateX(calc(var(--field-x, 0) * .82));
+  transform:translate(-50%,-50%) translateX(var(--field-x, 0));
   transition:transform 1.05s var(--ease);
   will-change:transform;
 }
 .af-ring-1{width:620px; height:620px;}
 .af-ring-2{width:400px; height:400px; border-color:rgba(255,255,255,.13);}
 
-/* THE MARK. Three nested elements on purpose — each owns ONE transform,
-   so they can never fight: .af-mark carries the mode travel, .af-mark-in
-   carries the entrance pop, and the image itself carries the endless
-   spin. Put any two of those on one element and the last wins silently. */
+/* THE MARK. Sized down from 200px — asked for explicitly ("too big"),
+   and 160px reads as an accent inside the 400px inner ring rather than
+   competing with it for focus. Three nested elements on purpose — each
+   owns ONE transform, so they can never fight: .af-mark carries the mode
+   travel, .af-mark-in carries the entrance pop, and (previously) the
+   image carried an endless spin. Put any two of those on one element and
+   the last wins silently. */
 .af-mark{
   position:absolute; left:50%; top:50%;
-  width:200px; height:200px; margin:-100px 0 0 -100px;
+  width:160px; height:160px; margin:-80px 0 0 -80px;
   transform:translateX(var(--field-x, 0));
   transition:transform 1.05s var(--ease);
   will-change:transform;
 }
 .af-mark-in{width:100%; height:100%;}
-.af-mark img{
-  width:100%; height:100%; display:block; opacity:.92;
-  /* gentle: one turn every 90s is ambient, not a spinner */
-  animation:af-spin 90s linear infinite;
+.af-mark img{width:100%; height:100%; display:block; opacity:.92;}
+/* THE SPIN IS GONE — asked for explicitly. A continuous rotation on a
+   mark that is not radially symmetric (it reads as a fixed "C", not an
+   abstract disc) looks like a loading spinner more than an ambient
+   flourish, and it fights the mode-swap parallax for attention rather
+   than complementing it. In its place: the mark itself stays perfectly
+   still (legible at every moment, not just twice a rotation), and the
+   glow behind it breathes instead — a slow, low-amplitude opacity/scale
+   pulse on .af-mark::before only. It reads as ambient light, never as
+   the brand mark itself moving, and there is no shape to make it look
+   wrong from any angle. */
+/* scale() alone, no translate — the box is already centred by its own
+   negative margin below, and scale()'s default transform-origin is the
+   element's own centre, so it breathes in place with nothing else to
+   combine or fight with. */
+@keyframes af-pulse{
+  0%, 100%{opacity:.85; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.08);}
 }
-@keyframes af-spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
 /* the glow that replaces the old hard-edged orange disc — same brand
-   colour, no solid edge to grab the eye */
+   colour, no solid edge to grab the eye. */
 .af-mark::before{
   content:""; position:absolute; left:50%; top:50%;
   width:640px; height:640px; margin:-320px 0 0 -320px;
   border-radius:50%; pointer-events:none;
-  /* the focal light. It rides .af-mark, so it travels at full --field-x
-     and is always centred on the exposed half whatever the mode. */
+  /* the focal light. It rides .af-mark, so it travels with the rings and
+     mark as one group and is always centred on the exposed half. */
   background:radial-gradient(circle, rgba(255,91,36,.34), rgba(255,91,36,.11) 40%, rgba(255,91,36,0) 68%);
+  animation:af-pulse 7s var(--ease) infinite;
+  will-change:transform, opacity;
 }
 
 /* Light, not a heavy contrast-protecting scrim — the panel is a fully
@@ -298,12 +326,17 @@
 }
 
 @media (prefers-reduced-motion:reduce){
-  /* site.css's global guard already flattens every duration, which lands
-     the entrance on its end state and stops the spin dead (a 360deg turn
-     ends where it starts, so it settles clean). These only drop the
-     compositor hints that go with transforms that will never animate. */
-  .af-bloom, .af-ring, .af-mark{will-change:auto;}
-  .af-mark img{animation:none;}
+  /* site.css's global guard (a bare *{animation-duration:...!important})
+     flattens every animation on a real element, which lands the entrance
+     on its end state for free. It does NOT reach .af-mark::before, though
+     — confirmed by measuring its computed animation-duration under this
+     same media query and finding it still 7s, not 0.001ms. The universal
+     selector only matches real elements; ::before/::after need their own
+     explicit selector to be targeted at all, inherited properties aside.
+     Worth remembering for any future animation put on a pseudo-element on
+     this site — the global guard will not catch it, this pattern will. */
+  .af-mark::before{animation:none; opacity:.85; transform:scale(1);}
+  .af-bloom, .af-ring, .af-mark, .af-mark::before{will-change:auto;}
 }
 
 .no-js .auth-stage{height:auto; min-height:100vh; overflow:visible;}

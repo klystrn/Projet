@@ -1642,18 +1642,43 @@ single ffmpeg command, and 6.2MB is real weight to carry for that.
 and each rule below exists because getting it wrong is silent:
 
 - **Mode swap.** Every layer rides one shared `--field-x` (`25vw` in
-  login, `-25vw` in signup), scaled per layer — blooms `.55`, rings
-  `.82`, mark `1.0` — so the scene parallaxes as one body instead of
-  sliding as a flat sheet. `vw` because the stage IS the viewport, so
-  `25vw` is exactly a quarter of it: the mark travels from the centre of
-  one half to the centre of the other, always landing dead-centre in
-  whichever half the panel is NOT covering. That also fixed the
-  "captures too much attention while being at the edges" note — it is
-  never near an edge now.
-- **The mark carries THREE transforms on THREE nested elements**
-  (`.af-mark` mode travel / `.af-mark-in` entrance pop / the `<img>`
-  spin). Put any two on one element and the last silently wins. The spin
-  is 90s per revolution — ambient, not a spinner.
+  login, `-25vw` in signup), scaled per layer — blooms `.55`, rings and
+  mark both the full amount, unscaled — so the scene parallaxes as one
+  body instead of sliding as a flat sheet. `vw` because the stage IS the
+  viewport, so `25vw` is exactly a quarter of it: the mark travels from
+  the centre of one half to the centre of the other, always landing
+  dead-centre in whichever half the panel is NOT covering. That also
+  fixed the "captures too much attention while being at the edges"
+  note — it is never near an edge now.
+- **Rings and mark share the exact same translateX expression on
+  purpose — a real bug, not a style choice.** The first version had the
+  rings riding at `.82` of `--field-x` while the mark rode at the full
+  amount, on the theory that a slightly different rate would read as
+  depth. Measuring rendered centre points (not just reading the CSS)
+  found the mark sitting 65px off from the rings' own centre at rest —
+  since `--field-x` is never actually 0 (always +25vw or -25vw), two
+  different multipliers meant the two NEVER coincide except in theory.
+  That was the "not centralised in the echo circles" report. Fixed by
+  giving them the identical expression, so they move as one rigid group;
+  only the blooms behind them keep their own independent, slower drift,
+  since they're loose atmosphere rather than something visually attached
+  to the mark.
+- **The mark was sized down, 200px → 160px** ("too big"), which reads as
+  an accent inside the 400px inner ring rather than competing with it.
+- **The spin is gone — asked for explicitly.** A continuous rotation on
+  a mark that isn't radially symmetric (it reads as a fixed "C", not an
+  abstract disc) looked like a loading spinner more than an ambient
+  flourish, and it fought the mode-swap parallax for attention rather
+  than complementing it. In its place: the icon itself now stays
+  perfectly still, and the glow behind it breathes instead — a slow
+  (7s), low-amplitude opacity/scale pulse on `.af-mark::before` only, via
+  `scale()` alone (no `translate(-50%,-50%)` — the glow is already
+  centred by its own negative margin, and stacking a second centring
+  transform on top of that would have doubled the offset; a real mistake
+  caught before shipping, not just a hypothetical one). This still keeps
+  the "three transforms on three nested elements, never two on one"
+  discipline: `.af-mark` carries the mode travel, `.af-mark-in` carries
+  the entrance pop, and now nothing carries a spin.
 - **The entrance uses `@keyframes`, not transitions**, and this is not a
   style preference. A transition-based entrance needs its stagger as
   `transition-delay`, which would then also delay the mode-swap
@@ -1667,9 +1692,7 @@ and each rule below exists because getting it wrong is silent:
   own no mode transform (`.af-mark-in`, `.auth-card`).
   `animation-fill-mode:backwards` holds the from-state through the delay
   so nothing flashes in early. No JS and no class involved — it runs on
-  load for everyone, and site.css's global reduced-motion guard collapses
-  it to its end state (a 360deg spin ends where it starts, so that
-  settles clean too).
+  load for everyone.
 
 **A tuning note worth keeping**: the first pass positioned the blooms
 off-centre (`at 62% 30%` etc.), which looked right in a static mockup and
@@ -1677,6 +1700,21 @@ was nearly black in practice — the panel hides half the stage, so a bloom
 centred in one half is switched off half the time. They are centred and
 oversized now, and the mark's own glow (`.af-mark::before`, riding the
 full `--field-x`) is what guarantees the exposed half is always lit.
+
+**site.css's global reduced-motion guard does not reach `::before`/
+`::after` — a real gap, found while checking this exact glow pulse
+settled cleanly.** The guard is `*{animation-duration:.001ms
+!important; ...}`; the universal selector matches real elements only,
+never pseudo-elements, which need their own explicit selector
+regardless of specificity or `!important`. Measured directly: under
+`prefers-reduced-motion: reduce`, `.af-mark::before`'s computed
+`animation-duration` was still `7s`, not `.001ms`, and its opacity/scale
+sat at an obviously mid-cycle value rather than a keyframe endpoint.
+Fixed locally in `assets/auth.css`'s own reduced-motion block —
+`.af-mark::before{animation:none; opacity:.85; transform:scale(1);}` —
+rather than touching the shared site-wide guard. Worth remembering for
+any future animation placed on a pseudo-element anywhere on this site:
+the global guard will not catch it, this pattern will.
 
 `assets/auth.js` no longer touches the backdrop at all — the previous
 video needed JS to be stoppable, since CSS cannot pause an autoplaying
