@@ -192,8 +192,15 @@
     var rail = document.getElementById("flowRail");
     var fluid = document.getElementById("flowFluid");
     if (!scrollWrap || !stepsWrap) return;
+    /* Reduced motion still opts out entirely — that fallback renders the
+       flat stacked list from CSS alone and has nothing for this to drive.
+       The width gate that used to sit here is gone: the pin runs on mobile
+       now (landing.css re-flows the stage into two stacked rows below
+       900px). Nothing in this updater is width-dependent — it maps scroll
+       progress onto step indices and pans .flow-fluid by whatever overage
+       measureFluid() finds, and that measurement already re-runs on resize,
+       so it picks up the narrow layout's own box for free. */
     if (reducedMotion) return;
-    if (window.matchMedia && window.matchMedia("(max-width:900px)").matches) return;
 
     // .flow-fluid's own box is sized larger than .flow-right (see
     // landing.css) so the pan has somewhere to travel; measured in px once
