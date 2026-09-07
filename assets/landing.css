@@ -329,8 +329,8 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    whitespace fix that superseded it; it also signals there is more page
    below, which the hard fold-fill hid. */
 .hero{
-  position:relative; padding-top:64px; padding-bottom:48px;
-  --fold-reserve:207px;   /* nav 78 + logo strip 129 — update if either changes */
+  position:relative; padding-top:64px; padding-bottom:88px;
+  --fold-reserve:201px;   /* nav 78 + logo strip 123 — update if either changes */
   --hero-cap:620px;
   min-height:min(calc(100vh - var(--fold-reserve)), var(--hero-cap));
   min-height:min(calc(100svh - var(--fold-reserve)), var(--hero-cap));
@@ -456,7 +456,12 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    any screen narrower than --maxw. See CLAUDE.md's ".page-hero + .wrap"
    note for the same trap; .about-section/.about-stats/.faq-section had it
    too until this pass (all fixed the same way, see pages.css). */
-.logos{padding-top:8px; padding-bottom:44px; position:relative;}
+/* Asked for directly: more air above the strip, slightly less below it.
+   The gap ABOVE is the hero's own padding-bottom plus this padding-top
+   plus whatever slack --hero-cap leaves; the gap BELOW is this
+   padding-bottom alone, which is why the two move by different
+   amounts here. */
+.logos{padding-top:12px; padding-bottom:34px; position:relative;}
 .logos-label{
   text-align:center; font-family:'JetBrains Mono', monospace; font-size:11px;
   letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:16px;
@@ -783,12 +788,30 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    this doesn't read well — flagged as a trial, not a settled decision. */
 html[data-audience="business"] .flow-fluid{
   --fluid-ar:1.6993;   /* 2163 / 1273 */
-  /* Raised from 1.4 (asked for explicitly: "travel just slightly more") —
-     a bigger zoom means more overage for landing.js's scrub transform to
-     pan through over the same 4 steps, so the reader covers more of the
-     image's own orange-to-blue span per scroll instead of dwelling on a
-     narrower slice of it. */
-  --fluid-zoom:1.65;
+  /* Zoom 1.4 -> 1.65 -> 2.1 across three separate "more travel" asks. A
+     bigger box means more overage for landing.js's scrub to pan through
+     over the same 4 steps. Costs some sharpness: 2.1 paints the 2163px
+     source at 3212px, a 1.48x upscale (was 1.17x), which is still well
+     inside the ~2x ceiling this project treats as the point where no
+     encoding quality can save it (see CLAUDE.md "Known issues" #3).
+
+     The three pan values below decide WHERE on the artwork the sweep
+     starts and stops, and they are the reason the closing beat now
+     actually reads blue. The spectrum image is a diagonal band with dark
+     margin either side; panning the full overage ran the last beat off
+     the band's top-right corner into that margin, where its blue is at
+     its narrowest. Measured across the visible column: the ending frame
+     was 17% blue against an opening frame of 43% orange — the "not enough
+     blue at the end" report. Stopping at 0.7 of the horizontal overage and
+     halfway down the vertical keeps the last beat ON the widest part of
+     the band: now 46% blue closing against 51% orange opening, a 5-point
+     spread instead of a 26-point one, with the dark margin down from 48%
+     to 13%. Re-derive these by measurement, not by eye, if the artwork is
+     ever re-exported. */
+  --fluid-zoom:2.1;
+  --fluid-pan-x:0.7;
+  --fluid-pan-y-start:1;
+  --fluid-pan-y-end:0.5;
   background-image:var(--img-spectrum);
   /* Raised from the shared .5 (asked for explicitly: "needs to be
      brighter") — scoped to business mode only, since student mode's

@@ -208,15 +208,62 @@
     // when the viewport does. offsetWidth/offsetHeight, not
     // getBoundingClientRect, since the latter would report the *transformed*
     // box once a pan is already applied.
-    var overageW = 0, overageH = 0;
+    var overageW = 0, overageH = 0, panX = 1, panYStart = 1, panYEnd = 0;
     function measureFluid() {
       if (!fluid || !fluid.parentElement) return;
       var container = fluid.parentElement;
       overageW = fluid.offsetWidth - container.clientWidth;
       overageH = fluid.offsetHeight - container.clientHeight;
+      /* How MUCH of that overage the scrub actually sweeps, 0-1. Read from
+         CSS so it stays a per-mode property alongside --fluid-ar and
+         --fluid-zoom rather than a hardcoded number in here.
+
+         Why it exists: the spectrum artwork company mode uses is a diagonal
+         band with dark margin either side of it, so panning the full overage
+         runs the last beat off the band and into that margin — measured 48%
+         dark at the end, which is what left the closing frame reading darker
+         and bluer-by-absence rather than actually blue. Stopping short keeps
+         the final beat ON the band. Defaults to 1, so student mode's
+         full-bleed artwork is unaffected. */
+      var cs = getComputedStyle(fluid);
+      var px = parseFloat(cs.getPropertyValue("--fluid-pan-x"));
+      var y0 = parseFloat(cs.getPropertyValue("--fluid-pan-y-start"));
+      var y1 = parseFloat(cs.getPropertyValue("--fluid-pan-y-end"));
+      panX = isNaN(px) ? 1 : px;
+      // vertical is a START->END pair, not a single factor: the old formula
+      // always finished at 0 (hard against the artwork's top edge), and for
+      // the spectrum image that is precisely where its blue band is
+      // NARROWEST and the dark margin widest. Being able to stop the sweep
+      // part-way down is what lets the closing beat land where the blue is
+      // actually broad. Defaults reproduce the original 1 -> 0 sweep exactly.
+      panYStart = isNaN(y0) ? 1 : y0;
+      panYEnd = isNaN(y1) ? 0 : y1;
     }
     measureFluid();
     window.addEventListener("resize", measureFluid);
+    /* An audience swap resizes this box too, not just a viewport resize:
+       company mode overrides BOTH --fluid-ar and --fluid-zoom (a different
+       artwork with a different aspect ratio), so .flow-fluid's own width and
+       height change the moment html[data-audience] flips.
+
+       Without re-measuring there, the scrub kept panning by whatever overage
+       it measured on load — student mode's 1009x180 — while company mode's
+       box is actually 2523x1485 against the same 900px column, i.e. 1623x585
+       of real travel. The pan therefore stopped roughly two-thirds of the way
+       across the spectrum artwork and never reached its blue end, which is
+       exactly the "not enough blue at the end" report.
+
+       A MutationObserver on the attribute rather than a hook called from
+       applyModeCopy(): the dependency is genuinely "these CSS custom
+       properties changed", and the attribute is what changes them, so
+       watching it directly cannot drift out of sync with the copy-swap code
+       the way an explicit call site would. */
+    if ("MutationObserver" in window) {
+      new MutationObserver(function () {
+        measureFluid();
+        onScroll();
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-audience"] });
+    }
 
     scrollUpdaters.push(function () {
       var steps = stepsWrap.querySelectorAll(".flow-step");
@@ -241,8 +288,8 @@
       // vertical pan, just expressed as a compositor-only translate instead
       // of a paint-triggering background-position
       if (fluid) {
-        var x = -overageW * progress;
-        var y = -overageH * (1 - progress);
+        var x = -overageW * panX * progress;
+        var y = -overageH * (panYStart + (panYEnd - panYStart) * progress);
         fluid.style.transform = "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0)";
       }
     });
