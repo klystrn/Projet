@@ -45,7 +45,7 @@
     try { loggedIn = localStorage.getItem("projet:loggedIn") === "1"; } catch (e) { /* private mode */ }
     if (loggedIn) return; // ships already correct: "Open dashboard" -> dashboard.html
     var business = document.documentElement.getAttribute("data-audience") === "business";
-    link.textContent = business ? "Post a challenge" : "Participate";
+    link.textContent = business ? "Post a challenge" : "Join Us";
     link.setAttribute("href", "signup.html?role=" + (business ? "business" : "builder"));
   }
 
@@ -65,21 +65,97 @@
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
 
-  /* ---------------- section reveal ---------------- */
+  /* ---------------- section reveal ----------------
+     One IntersectionObserver per element, EXCEPT for anything sitting
+     inside a [data-reveal-group].
+
+     Why the exception: IntersectionObserver clips a target's rect against
+     every scrollable ancestor, not just the viewport. The featured-
+     challenges rail is an overflow-x:auto scroller, so a ticket parked
+     past its right edge has an empty intersection rect and never fires,
+     no matter how far down the page the reader is. The tickets therefore
+     stayed at opacity 0 until the rail itself was scrolled sideways, and
+     then animated in under the cursor — the reported "cards spawn in when
+     you first scroll horizontally, meaning they aren't pre-existing".
+
+     Marking the rail as a group makes the CONTAINER the observed target
+     (it intersects normally on vertical scroll) and reveals every
+     [data-reveal] inside it at once. The per-ticket transition-delay
+     stagger is untouched, so the entrance still reads left to right —
+     it just now happens when the section arrives, which is what a reader
+     scrolling down actually sees. */
   (function () {
-    var els = document.querySelectorAll("[data-reveal]");
+    var els = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
     if (!els.length) return;
     if (reducedMotion || !("IntersectionObserver" in window)) {
       els.forEach(function (el) { el.classList.add("revealed"); });
       return;
     }
+    var opts = { rootMargin: "0px 0px -8% 0px", threshold: 0.06 };
+
+    var groups = Array.prototype.slice.call(document.querySelectorAll("[data-reveal-group]"));
+    var grouped = [];
+    groups.forEach(function (g) {
+      grouped = grouped.concat(Array.prototype.slice.call(g.querySelectorAll("[data-reveal]")));
+    });
+
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (e.isIntersecting) { e.target.classList.add("revealed"); io.unobserve(e.target); }
       });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.06 });
-    els.forEach(function (el) { io.observe(el); });
+    }, opts);
+    els.forEach(function (el) { if (grouped.indexOf(el) === -1) io.observe(el); });
+
+    if (groups.length) {
+      var gio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("revealed");
+          e.target.querySelectorAll("[data-reveal]").forEach(function (el) {
+            el.classList.add("revealed");
+          });
+          gio.unobserve(e.target);
+        });
+      }, opts);
+      groups.forEach(function (g) { gio.observe(g); });
+    }
   })();
+
+  /* Suppress the focus ring that a modal hands back to its trigger when
+     the modal was opened by POINTER and dismissed with Escape.
+
+     Reported as "click a challenge card, press escape, black lines suddenly
+     appear" — those lines are the trigger button's own :focus-visible ring
+     (a 4px --ink box-shadow). <dialog> correctly returns focus to whatever
+     opened it, and because Escape is a key press the browser flips the
+     interaction modality to keyboard, so :focus-visible matches on an
+     element the reader last touched with a mouse. Correct for a keyboard
+     user, a visual glitch for a mouse user.
+
+     So the ring is suppressed only when BOTH are true: the modal was opened
+     by pointer, and it is being dismissed by Escape. A keyboard user who
+     opened it with Enter still gets the ring back, which is the whole point
+     of returning focus in the first place. The flag clears on the next
+     keydown or blur, so tabbing back to the button shows the ring again. */
+  function suppressReturnRing(trigger) {
+    if (!trigger) return;
+    trigger.setAttribute("data-noring", "");
+    // Registered on the next tick deliberately: this runs inside the
+    // Escape keydown's own dispatch, and a capture listener added mid-
+    // dispatch can still be reached by that same event, which would clear
+    // the flag before the ring it exists to suppress has even painted.
+    setTimeout(function () {
+      function clear() {
+        trigger.removeAttribute("data-noring");
+        trigger.removeEventListener("blur", clear);
+        document.removeEventListener("keydown", clear, true);
+      }
+      trigger.addEventListener("blur", clear);
+      document.addEventListener("keydown", clear, true);
+    }, 0);
+  }
+  window.ProjetUI = window.ProjetUI || {};
+  window.ProjetUI.suppressReturnRing = suppressReturnRing;
 
   /* ---------------- scroll progress + nav compaction ---------------- */
   (function () {
@@ -688,9 +764,16 @@
     var submittedEl = document.getElementById("chmSubmitted");
     var deadlineEl = document.getElementById("chmDeadline");
 
+    // remembered so Escape can hand the ring back only to a keyboard opener
+    var lastTrigger = null, pointerOpened = false;
+
     rail.addEventListener("click", function (e) {
       var ticket = e.target.closest(".ch-ticket");
       if (!ticket) return;
+      // e.detail is the click count: >0 for a real pointer click, 0 for the
+      // click a browser synthesises from Enter/Space on a focused button.
+      pointerOpened = e.detail > 0;
+      lastTrigger = e.target.closest(".ch-view-btn") || ticket;
       var discipline = ticket.getAttribute("data-brief-discipline") || "";
       var company = ticket.getAttribute("data-brief-company") || "";
       tagEl.textContent = discipline + (company ? " · " + company : "");
@@ -706,6 +789,14 @@
     // of its children) closes it too
     modal.addEventListener("click", function (e) {
       if (e.target === modal) modal.close();
+    });
+    // "cancel" is the Escape path specifically, and it fires BEFORE the
+    // dialog closes and restores focus — which is the only moment the
+    // attribute can be set early enough for the ring never to paint. The
+    // "close" event is too late; focus is already back on the trigger by
+    // then and the ring flashes for a frame.
+    modal.addEventListener("cancel", function () {
+      if (pointerOpened) suppressReturnRing(lastTrigger);
     });
   })();
 

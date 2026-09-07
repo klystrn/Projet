@@ -69,10 +69,16 @@
     var submittedEl = document.getElementById("cmSubmitted");
     var deadlineEl = document.getElementById("cmDeadline");
 
+    // remembered so Escape hands the focus ring back only to a keyboard
+    // opener — see suppressReturnRing() in landing.js for the full reasoning
+    var lastTrigger = null, pointerOpened = false;
+
     grid.querySelectorAll(".cl-view-brief").forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
         var card = btn.closest(".cl-card");
         if (!card) return;
+        pointerOpened = e.detail > 0;
+        lastTrigger = btn;
         var discipline = card.getAttribute("data-brief-discipline") || "";
         var company = card.getAttribute("data-brief-company") || "";
         var submitted = parseInt(card.getAttribute("data-brief-submitted"), 10) || 0;
@@ -96,6 +102,12 @@
     // element itself, not any of its children) closes it too
     modal.addEventListener("click", function (e) {
       if (e.target === modal) modal.close();
+    });
+    // Escape path only, and before the dialog restores focus — the "close"
+    // event is too late, the ring has already painted by then.
+    modal.addEventListener("cancel", function () {
+      var s = window.ProjetUI && window.ProjetUI.suppressReturnRing;
+      if (pointerOpened && s) s(lastTrigger);
     });
   })();
 })();

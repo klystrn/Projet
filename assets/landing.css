@@ -177,7 +177,18 @@ main:focus{outline:none;}
 .btn-accent{background:var(--grad-accent); color:#fff; box-shadow:var(--accent-glow-shadow);}
 .btn-accent:hover{filter:saturate(1.12) brightness(1.03);}
 .btn-ghost{border-color:var(--line); background:transparent; color:var(--ink);}
-.btn-ghost:hover{border-color:var(--ink);}
+/* Hover lights the accent up, same as .btn-accent beside it, rather than
+   just darkening the border to ink. Flagged directly: the two hero CTAs
+   "have two different hover animations". They are deliberately different
+   WEIGHTS at rest (primary fill vs secondary outline) — that part is
+   correct and stays — but the hover was different in KIND: the primary
+   brightened its gradient while this one only swapped a border colour to
+   a neutral, so the pair read as two unrelated controls the moment you
+   moved the mouse. This is the same accent-wash treatment .ch-viewall and
+   .ch-rail-btn already use elsewhere on the page, so it also brings the
+   secondary-button hover into one convention site-wide. :focus-visible is
+   left to the base .btn ring, same as every other variant. */
+.btn-ghost:hover{border-color:var(--accent); background:var(--accent-wash); color:var(--accent-deep);}
 /* Hover highlights the button itself — background shifts to the mode
    accent, text to white — rather than revealing an arrow (removed
    outright, see CLAUDE.md). Reuses the transform lift + background/color
@@ -275,11 +286,34 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
 /* ==========================================================================
    1. HERO
    ========================================================================== */
+/* The min-height here used to be min(100svh - --fold-reserve, 900px), so
+   the hero absorbed ALL the leftover space and hero + logo strip landed
+   exactly on the fold. That is where the "too much empty whitespace below
+   and above the logo carousel" came from, and it is worth being precise
+   about the cause: the hero's own content is only ~474px tall, so on a
+   900px window the fold-fill forced a 664px box and align-items:center
+   split the remaining 190px evenly above and below it. The bottom half of
+   that dead space is what reads as a gap over the carousel — it is not
+   the carousel's own padding, which is why tightening only .logos would
+   not have fixed it.
+
+   The 900px ceiling never actually bound at a 900px window (664 < 900),
+   so it did no bounding work at all. Replaced with a real cap: the hero
+   still grows to fill a short window, but stops at --hero-cap, which
+   bounds the dead space to ~17px a side at 900px instead of 95px. On a
+   tall monitor that means the hero no longer stretches to the fold —
+   deliberate, since stretching there is exactly the failure mode being
+   reported, and the cost is that Featured challenges now peeks ~73px
+   above the fold at 900px. That peek is a knowing, narrow relaxation of
+   the earlier "fill the window" ask (see CLAUDE.md), traded for the
+   whitespace fix that superseded it; it also signals there is more page
+   below, which the hard fold-fill hid. */
 .hero{
-  position:relative; padding-top:64px; padding-bottom:64px;
-  --fold-reserve:236px;
-  min-height:min(calc(100vh - var(--fold-reserve)), 900px);
-  min-height:min(calc(100svh - var(--fold-reserve)), 900px);
+  position:relative; padding-top:64px; padding-bottom:48px;
+  --fold-reserve:207px;   /* nav 78 + logo strip 129 — update if either changes */
+  --hero-cap:620px;
+  min-height:min(calc(100vh - var(--fold-reserve)), var(--hero-cap));
+  min-height:min(calc(100svh - var(--fold-reserve)), var(--hero-cap));
   display:flex; align-items:center;
 }
 /* two stacked gradient layers: a soft top-down wash plus a radial bloom
@@ -402,10 +436,10 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    any screen narrower than --maxw. See CLAUDE.md's ".page-hero + .wrap"
    note for the same trap; .about-section/.about-stats/.faq-section had it
    too until this pass (all fixed the same way, see pages.css). */
-.logos{padding-top:10px; padding-bottom:64px; position:relative;}
+.logos{padding-top:8px; padding-bottom:44px; position:relative;}
 .logos-label{
   text-align:center; font-family:'JetBrains Mono', monospace; font-size:11px;
-  letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:22px;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:16px;
 }
 .logo-marquee{
   overflow:hidden;
@@ -1156,3 +1190,15 @@ footer{position:relative; background:var(--ink); color:#fff; padding:56px 0 34px
   .dash-metrics{grid-template-columns:1fr 1fr;}
   .final-ctas .btn{width:100%;}
 }
+
+/* ==========================================================================
+   Focus-ring suppression for a pointer-opened modal dismissed with Escape.
+   Set by suppressReturnRing() in landing.js — see the long comment there for
+   why this case is special. !important is deliberate and narrow: every
+   button variant on the site declares its own :focus-visible box-shadow at
+   the same (0,2,0) specificity this selector has, so without it the winner
+   would come down to source order against rules that may be added later.
+   Scoped to a single attribute that only exists for the one frame-ish window
+   between an Escape dismissal and the reader's next keypress.
+   ========================================================================== */
+[data-noring]:focus-visible{box-shadow:none !important; outline:none !important;}
