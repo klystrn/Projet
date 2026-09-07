@@ -489,7 +489,7 @@ button.dp-card .dp-score span{display:block;}
 .dp-cols{display:flex; align-items:flex-end; gap:6px; height:132px;}
 .dp-cols i{
   flex:1; display:flex; align-items:flex-end; justify-content:center;
-  height:var(--h); min-height:4px; border-radius:5px 5px 0 0;
+  height:var(--h); min-height:4px; border-radius:4px 4px 0 0;
   background:var(--accent-edge); position:relative;
 }
 /* the current month reads as the point of the chart, so it gets the solid
