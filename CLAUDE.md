@@ -267,21 +267,107 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.4 updates (Sep 2026) — read this before the auth section just below
+
+**The auth solar system shrank and moved off-centre again — this section in
+v3.3 below is now stale on both the size and the offset, read this instead.**
+Explicit follow-up: "decrease the size of the solar system... and move it
+more off-centre across both the x and y axis." Current numbers: mark 108px
+(was 136), ring 1 500px (was 620), ring 2 320px (was 400), glow 440px (was
+560) — each scaled down together, keeping the same proportions (mark still
+reads as roughly a third of ring 2's diameter). The off-centre nudge is
+`+100px` outward / `+85px` down (was `+64px` / `+40px`), on top of the same
+`25vw` "centre of the exposed half" base described below — pushed further on
+both axes specifically because shrinking the group first gave the bigger
+nudge room to move without the rings running off the visible half entirely.
+Verified concentric at both 1440px and 1024px, both modes, by measuring
+ring-1/ring-2/mark centre points directly rather than eyeballing it — the
+shared `translate(var(--field-x), var(--field-y))` expression across all
+three elements is what guarantees this regardless of the magnitude, the same
+invariant the original centering fix established.
+
+**A second, wider version of the ticket-rail "black lines" bug, found after
+the first fix shipped.** The original fix (see Featured challenges below)
+suppressed the focus ring on whatever element the click handler computed as
+the trigger — `e.target.closest(".ch-view-btn") || ticket`. That is not
+always what `<dialog>` actually restores focus to. `#chRail` carries
+`tabindex="0"` for keyboard scrolling, and clicking on ticket content that
+ISN'T the "View challenge" button (the title, the description) doesn't land
+on any focusable element under the pointer — per standard browser behaviour,
+focus then goes to the nearest focusable ANCESTOR instead, which is the
+rail itself, not the button or even the ticket. The dialog's native
+"previously focused element" is recorded as `document.activeElement` at
+`showModal()` time, so on Escape it restored focus to the *rail*, and the
+rail's own legitimate `:focus-visible` ring (built for a keyboard user
+tabbing onto it to scroll) painted around the *entire row* — a bigger,
+uglier version of the same report. Fixed by reading `document.activeElement`
+directly, right before `showModal()` moves it, instead of assuming the
+trigger — that value is guaranteed to match whatever the dialog will restore
+focus to, whichever element it turns out to be. Confirmed all three cases
+separately: clicking ticket content lands on the rail and gets suppressed;
+clicking the button directly still gets suppressed; opening via keyboard
+(Tab + Enter) still keeps its ring after Escape. Only `#chRail` was exposed
+to this — `challenges.html`'s and the dashboard's card buttons are real
+`<button>` elements with no focusable container ancestor between them and
+`<body>`, so a click anywhere inside them focuses the button directly.
+
+**Dashboard: the "Front end only" notice banner is gone**, asked for
+directly. `.dp-notice` and its HTML block are both removed outright, not
+hidden — nothing referenced it elsewhere.
+
+**Dashboard heatmap is hoverable now**, GitHub-style: hovering a cell shows
+a tooltip with a real count and date ("3 contributions on March 26, 2026").
+Each cell now carries `data-count`/`data-date`/`data-noun` alongside the
+existing `data-lv` that drives its colour — `count` is derived from the same
+seeded draw that picked `level`, within that level's own range, so a
+level-4 cell can never show a lower count than a level-3 one next to it. One
+shared tooltip element (`position:fixed`, sized to content, positioned via a
+JS-computed `transform`) is reused across both the student and company
+grids, wired once via event delegation on each grid container rather than a
+listener per cell — the grid node survives a role switch even though
+`buildHeat()` clears and rebuilds every cell inside it. Hover-only, no
+keyboard path: the grid stays `aria-hidden` (colour-only data already
+restated as a sentence underneath, an existing decision), so giving
+individual cells `tabindex` would create focusable stops assistive tech has
+nothing to announce at — worse than the tooltip simply not being
+keyboard-reachable.
+
+**A real bug caught while building the tooltip, the same class as the
+`MONTHS` hoisting bug already documented below — worth its own entry since
+it recurred.** `var heatTip = null;` sat in the file *after* the "initial
+view" IIFE that calls `setView()` on page load. That IIFE runs immediately
+and reaches all the way into `ensureHeatTip()`, which assigns `heatTip` to a
+real DOM node — but then the script keeps executing top to bottom, reaches
+the `var heatTip = null;` statement further down, and that assignment
+*re-runs*, wiping the reference back to `null`. Every subsequent call (e.g.
+a role switch) then failed the `if (heatTip) return heatTip;` check and
+created a second, orphaned tooltip element that no listener pointed at.
+Confirmed by logging `heatTip`'s value inside `ensureHeatTip()` on each
+call: `undefined` (declaration not yet reached) on the first, `null`
+(freshly clobbered) on every one after. Fixed by declaring it bare —
+`var heatTip;` — since a redeclaration with no `= value` is a genuine no-op
+at runtime, unlike one that reassigns. **The general lesson, restated:** a
+`var` declared later in a file than code that can trigger its own
+assignment isn't just a hoisting risk for reads (the `MONTHS` case) — an
+initializer on that same line is a live re-assignment statement that will
+fire when execution reaches it, and can silently overwrite whatever ran
+first. Any new module-level state written to by a function callable from
+the page's own immediate startup path needs to be declared *before* that
+startup code in source order, or written without an initializer.
+
+---
+
 ## v3.3 updates (Sep 2026) — read this before anything below it
 
 A large punch list landed across every page. Where it contradicts the v3.2
 notes further down, this section is current.
 
-**Auth — the solar system is off-centre now.** The mark is 136px (was 200,
-then 160), and the whole group sits `+64px` outward / `+40px` down from the
-centre of its exposed half rather than dead centre. The nudge is a fixed px
-value added on top of the existing `25vw`, deliberately: the `vw` part is
-"centre of the exposed half" and has to keep tracking the viewport, while
-the nudge should stay a constant visual amount rather than scaling into a
-huge displacement on a wide monitor. Ring 1 crops ~14px off the outer edge,
-which reads as deliberate framing. It also *improves* narrow-desktop
-framing — at 1024px ring 1 (620px) is wider than the exposed half and
-already tucked ~54px under the panel at dead centre. `--field-y` keeps the
+**Auth — the solar system is off-centre now (superseded by v3.4 above for
+the exact numbers; the mechanism described here is unchanged).** The nudge
+is a fixed px value added on top of the existing `25vw`, deliberately: the
+`vw` part is "centre of the exposed half" and has to keep tracking the
+viewport, while the nudge should stay a constant visual amount rather than
+scaling into a huge displacement on a wide monitor. `--field-y` keeps the
 same sign in both modes so the swap stays a pure horizontal sweep.
 
 **Hero.** "Participate" is **"Join Us"** everywhere (index, about, faq, and

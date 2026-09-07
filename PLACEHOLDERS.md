@@ -32,7 +32,6 @@ behind it becomes real.
 | `countdown` | `index.html` | `data-countdown-hours="96"` counts down from **page load**, not a calendar date, because there is no live challenge data. | Point it at a real deadline timestamp. |
 | `testimonials` | `index.html` | Five invented quotes, attributed to roles only, never a named real person. Avatars are illustrated silhouettes, not photographs. | Real, permissioned quotes and portraits. |
 | `sample-briefs` | `challenges.html` | Twelve sample briefs with invented statuses, activity heatmaps, effort estimates and skills. | The API serves live challenges. Also remove `.cl-notice` and the page's `<meta name="robots" content="noindex">`, and add the page to `sitemap.xml`. |
-| `dashboard-notice` | `dashboard.html` | The "Front end only" banner. | The dashboard is reading a real session. |
 | `dashboard-entries` | `dashboard.html` | Three past-hackathon rows, plus every `data-hk-*` payload behind their detail modal. | `BACKEND-HANDOFF.md` seam 3. |
 | `dashboard-candidates` | `dashboard.html` | Five ranked candidates in the company view. | `BACKEND-HANDOFF.md` seam 2. |
 | `dashboard-activity` | `dashboard.html` | Six activity-feed events. | Real account events. |

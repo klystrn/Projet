@@ -76,25 +76,27 @@
    the centre of whichever half the panel is NOT covering — the same
    distance the panel travels, in the opposite direction.
 
-   The +64px / +40px on top of that quarter is the deliberate off-centre
+   The +100px / +85px on top of that quarter is the deliberate off-centre
    ask: dead-centre in the exposed half is the most default placement
    there is, and the scene reads as a stock hero graphic sitting in a box.
-   Nudged outward and down it sits off the optical centre, ring 1 crops a
-   little off the outer edge (which reads as intentional framing rather
-   than a shape that happens to fit), and the composition runs on a
+   Nudged outward and down it sits off the optical centre on BOTH axes,
+   ring 1 crops off the outer edge (which reads as intentional framing
+   rather than a shape that happens to fit), and the composition runs on a
    diagonal against the form in the panel instead of squaring up with it.
+   Pushed further on both axes than the first pass (was +64px / +40px) —
+   asked for explicitly, once the whole group had already been sized down
+   (see .af-ring-1/.af-ring-2/.af-mark below), which is what gives this
+   larger a nudge room to move without the smaller rings running fully off
+   the visible half.
 
    Deliberately a FIXED px nudge rather than a bigger vw figure: the vw
    part is "centre of the exposed half" and has to keep tracking the
    viewport, while the nudge is a constant visual amount that should not
-   scale into a huge displacement on a wide monitor. It also happens to
-   IMPROVE narrow-desktop framing — at 1024px ring 1 (620px) is wider than
-   the exposed half and already tucks ~54px under the panel at dead
-   centre; pushing outward pulls it clear instead. --field-y stays the
+   scale into a huge displacement on a wide monitor. --field-y stays the
    same sign in both modes, so the swap stays a pure horizontal sweep and
    only the anchor point is off-centre. */
-.auth-stage[data-mode="login"]  {--field-x:calc(25vw + 64px);  --field-y:40px;}
-.auth-stage[data-mode="signup"] {--field-x:calc(-25vw - 64px); --field-y:40px;}
+.auth-stage[data-mode="login"]  {--field-x:calc(25vw + 100px);  --field-y:85px;}
+.auth-stage[data-mode="signup"] {--field-x:calc(-25vw - 100px); --field-y:85px;}
 
 .af-bloom{
   position:absolute; inset:-20%;
@@ -130,20 +132,24 @@
   transition:transform 1.05s var(--ease);
   will-change:transform;
 }
-.af-ring-1{width:620px; height:620px;}
-.af-ring-2{width:400px; height:400px; border-color:rgba(255,255,255,.13);}
+/* Whole group scaled down again — asked for explicitly alongside the
+   bigger off-centre push above, both rings ~81% of their previous size
+   (620->500, 400->320) so the larger displacement still reads as
+   composition rather than the group running off the edge of its half. */
+.af-ring-1{width:500px; height:500px;}
+.af-ring-2{width:320px; height:320px; border-color:rgba(255,255,255,.13);}
 
-/* THE MARK. Sized down twice on request — 200px, then 160px, now 136px.
-   Against the 400px inner ring that is roughly a third of its diameter,
-   which reads as an accent sitting inside the ring rather than something
-   competing with it for focus. Three nested elements on purpose — each
-   owns ONE transform, so they can never fight: .af-mark carries the mode
-   travel, .af-mark-in carries the entrance pop, and (previously) the
-   image carried an endless spin. Put any two of those on one element and
-   the last wins silently. */
+/* THE MARK. Sized down three times on request now — 200px, 160px, 136px,
+   now 108px. Against the 320px inner ring that holds the same roughly-a-
+   third ratio the previous sizes kept, so it still reads as an accent
+   sitting inside the ring rather than something competing with it for
+   focus. Three nested elements on purpose — each owns ONE transform, so
+   they can never fight: .af-mark carries the mode travel, .af-mark-in
+   carries the entrance pop, and (previously) the image carried an endless
+   spin. Put any two of those on one element and the last wins silently. */
 .af-mark{
   position:absolute; left:50%; top:50%;
-  width:136px; height:136px; margin:-68px 0 0 -68px;
+  width:108px; height:108px; margin:-54px 0 0 -54px;
   transform:translate(var(--field-x, 0), var(--field-y, 0));
   transition:transform 1.05s var(--ease);
   will-change:transform;
@@ -172,9 +178,10 @@
    colour, no solid edge to grab the eye. */
 .af-mark::before{
   content:""; position:absolute; left:50%; top:50%;
-  /* scaled down alongside the mark (640px when the mark was 160px) so the
-     glow stays ambient light around it rather than swallowing it. */
-  width:560px; height:560px; margin:-280px 0 0 -280px;
+  /* scaled down alongside the mark each time it shrank (640px at 160px,
+     560px at 136px, now 440px at 108px) so the glow stays ambient light
+     around it rather than swallowing it. */
+  width:440px; height:440px; margin:-220px 0 0 -220px;
   border-radius:50%; pointer-events:none;
   /* the focal light. It rides .af-mark, so it travels with the rings and
      mark as one group and is always centred on the exposed half. */

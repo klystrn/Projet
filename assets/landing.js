@@ -814,7 +814,22 @@
       // e.detail is the click count: >0 for a real pointer click, 0 for the
       // click a browser synthesises from Enter/Space on a focused button.
       pointerOpened = e.detail > 0;
-      lastTrigger = e.target.closest(".ch-view-btn") || ticket;
+      // document.activeElement RIGHT NOW, not e.target.closest(...) — this
+      // is the actual bug behind a second, wider version of the "black
+      // lines" report: a click on ticket content that ISN'T the "View
+      // challenge" button (the title, the description, the stub) doesn't
+      // land on any focusable element, so the browser walks up to the
+      // nearest focusable ANCESTOR instead — which is #chRail itself
+      // (tabindex="0", for keyboard scrolling), not the button or the
+      // ticket. <dialog> restores focus to whatever was actually focused
+      // at showModal() time, so on Escape the RAIL's own legitimate
+      // :focus-visible ring (a real feature, for a keyboard user tabbing
+      // onto it to scroll) painted around the entire row instead of a
+      // single button. Reading activeElement here, right before
+      // showModal() moves it, is what the dialog itself will restore focus
+      // to — so this is the one value guaranteed to match whatever needs
+      // suppressing, instead of assuming it's always the click target.
+      lastTrigger = document.activeElement;
       var discipline = ticket.getAttribute("data-brief-discipline") || "";
       var company = ticket.getAttribute("data-brief-company") || "";
       tagEl.textContent = discipline + (company ? " · " + company : "");

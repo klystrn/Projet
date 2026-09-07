@@ -47,9 +47,13 @@
 
    4. HEATMAP.  buildHeat() currently fills the grid from a seeded PRNG so
       the sample history is at least stable across reloads. Replace its body
-      with real per-day counts: it wants 53 weeks x 7 days of levels 0-4,
-      oldest first, column by column. The heading text is derived from the
-      same data, so it stays correct for free.
+      with real per-day counts: it wants 53 weeks x 7 days of {level 0-4,
+      count, date} per cell, oldest first, column by column — level drives
+      the colour, count and date drive the hover tooltip, and both should
+      agree (a real API naturally keeps them consistent since they come
+      from the same row; the sample data derives count from the same draw
+      that picked level for exactly that reason). The heading text is
+      derived from the summed counts, so it stays correct for free.
 
    5. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
       View submission buttons are inert placeholders (href="#"). The Edit
@@ -331,6 +335,88 @@
     };
   }
 
+  function formatHeatDate(d) {
+    var MONTHS_FULL = ["January","February","March","April","May","June","July",
+      "August","September","October","November","December"];
+    return MONTHS_FULL[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+  }
+
+  /* One shared tooltip element, positioned in the viewport via a transform
+     rather than reflowed per grid, and reused across both the student and
+     company heatmaps since only one is ever visible at a time. Delegated
+     mouseover/mouseout on the grid rather than a listener per cell: a role
+     switch rebuilds all 371 cells (buildHeat clears grid.textContent), so a
+     per-cell listener would need re-attaching on every rebuild, while a
+     single delegated pair on the grid element itself survives it — the
+     grid node is never replaced, only its children.
+
+     Hover-only, no keyboard path: the grid is aria-hidden (colour-only data
+     that is already restated as a sentence below it, per that existing
+     design decision), so giving individual cells tabindex would create
+     focusable stops with nothing for assistive tech to announce at them —
+     a worse outcome than the tooltip simply not being keyboard-reachable. */
+  /* Declared bare, no initializer — the same hoisting trap as MONTHS above,
+     just one statement type sneakier. This whole heatmap block sits AFTER
+     the "initial view" IIFE further up the file, and that IIFE calls
+     setView() immediately, which reaches all the way down into
+     ensureHeatTip() and assigns heatTip to a real DOM node before the
+     script has finished running top to bottom. If this line were
+     `var heatTip = null;`, execution would then continue downward, reach
+     THIS statement, and the `= null` would re-run and clobber the value
+     ensureHeatTip() had just set — not a redeclaration (harmless), an
+     ASSIGNMENT (not). Every call after that recreated a fresh tooltip
+     element that no listener was ever wired to, which is exactly what
+     happened: confirmed by logging heatTip's value inside ensureHeatTip on
+     each call — undefined (not yet reached) on the first, then null (freshly
+     clobbered) on every one after. A bare `var heatTip;` has no assignment
+     to re-run, so nothing downstream can stomp on what this function sets. */
+  var heatTip;
+  function ensureHeatTip() {
+    if (heatTip) return heatTip;
+    heatTip = document.createElement("div");
+    heatTip.className = "dp-heat-tip";
+    heatTip.setAttribute("role", "tooltip");
+    heatTip.hidden = true;
+    document.body.appendChild(heatTip);
+    return heatTip;
+  }
+
+  function wireHeatTooltip(grid) {
+    if (grid.getAttribute("data-heat-wired")) return;
+    grid.setAttribute("data-heat-wired", "1");
+    var tip = ensureHeatTip();
+
+    function show(cell) {
+      var count = parseInt(cell.getAttribute("data-count"), 10) || 0;
+      var noun = cell.getAttribute("data-noun") || "contribution";
+      var date = cell.getAttribute("data-date");
+      tip.textContent = (count === 0 ? "No " + noun + "s" : count + " " + noun + (count === 1 ? "" : "s")) +
+        " on " + date;
+      tip.hidden = false;
+      var r = cell.getBoundingClientRect();
+      var tr = tip.getBoundingClientRect();
+      var x = Math.round(r.left + r.width / 2 - tr.width / 2);
+      var y = Math.round(r.top - tr.height - 8);
+      // clamp horizontally so a cell near either edge of the scrollable
+      // heatmap does not push the tooltip off the actual viewport
+      x = Math.max(6, Math.min(x, window.innerWidth - tr.width - 6));
+      tip.style.transform = "translate(" + x + "px," + y + "px)";
+    }
+    function hide() { tip.hidden = true; }
+
+    grid.addEventListener("mouseover", function (e) {
+      var cell = e.target.closest("i[data-date]");
+      if (cell) show(cell);
+    });
+    grid.addEventListener("mouseout", function (e) {
+      var cell = e.target.closest("i[data-date]");
+      if (cell) hide();
+    });
+    // a rebuild (role switch) replaces the cells out from under an open
+    // tooltip; hiding it here means it never points at a stale cell
+    grid.addEventListener("mouseleave", hide);
+  }
+
   function buildHeat(isCompany) {
     /* Declared inside, not as a module-level var: setView() calls this from
        an IIFE near the top of the file, which runs BEFORE any var further
@@ -359,6 +445,7 @@
     var frag = document.createDocumentFragment();
     var labels = [];
     var lastMonth = -1;
+    var noun = isCompany ? "submission" : "contribution";
 
     for (var w = 0; w < WEEKS; w++) {
       var weekStart = new Date(end);
@@ -371,15 +458,33 @@
       for (var d = 0; d < DAYS; d++) {
         var r = rand();
         // heavily weighted to empty: real activity is bursty, and a grid
-        // that is mostly lit reads as noise rather than as a history
-        var level = r > 0.955 ? 4 : r > 0.90 ? 3 : r > 0.82 ? 2 : r > 0.70 ? 1 : 0;
+        // that is mostly lit reads as noise rather than as a history.
+        // `level` is the bucketed intensity that drives the cell's colour;
+        // `count` is a real number for the hover tooltip, picked from
+        // within that same bucket's range off the same draw so the two
+        // never disagree (a level-4 cell can never show a tooltip with a
+        // lower count than a level-3 one next to it).
+        var level, count;
+        if (r > 0.955) { level = 4; count = 8 + Math.floor((r - 0.955) / 0.045 * 5); }
+        else if (r > 0.90) { level = 3; count = 5 + Math.floor((r - 0.90) / 0.055 * 3); }
+        else if (r > 0.82) { level = 2; count = 3 + Math.floor((r - 0.82) / 0.08 * 2); }
+        else if (r > 0.70) { level = 1; count = 1 + Math.floor((r - 0.70) / 0.12 * 2); }
+        else { level = 0; count = 0; }
+
+        var cellDate = new Date(weekStart);
+        cellDate.setDate(cellDate.getDate() + d);
+
         var cell = document.createElement("i");
         cell.setAttribute("data-lv", level);
+        cell.setAttribute("data-count", count);
+        cell.setAttribute("data-date", formatHeatDate(cellDate));
+        cell.setAttribute("data-noun", noun);
         frag.appendChild(cell);
-        total += level;
+        total += count;
       }
     }
     grid.appendChild(frag);
+    wireHeatTooltip(grid);
 
     if (months) {
       months.textContent = "";
