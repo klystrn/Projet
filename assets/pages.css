@@ -105,12 +105,22 @@
 @media (max-width:800px), (prefers-reduced-motion: reduce){
   .story-scroll{height:auto;}
   .story-stage{position:static; height:auto; display:block;}
-  .story-item{opacity:1;}
+  /* !important, not just opacity:1 — a real bug, caught by screenshot, not
+     by reading the CSS. The base dimming rule is .story-item:not(.is-active)
+     (two selectors' worth of specificity), which beats a plain single-class
+     .story-item{opacity:1} regardless of media-query placement or source
+     order. Since the JS pin never runs here, NO item ever gets .is-active,
+     so every item but the first matched :not(.is-active) and rendered stuck
+     at .55 opacity — on every phone-width visit, not just reduced-motion.
+     Same site-wide convention already established for this exact conflict
+     (see CLAUDE.md's "two co-applied classes" note): the fallback needs
+     !important when a JS-added state class can still out-rank it. */
+  .story-item{opacity:1 !important;}
   .story-p{grid-template-rows:1fr; opacity:1;}
 }
 .no-js .story-scroll{height:auto;}
 .no-js .story-stage{position:static; height:auto; display:block;}
-.no-js .story-item{opacity:1;}
+.no-js .story-item{opacity:1 !important;}
 .no-js .story-p{grid-template-rows:1fr; opacity:1;}
 
 /* Our founders — real, named people, so this reuses the dashboard's
