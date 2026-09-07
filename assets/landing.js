@@ -248,6 +248,40 @@
     });
   })();
 
+  /* ---------------- about: pinned story beats ----------------
+     about.html only. Same shape as the how-it-works updater above: map
+     progress through a tall wrapper onto one beat, toggle .is-active on it
+     and .is-done on everything before it, and let CSS do the rest (here
+     that is a grid-template-rows expand, not a crossfade). Self-skips when
+     #storyScroll is absent, which is every other page that loads this file.
+
+     Gated the same three ways the CSS is, and the width gate matters here
+     in a way it did not for the flow section: below 800px the CSS drops the
+     pin and expands every point, so leaving this running would keep
+     collapsing three of them back down again on scroll. */
+  (function () {
+    var wrap = document.getElementById("storyScroll");
+    var list = document.getElementById("storyList");
+    if (!wrap || !list) return;
+    if (reducedMotion) return;
+    var narrow = window.matchMedia && window.matchMedia("(max-width:800px)");
+    if (narrow && narrow.matches) return;
+
+    scrollUpdaters.push(function () {
+      if (narrow && narrow.matches) return;
+      var items = list.querySelectorAll(".story-item");
+      if (!items.length) return;
+      var rect = wrap.getBoundingClientRect();
+      var scrollable = wrap.offsetHeight - window.innerHeight;
+      var progress = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
+      var idx = clamp(Math.floor(progress * items.length), 0, items.length - 1);
+      for (var i = 0; i < items.length; i++) {
+        items[i].classList.toggle("is-active", i === idx);
+        items[i].classList.toggle("is-done", i < idx);
+      }
+    });
+  })();
+
   /* ---------------- mobile nav ---------------- */
   (function () {
     var toggle = document.getElementById("navToggle");

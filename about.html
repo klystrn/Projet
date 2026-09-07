@@ -90,46 +90,71 @@
     </p>
   </section>
 
-  <section class="about-section wrap" data-reveal>
-    <div class="about-grid">
-      <div>
-        <span class="eyebrow">The problem</span>
-        <h2>Anyone can write a good resume. AI can write a great one.</h2>
-        <p>A polished CV or portfolio no longer tells a hiring team much on its own.
-          AI can produce a convincing one in minutes, and it says nothing about
-          whether the person behind it can actually do the job. Companies end up
-          screening on how well someone describes their work, not what they built,
-          and builders without a name brand on their resume get filtered out before
-          anyone looks at what they can do.</p>
-      </div>
-      <div>
-        <span class="eyebrow">Our mission</span>
-        <h2>Replace credentials with proof.</h2>
-        <p>Projet gives companies a real problem from their own backlog to post as a
-          brief, and gives builders a fair shot to show what they can do by actually
-          doing it. Every submission is scored and ranked before a company ever sees
-          a name, so the work speaks first, not the resume attached to it.</p>
-      </div>
-    </div>
-  </section>
+  <!-- ==================== THE STORY ====================
+       Problem, Mission, Vision, How it works — one column, four rows, in
+       that order (was a 2x2 grid across two sections). The section pins
+       while the reader scrolls and the emphasis walks from the first point
+       to the last, asked for directly.
 
-  <section class="about-section wrap" data-reveal>
-    <div class="about-grid">
-      <div>
-        <span class="eyebrow">Our vision</span>
-        <h2>Hiring on proof, as the default.</h2>
-        <p>We want the strongest signal in a hiring decision to be a real thing
-          someone built, not a polished summary of it, and not who they know. As
-          more of what candidates submit can be AI-generated, that only gets more
-          important, not less. Projet is building toward proof-based hiring being
-          the normal way companies find talent, not a pilot program.</p>
-      </div>
-      <div>
-        <span class="eyebrow">How it works</span>
-        <h2>Post a challenge. Submit real work. Get evaluated.</h2>
-        <p>A company lists a real brief from its own backlog. Builders take it on and
-          submit their solution. Every submission is scored and ranked, so companies
-          can see who is worth their time before a single interview. <a href="index.html#how-it-works">See the full flow &rarr;</a></p>
+       Every heading is on screen the whole time; only the body copy of the
+       active point is expanded. That is what makes four full points fit in
+       one viewport, and it keeps the pin honest: the reader can always see
+       the whole shape of the argument and where they are inside it, rather
+       than being shown one card at a time with no map.
+
+       Fallbacks (mobile / reduced-motion / no-js) drop the pin and render
+       all four points fully expanded as a plain list. -->
+  <section class="story-scroll" id="storyScroll" data-reveal>
+    <div class="story-stage">
+      <div class="wrap">
+        <ol class="story-list" id="storyList">
+          <li class="story-item is-active">
+            <span class="story-num" aria-hidden="true">01</span>
+            <div class="story-body">
+              <span class="eyebrow">The problem</span>
+              <h2>Anyone can write a good resume. AI can write a great one.</h2>
+              <div class="story-p"><div><p>A polished CV or portfolio no longer tells a hiring team much on its own.
+                AI can produce a convincing one in minutes, and it says nothing about
+                whether the person behind it can actually do the job. Companies end up
+                screening on how well someone describes their work, not what they built,
+                and builders without a name brand on their resume get filtered out before
+                anyone looks at what they can do.</p></div></div>
+            </div>
+          </li>
+          <li class="story-item">
+            <span class="story-num" aria-hidden="true">02</span>
+            <div class="story-body">
+              <span class="eyebrow">Our mission</span>
+              <h2>Replace credentials with proof.</h2>
+              <div class="story-p"><div><p>Projet gives companies a real problem from their own backlog to post as a
+                brief, and gives builders a fair shot to show what they can do by actually
+                doing it. Every submission is scored and ranked before a company ever sees
+                a name, so the work speaks first, not the resume attached to it.</p></div></div>
+            </div>
+          </li>
+          <li class="story-item">
+            <span class="story-num" aria-hidden="true">03</span>
+            <div class="story-body">
+              <span class="eyebrow">Our vision</span>
+              <h2>Hiring on proof, as the default.</h2>
+              <div class="story-p"><div><p>We want the strongest signal in a hiring decision to be a real thing
+                someone built, not a polished summary of it, and not who they know. As
+                more of what candidates submit can be AI-generated, that only gets more
+                important, not less. Projet is building toward proof-based hiring being
+                the normal way companies find talent, not a pilot program.</p></div></div>
+            </div>
+          </li>
+          <li class="story-item">
+            <span class="story-num" aria-hidden="true">04</span>
+            <div class="story-body">
+              <span class="eyebrow">How it works</span>
+              <h2>Post a challenge. Submit real work. Get evaluated.</h2>
+              <div class="story-p"><div><p>A company lists a real brief from its own backlog. Builders take it on and
+                submit their solution. Every submission is scored and ranked, so companies
+                can see who is worth their time before a single interview. <a href="index.html#how-it-works">See the full flow &rarr;</a></p></div></div>
+            </div>
+          </li>
+        </ol>
       </div>
     </div>
   </section>

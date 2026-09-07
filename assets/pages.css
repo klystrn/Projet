@@ -25,11 +25,86 @@
    widths, not just checking for horizontal overflow (zero padding doesn't
    overflow, it just runs content flush to the edges). */
 .about-section{padding-top:56px; padding-bottom:56px;}
-.about-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px;}
-.about-grid h2{font-size:clamp(22px,2.6vw,28px); margin:10px 0 12px;}
-.about-grid p{font-size:15.5px; line-height:1.65; color:var(--ink-soft); max-width:48ch;}
-.about-grid a{font-weight:700; color:var(--accent-deep);}
-@media (max-width:800px){ .about-grid{grid-template-columns:1fr; gap:36px;} }
+/* ==========================================================================
+   THE STORY — pinned, one column, four rows
+   Problem / Mission / Vision / How it works, replacing the old 2x2
+   .about-grid across two sections.
+
+   The mechanic: .story-scroll is tall scroll-room, .story-stage sticks
+   inside it for the whole range, and landing.js maps progress through the
+   wrapper onto one of four .story-item beats. Every HEADING stays on
+   screen the entire time and only the active item's BODY is expanded --
+   that is what lets four full points share one viewport, and it means the
+   reader can always see the whole argument and where they are in it.
+
+   The expand is grid-template-rows 0fr -> 1fr on .story-p with the inner
+   div clipped. Worth stating why that trick is safe here when it was
+   abandoned for faq.html's accordion: the failure there was specific to
+   <details>, whose non-summary children Chrome wraps in an internal
+   ::details-content box that stops updating layout the moment [open] is
+   removed. .story-p is a plain div with no such box, so the pure-CSS
+   version works in both directions with no JS height measurement.
+   ========================================================================== */
+.story-scroll{position:relative;}
+.story-stage{display:flex; align-items:center;}
+.story-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; width:100%;}
+.story-item{
+  display:flex; gap:20px; align-items:flex-start;
+  padding:18px 0; border-top:1px solid var(--line);
+  transition:opacity .4s var(--ease);
+}
+.story-item:first-child{border-top:0;}
+.story-num{
+  flex:none; width:34px; height:34px; border-radius:50%; margin-top:2px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  border:2px solid var(--line); background:var(--paper); color:var(--muted);
+  transition:background .35s var(--ease), border-color .35s var(--ease), color .35s var(--ease);
+}
+.story-body{min-width:0;}
+.story-item .eyebrow{display:block; margin-bottom:6px;}
+.story-item h2{
+  font-size:clamp(20px,2.4vw,27px); margin:0; line-height:1.22;
+  transition:color .35s var(--ease);
+}
+.story-p{
+  display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows .45s var(--ease), opacity .35s var(--ease);
+  opacity:0;
+}
+.story-p > div{overflow:hidden;}
+.story-p p{font-size:15.5px; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:12px 0 0;}
+.story-p a{font-weight:700; color:var(--accent-deep);}
+
+/* the active beat: number fills, heading goes to full ink, body expands */
+.story-item.is-active .story-num{background:var(--accent-deep); border-color:transparent; color:#fff;}
+.story-item.is-active .story-p{grid-template-rows:1fr; opacity:1;}
+/* Inactive headings dim rather than disappear -- .55 is the same resting
+   opacity the home page's own step list uses, and it stays comfortably
+   readable, so nothing is hidden, only de-emphasised. */
+.story-item:not(.is-active){opacity:.55;}
+.story-item.is-done .story-num{border-color:var(--accent); color:var(--accent-deep);}
+
+/* the pin itself, desktop + motion only */
+@media (min-width:801px) and (prefers-reduced-motion: no-preference){
+  .story-scroll{height:340vh;}
+  .story-stage{position:sticky; top:0; height:100vh; height:100svh;}
+}
+
+/* Fallbacks, written for both axes the pin can be switched off on. Every
+   point is fully expanded and at full opacity -- the same contract as
+   every other scroll effect on this site: the end state is what renders
+   when the effect cannot run. */
+@media (max-width:800px), (prefers-reduced-motion: reduce){
+  .story-scroll{height:auto;}
+  .story-stage{position:static; height:auto; display:block;}
+  .story-item{opacity:1;}
+  .story-p{grid-template-rows:1fr; opacity:1;}
+}
+.no-js .story-scroll{height:auto;}
+.no-js .story-stage{position:static; height:auto; display:block;}
+.no-js .story-item{opacity:1;}
+.no-js .story-p{grid-template-rows:1fr; opacity:1;}
 
 /* Our founders — real, named people, so this reuses the dashboard's
    initials-in-a-gradient-circle avatar treatment (.dash-avatar), not the
@@ -89,16 +164,45 @@
    has nothing to put in the middle. 720px keeps the question and its icon
    close together at any viewport, the same way a reading-width column
    would in a document. */
-/* width:100% alongside the max-width, not just margin-inline:auto: .faq-
-   section is a flex column, and an auto margin on a flex item's cross axis
-   suppresses align-items:stretch for that item — without an explicit width
-   here the group collapsed to fit-content (as narrow as its widest child's
-   natural text width) instead of filling out to the 720px cap. */
-.faq-group{max-width:720px; width:100%; margin-inline:auto;}
+/* Two columns: the group label on the left, its questions on the right.
+
+   This replaces a centred max-width:720px column, which is what made the
+   page feel misaligned — .page-hero above is a .wrap and starts at the
+   content column's left edge, while the Q&A block was centred inside that
+   same wrap, so the heading and the list visibly did not share an edge.
+
+   Left-aligning the old single column would have fixed the edge but left
+   ~500px of dead space beside it at desktop widths. Putting the group
+   label in that space fixes both at once: everything now starts on the
+   wrap's left edge, and the reason the 720px cap existed in the first
+   place still holds — a .faq-item summary is one full-width flex row with
+   the question left and the +/x toggle right, and at the full 1240px
+   content width a short question sat a very long way from its own toggle.
+
+   The label is sticky so it stays with its questions while they scroll,
+   which is the other thing the empty column can usefully do. */
+.faq-group{
+  width:100%;
+  display:grid; grid-template-columns:minmax(150px,230px) minmax(0,720px);
+  column-gap:clamp(24px,4vw,64px);
+  align-items:start;
+}
 .faq-group h2{
+  grid-column:1; grid-row:1 / -1; align-self:start;
+  position:sticky; top:104px;
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase; color:var(--accent-deep);
-  margin-bottom:14px;
+  /* padding-top aligns the label's cap-height with the first question's,
+     since .faq-item carries 18px of its own top padding */
+  padding-top:20px; margin-bottom:0;
+}
+.faq-group .faq-item{grid-column:2;}
+
+/* One column below 900px: there is no room for a label gutter, so the
+   group heading goes back above its own questions. */
+@media (max-width:900px){
+  .faq-group{display:block;}
+  .faq-group h2{position:static; padding-top:0; margin-bottom:14px;}
 }
 .faq-item{
   border-bottom:1px solid var(--line); padding:18px 0;
