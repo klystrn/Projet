@@ -453,11 +453,20 @@
         if (a.closest("[data-mode-copy]")) return; // those are rewritten wholesale
         a.setAttribute("href", "signup.html?role=" + (mode === "business" ? "business" : "builder"));
       });
-      // dashboard link points at the matching view
+      // Every dashboard link on the page follows the current mode, not just
+      // the nav's own chip — the footer's "Dashboard" link (about.html,
+      // challenges.html, faq.html, and index.html's own footer) was still
+      // hardcoded to ?view=student regardless of which mode the reader had
+      // toggled to, so a company-mode visitor's footer link sent them to the
+      // student view. [data-mode-copy] descendants (the hero card's own
+      // "Open dashboard" button) are excluded the same way signup links are:
+      // they already carry the right ?view= per mode in their own business/
+      // builder HTML strings, rewritten wholesale on swap.
       var view = mode === "business" ? "company" : "student";
       var label = mode === "business" ? "Company dashboard" : "My dashboard";
-      [navDash, navDashMobile].forEach(function (a) {
-        if (a) a.setAttribute("href", "dashboard.html?view=" + view);
+      document.querySelectorAll('a[href^="dashboard.html"]').forEach(function (a) {
+        if (a.closest("[data-mode-copy]")) return;
+        a.setAttribute("href", "dashboard.html?view=" + view);
       });
       if (navDashLabel) navDashLabel.textContent = label;
 

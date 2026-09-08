@@ -269,6 +269,18 @@ listener is even registered for a visitor who's never going to see the pin.
 
 ## v3.4 updates (Sep 2026) — read this before the auth section just below
 
+**Every dashboard link now follows the current audience mode, not just the
+nav's own chip.** The mode toggle's `apply()` (in `landing.js`) already
+rewrote `signup.html` links and the nav-only `.nav-dash` chip's href per
+mode; the footer's "Dashboard" link on `about.html`/`challenges.html`/
+`faq.html`/`index.html` was still hardcoded to `?view=student` regardless of
+which mode the reader had toggled to, so a company-mode visitor's footer
+link sent them to the student view. Generalised the rewrite to every
+`a[href^="dashboard.html"]` on the page (still excluding `[data-mode-copy]`
+descendants, same as the signup-link rule, since those already carry the
+correct `?view=` in their own per-mode HTML strings). Verified in both
+directions on all four pages plus the mobile menu's own toggle.
+
 **Company dashboard built out into a real second dashboard (Sep 2026).**
 Asked for directly: "the existing dashboard is for students, create a second
 one for companies... more metrics and charts, including a heatmap... similar
