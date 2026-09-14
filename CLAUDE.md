@@ -267,6 +267,72 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.5 updates (Sep 2026) — handover prep for Andrei
+
+Explicit founder ask, ahead of backend handover: add a Google sign-in
+stub, sweep the site for anything that visibly discloses sample/
+placeholder content, and consolidate the backend documentation into one
+file. Three changes:
+
+**1. Google sign-in button, front end only, on both auth pages.**
+`login.html`/`signup.html` each gained a "Continue with Google" button on
+both the login and signup face (`class="auth-google" data-oauth="google"`,
+new `.auth-google`/`.auth-google-icon`/`.auth-divider` rules in
+`site.css`). It is a real, styled button with **no OAuth wired at all** —
+`site.js`'s `[data-oauth="google"]` handler reports "not connected yet"
+through the same `.auth-status` region the email form already uses,
+matching this site's standing front-end-only honesty convention rather
+than doing nothing on click. Both files stayed byte-identical outside
+`<title>`/meta/`data-mode`, per the existing "one page shape, two entry
+points" rule. Full seam documented in `HANDOVER.md` §2.1.1.
+
+**2. Visible placeholder/sample-data disclosures removed from every live
+page — the underlying sample data was not touched, only the banners that
+said so out loud.** This is a deliberate, temporary exception to this
+file's own "Working conventions" rule that placeholder content must
+always be labelled as placeholder — done for an investor/handover demo,
+and reversible by re-reading what was removed from `HANDOVER.md`'s
+pre-launch checklist, which is where that disclosure now lives instead.
+Removed: `index.html`'s `.logos-label` ("Placeholder logos, pending real
+partners") and `.ch-note` ("Sample briefs, not live listings…", the class
+itself deleted from `landing.css` as dead CSS once unreferenced);
+`challenges.html`'s `.cl-notice` banner (and its CSS, same reasoning);
+and the "SOON" pill (`<em>soon</em>`, plus its CSS) on the four
+`.footer-pending` Careers/Contact/Privacy/Terms spans across
+`index.html`, `challenges.html`, `about.html` and `faq.html` — the plain
+dimmed label text stays, only the badge icon is gone. `.logos{padding-top}`
+was bumped from 12px to 40px to absorb the vertical space the removed
+label used to occupy, so the hero's `--fold-reserve` math (see "Hero +
+logo carousel fill the window" above) didn't need re-deriving — verified
+by re-measuring `.challenges`'s fold position at 1536×864/1440×900/
+1920×1080 afterward, unchanged from the pre-existing spec. Full-site
+regression swept via CDP: zero console errors/exceptions and zero
+horizontal overflow across all seven pages at desktop and mobile widths
+after the removals.
+
+**3. `PLACEHOLDERS.md` and `BACKEND-HANDOFF.md` are gone, merged into a
+single new `HANDOVER.md`.** Two files describing overlapping ground (what's
+fake, what needs a real backend) risked drifting apart from each other;
+one file for Andrei to read before he starts is more useful than three.
+`HANDOVER.md` covers, with exact selectors/file locations for each: the
+full pre-launch checklist (every row `PLACEHOLDERS.md` had, plus the
+newly-removed on-page disclosures folded in and the `archive/` folder's
+eventual removal added as an explicit line item); every existing backend
+seam from `BACKEND-HANDOFF.md`; and — new, and the most consequential
+addition — an honest audit of the company dashboard's charts (the
+6-metric row, hiring funnel, monthly chart, brief table, discipline
+split), which turned out to be **static HTML with zero JavaScript
+touching any of it**, despite `dashboard.js`'s own header comment
+describing an intended fetch shape for them. That gap wasn't visible
+without actually grepping `dashboard.js` for each chart's selectors and
+finding nothing — worth remembering if another "seam" is ever assumed
+wired because a comment describes one: check what the code actually
+reads from the fetched response, not just what the comment promises.
+Every reference to the two old files elsewhere in this document (the
+"Placeholders are tagged" and "Backend seams are documented" notes
+further down, and the auth-pages section's division-of-labour note) now
+points at `HANDOVER.md` instead.
+
 ## v3.4 updates (Sep 2026) — read this before the auth section just below
 
 **Every dashboard link now follows the current audience mode, not just the
@@ -628,14 +694,17 @@ its panels never actually replaced one another; here they do.
   total nothing could back. Both panels now render stacked with the strip
   hidden, and `.dp-heat-card` is hidden outright.
 
-**Placeholders are tagged and indexed — see `PLACEHOLDERS.md`.** Convention:
+**Placeholders are tagged and indexed — see `HANDOVER.md`'s pre-launch
+checklist** (this replaced the old standalone `PLACEHOLDERS.md` during the
+Sep 2026 handover prep, see "v3.5 updates" below). Convention:
 `<!-- PLACEHOLDER[key] -->` above the block and `data-placeholder="key"` on
 it, so the same thing is findable in source *and* from the DOM at runtime.
 `data-placeholder` is inert — nothing styles it, no script reads it (except
 `challenges.js`, which removes it once real data renders). **If you add
-sampled content, add a marker and a row in that file at the same time.**
+sampled content, add a marker and a row in `HANDOVER.md` at the same time.**
 
-**Backend seams are documented in full in `BACKEND-HANDOFF.md`**, which now
+**Backend seams are documented in full in `HANDOVER.md`** (this replaced
+the old standalone `BACKEND-HANDOFF.md`, see "v3.5 updates" below), which
 covers the whole site rather than just auth. New this round: the challenge
 listing is a *real, working* seam — `challenges.js` fetches
 `#clGrid[data-endpoint]`, rebuilds the grid, hides the sample-brief banner
@@ -1782,7 +1851,7 @@ accounts aren't connected yet rather than faking a success.
 
 **Division of labour: this repo is front end / UI-UX only. The API and the
 MongoDB layer are Andrei's (co-founder).** The full contract is in
-`BACKEND-HANDOFF.md` — read that before touching the auth forms.
+`HANDOVER.md` — read that before touching the auth forms.
 
 **The full-bleed sliding auth stage is the current, live design (Aug
 2026) — a fourth shell for these two pages, not just a third.** The v2

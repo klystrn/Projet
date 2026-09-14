@@ -19,27 +19,6 @@
 .cl-head h1{font-size:clamp(34px,4.6vw,54px); margin:14px 0 16px;}
 .cl-lede{font-size:17px; line-height:1.6; color:var(--ink-soft); max-width:56ch;}
 
-/* Honest banner: these are samples, not a live feed. Deliberately styled as a
-   notice rather than tucked into small print — the whole point is that it is
-   read before the cards are taken at face value. */
-/* NOT display:flex. The <b> and the sentence after it are inline children, and
-   a flex container turns each into its own flex item — which split the notice
-   into two narrow columns on mobile. Same trap as .hero-stat-row's "+" (see
-   CLAUDE.md). Kept as normal inline text flow, with the dot positioned out of
-   the way instead of participating in layout. */
-.cl-notice{
-  position:relative;
-  margin-top:26px; padding:14px 18px 14px 34px;
-  background:var(--paper-warm); border:1px solid var(--line);
-  border-radius:var(--radius);
-  font-size:14px; line-height:1.55; color:var(--ink-soft);
-}
-.cl-notice b{color:var(--ink);}
-.cl-notice::before{
-  content:''; position:absolute; left:16px; top:22px;
-  width:8px; height:8px; border-radius:50%; background:var(--accent);
-}
-
 /* ---------- filter bar ---------- */
 .cl-filters{
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;

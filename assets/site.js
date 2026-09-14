@@ -248,6 +248,25 @@
   });
 
   /* ------------------------------------------------------------------
+     GOOGLE SIGN-IN — front end only, same honesty rule as the forms above.
+     A real button, not a real integration: no OAuth client, no redirect,
+     no popup. Clicking it reports through the SAME .auth-status region the
+     email form above it uses, with the same "not connected yet" framing,
+     rather than silently doing nothing. This is the entire seam — replace
+     this one handler with the real flow (redirect to the backend's OAuth
+     endpoint, or a Google Identity Services popup/One Tap init) and every
+     button on the page starts working with no markup changes.
+     ------------------------------------------------------------------ */
+  document.querySelectorAll('[data-oauth="google"]').forEach(function (btn) {
+    var status = btn.parentElement.querySelector('.auth-status');
+    btn.addEventListener('click', function () {
+      if (!status) return;
+      status.className = 'auth-status show pending';
+      status.textContent = 'Google sign-in isn’t connected yet. This button is the finished front end, waiting on the OAuth flow.';
+    });
+  });
+
+  /* ------------------------------------------------------------------
      DEFENSE DEMO — plays a scripted transcript one turn at a time, and
      lets the visitor flip between the two outcomes of the same question.
      Content lives in the HTML so it still reads with JS off.

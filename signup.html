@@ -66,6 +66,20 @@
         <div class="auth-status" role="status" aria-live="polite"></div>
 
         <!--
+          FRONT-END ONLY, same as the form below: no OAuth flow is wired up.
+          site.js's [data-oauth="google"] handler shows the shared
+          .auth-status message above on click, using the same region and
+          the same honesty convention the email form uses on an empty
+          data-endpoint. Andrei: replace that one handler with the real
+          redirect/popup flow; the button and its markup need no changes.
+        -->
+        <button type="button" class="auth-google" data-oauth="google">
+          <svg class="auth-google-icon" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
+
+        <!--
           FRONT-END ONLY. No credentials are sent anywhere yet.
           Backend hook: site.js reads data-endpoint and POSTs JSON
           {email, password} to it. Point it at the real route
@@ -102,6 +116,14 @@
 
         <!-- Populated by site.js from the API response (or a network failure). -->
         <div class="auth-status" role="status" aria-live="polite"></div>
+
+        <!-- FRONT-END ONLY, same as the form below — see the login face's
+             own comment above for the full explanation of this handler. -->
+        <button type="button" class="auth-google" data-oauth="google">
+          <svg class="auth-google-icon" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
 
         <!--
           FRONT-END ONLY. No credentials are sent anywhere yet.

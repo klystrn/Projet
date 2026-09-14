@@ -307,6 +307,38 @@ nav.links a:hover{color:var(--ink);}
 @media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
 
 .auth-submit{width:100%; padding:15px 22px; font-size:15px; margin-top:6px;}
+
+/* ---------- Google sign-in (front end only) ----------
+   A real button for Andrei to wire OAuth into, not a working integration.
+   Clicking it currently reports the same "not connected yet" honesty
+   message the email form shows on an empty data-endpoint (see .auth-status
+   above), through that same shared region, rather than doing nothing —
+   see the [data-oauth="google"] handler in site.js. That handler is the
+   whole seam: replace it with a redirect into the real OAuth flow (or a
+   popup/One Tap init) and nothing else here needs to change. */
+.auth-google{
+  width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:13px 22px; border-radius:999px;
+  border:1px solid var(--line); background:#fff; color:var(--ink);
+  font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
+  transition:border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
+}
+.auth-google:hover{border-color:#c9c5b8; background:var(--paper-warm);}
+.auth-google:active{transform:translateY(1px);}
+.auth-google:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+.auth-google-icon{width:18px; height:18px; flex:none;}
+
+/* "or" rule between the Google button and the email form — flex line +
+   pseudo-element rules either side rather than a background-position trick,
+   so the gap around the word stays correct at any width without tuning a
+   percentage by hand. */
+.auth-divider{
+  display:flex; align-items:center; gap:12px; margin:20px 0;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+}
+.auth-divider::before, .auth-divider::after{content:""; flex:1; height:1px; background:var(--line);}
+
 .auth-alt{margin-top:20px; font-size:14px; color:var(--ink-soft); text-align:center;}
 .auth-alt a{font-weight:700; color:var(--ink); text-decoration:underline; text-underline-offset:3px;}
 .auth-fineprint{margin-top:18px; font-size:12px; color:var(--muted); line-height:1.5; text-align:center;}
