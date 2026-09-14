@@ -55,15 +55,34 @@
       that picked level for exactly that reason). The heading text is
       derived from the summed counts, so it stays correct for free.
 
-   5. COMPANY OVERVIEW.  The company view carries its own charts: a hiring
-      funnel, a 12-month submissions column chart, a per-brief table and a
-      discipline split. All of them are plain elements sized by percentage
-      (no charting library), and all of their figures are derived from the
-      same brief table, so they cannot contradict each other. Feed them from
-      the API the same way — the funnel wants stage counts, the columns want
-      12 monthly counts, the table wants a row per brief, the split wants
-      per-discipline shares. buildHeat()'s targetTotal is what keeps the
-      heatmap's own heading agreeing with the submissions figure beside it.
+   5. COMPANY OVERVIEW.  Wired: renderCompanyOverview(data.company), called
+      from the fetch handler below when the response carries a `company`
+      key. Shape (see HANDOVER.md 2.8 for the full spec):
+
+        {
+          "metrics": [{ "value":"3", "label":"Open briefs", "delta":"+1", "direction":"up" }],  // 6
+          "funnel":  [{ "label":"Submissions", "count":96, "pctOfTop":100 }],
+          "monthly": [{ "month":"Sep", "count":17, "pctOfPeak":100 }],                            // 12, oldest first
+          "briefs":  [{ "title":"...", "discipline":"Product", "status":"open",
+                        "statusLabel":"Open", "submitted":38, "aboveBar":12,
+                        "topScore":94, "closesIn":"6 days" }]
+        }
+
+      Deliberately NOT part of the shape: a discipline split or any of the
+      four prose notes (the funnel's "X hires from Y submissions...", the
+      monthly chart's "busiest month...", the table's "N clear your bar
+      most often..."). All of it is derived in JS from `funnel`/`briefs`
+      instead of trusted as separate API fields — the sample data's own
+      history (see CLAUDE.md "Every company figure derives from the brief
+      table") is a dashboard whose charts contradicted each other because
+      they were filled in by hand from different sources. Deriving instead
+      of accepting parallel fields makes that class of bug structurally
+      impossible: there is only one number to get right per fact, not two
+      that have to be kept in sync by whoever writes the API.
+      buildHeat()'s targetTotal now reads companyHeatTotal, which
+      renderCompanyOverview sets from the sum of `briefs[].submitted` and
+      re-triggers buildHeat(true) with, so the heatmap's own heading stays
+      in agreement with the real total instead of the hardcoded 96 sample.
 
    6. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
       View submission buttons are inert placeholders (href="#"). The Edit
@@ -131,6 +150,10 @@
   };
 
   var currentView = "student";
+
+  // read by buildHeat() below; renderCompanyOverview() updates it from real
+  // brief data so the heatmap heading and the overview charts never disagree
+  var companyHeatTotal = 96;
 
   function setText(id, value) {
     var el = document.getElementById(id);
@@ -295,6 +318,193 @@
     if (search) search.addEventListener("input", apply);
   })();
 
+  /* ---------------- company overview: chart renderers ----------------
+     See the COMPANY OVERVIEW header comment above for the full data shape.
+     Every render*() function below replaces the sample markup wholesale
+     (same pattern as setProfile()'s tags/stats loops) rather than patching
+     individual nodes, since a real fetch always ships a complete list, not
+     a diff against the sample rows. */
+
+  var DISCIPLINE_SEGS = ["product", "engineering", "data", "design"];
+
+  function renderCompanyMetrics(list) {
+    var row = document.querySelector(".dp-metrics.dp-metrics--six");
+    if (!row || !list || !list.length) return;
+    row.innerHTML = "";
+    list.forEach(function (m) {
+      var dir = m.direction === "down" ? "is-down" : m.direction === "flat" ? "is-flat" : "is-up";
+      var div = document.createElement("div");
+      div.className = "dp-metric";
+      div.innerHTML = "<b></b><span></span><i class=\"dp-delta " + dir + "\"></i>";
+      div.querySelector("b").textContent = m.value;
+      div.querySelector("span").textContent = m.label;
+      div.querySelector("i").textContent = m.delta;
+      row.appendChild(div);
+    });
+  }
+
+  function renderHiringFunnel(stages) {
+    var list = document.querySelector(".dp-funnel");
+    if (!list || !stages || !stages.length) return;
+    var card = list.closest(".dp-chart-card");
+    list.innerHTML = "";
+    stages.forEach(function (s) {
+      var li = document.createElement("li");
+      li.innerHTML = "<span class=\"dp-funnel-label\"></span>" +
+        "<span class=\"dp-funnel-bar\" aria-hidden=\"true\"><i></i></span><b></b>";
+      li.querySelector(".dp-funnel-label").textContent = s.label;
+      li.querySelector("i").style.width = (s.pctOfTop || 0) + "%";
+      li.querySelector("b").textContent = s.count;
+      list.appendChild(li);
+    });
+    // Derived, not a separate API field — see the header comment for why.
+    var note = card && card.querySelector(".dp-chart-note");
+    if (note && stages.length >= 2) {
+      var top = stages[0], secondStage = stages[1], bottom = stages[stages.length - 1];
+      var rate = top.count > 0 ? Math.round((bottom.count / top.count) * 1000) / 10 : 0;
+      note.textContent = bottom.count + (bottom.count === 1 ? " hire" : " hires") + " from " +
+        top.count + " submissions, a " + rate + "% end-to-end rate. " +
+        secondStage.count + " of " + top.count + " cleared your scoring bar.";
+    }
+  }
+
+  function renderMonthlyChart(months) {
+    var cols = document.querySelector(".dp-cols");
+    if (!cols || !months || !months.length) return;
+    var card = cols.closest(".dp-chart-card");
+    cols.innerHTML = "";
+    months.forEach(function (m, i) {
+      var el = document.createElement("i");
+      if (i === months.length - 1) el.className = "is-now"; // last entry = current month
+      el.style.setProperty("--h", (m.pctOfPeak || 0) + "%");
+      var span = document.createElement("span");
+      span.textContent = m.month;
+      el.appendChild(span);
+      cols.appendChild(el);
+    });
+    var note = card && card.querySelector(".dp-chart-note");
+    if (note) {
+      var peak = months[0], low = months[0];
+      months.forEach(function (m) {
+        if (m.count > peak.count) peak = m;
+        if (m.count < low.count) low = m;
+      });
+      note.textContent = "Busiest month so far is " + peak.month + " with " + peak.count +
+        " submissions, up from " + low.count + " in " + low.month + ".";
+    }
+  }
+
+  /* Discipline split is never sent by the API — it is summed straight off
+     the brief rows so the split can never disagree with the table beside
+     it (see the header comment; this is the exact bug class the old
+     hand-typed sample data hit once already, per CLAUDE.md). Any
+     discipline outside the site's own four-category taxonomy (Product/
+     Engineering/Data/Design, the same set challenges.html filters by)
+     buckets into a shared "other" segment rather than borrowing one of
+     the four colours, which would visually merge it with an unrelated
+     real discipline. */
+  function renderDisciplineSplit(briefs) {
+    var bar = document.querySelector(".dp-split");
+    var key = document.querySelector(".dp-split-key");
+    if (!bar || !key || !briefs || !briefs.length) return;
+    var totals = {};
+    briefs.forEach(function (br) {
+      var label = br.discipline || "Other";
+      var seg = DISCIPLINE_SEGS.indexOf(label.toLowerCase()) !== -1 ? label.toLowerCase() : "other";
+      if (!totals[seg]) totals[seg] = { label: seg === "other" ? label : label, subs: 0 };
+      totals[seg].subs += br.submitted || 0;
+    });
+    var segs = Object.keys(totals).filter(function (s) { return totals[s].subs > 0; });
+    if (!segs.length) return;
+    var grandTotal = segs.reduce(function (sum, s) { return sum + totals[s].subs; }, 0);
+    segs.sort(function (a, b) { return totals[b].subs - totals[a].subs; });
+    bar.innerHTML = "";
+    key.innerHTML = "";
+    segs.forEach(function (s) {
+      var pct = grandTotal > 0 ? Math.round((totals[s].subs / grandTotal) * 100) : 0;
+      var i = document.createElement("i");
+      i.setAttribute("data-seg", s);
+      i.style.width = pct + "%";
+      bar.appendChild(i);
+      var li = document.createElement("li");
+      li.innerHTML = "<i data-seg=\"" + s + "\"></i>";
+      li.appendChild(document.createTextNode(totals[s].label + " "));
+      var b = document.createElement("b");
+      b.textContent = pct + "%";
+      li.appendChild(b);
+      key.appendChild(li);
+    });
+  }
+
+  function renderBriefTable(briefs) {
+    var table = document.querySelector(".dp-table");
+    if (!table || !briefs || !briefs.length) return;
+    var section = table.closest(".dp-section");
+    var tbody = table.querySelector("tbody");
+    tbody.innerHTML = "";
+    var openCount = 0, closedCount = 0, totalSubs = 0;
+    var byDiscipline = {};
+    briefs.forEach(function (br) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td><b></b><span></span></td>" +
+        "<td><span class=\"cl-pill\"></span></td>" +
+        "<td></td><td></td><td></td><td></td>";
+      tr.querySelector("td:nth-child(1) b").textContent = br.title;
+      tr.querySelector("td:nth-child(1) span").textContent = br.discipline;
+      var pill = tr.querySelector(".cl-pill");
+      pill.setAttribute("data-status", br.status);
+      pill.textContent = br.statusLabel;
+      var cells = tr.querySelectorAll("td");
+      cells[2].textContent = br.submitted;
+      cells[3].textContent = br.aboveBar;
+      cells[4].textContent = br.topScore;
+      cells[5].textContent = br.closesIn || "—";
+      tbody.appendChild(tr);
+      if (br.status === "closed") closedCount++; else openCount++;
+      totalSubs += br.submitted || 0;
+      var d = br.discipline || "Other";
+      if (!byDiscipline[d]) byDiscipline[d] = { subs: 0, bar: 0 };
+      byDiscipline[d].subs += br.submitted || 0;
+      byDiscipline[d].bar += br.aboveBar || 0;
+    });
+    if (section) {
+      var count = section.querySelector(".dp-count");
+      if (count) count.textContent = openCount + " open · " + closedCount + " closed";
+      var note = section.querySelector(".dp-chart-note");
+      if (note) {
+        var best = null, bestRate = -1;
+        Object.keys(byDiscipline).forEach(function (d) {
+          var rec = byDiscipline[d];
+          var rate = rec.subs > 0 ? rec.bar / rec.subs : 0;
+          if (rate > bestRate) { bestRate = rate; best = d; }
+        });
+        note.textContent = totalSubs + " submissions across " + briefs.length + " briefs. " +
+          (best || "No discipline") + " briefs clear your bar most often, at " +
+          Math.round(bestRate * 100) + "%.";
+      }
+    }
+    renderDisciplineSplit(briefs);
+    return totalSubs;
+  }
+
+  /* The one orchestrator the fetch handler below actually calls. Order
+     matters only for the heatmap resync at the end: the brief table has to
+     render first (it is the source of truth for the real submissions
+     total) before buildHeat(true) re-runs against it. */
+  function renderCompanyOverview(data) {
+    if (!data) return;
+    if (Array.isArray(data.metrics)) renderCompanyMetrics(data.metrics);
+    if (Array.isArray(data.funnel)) renderHiringFunnel(data.funnel);
+    if (Array.isArray(data.monthly)) renderMonthlyChart(data.monthly);
+    if (Array.isArray(data.briefs) && data.briefs.length) {
+      var totalSubs = renderBriefTable(data.briefs);
+      if (totalSubs) {
+        companyHeatTotal = totalSubs;
+        if (currentView === "company") buildHeat(true);
+      }
+    }
+  }
+
   /* ---------------- optional: hydrate from a real endpoint ----------------
      Inert until <body data-endpoint> is set. See the header comment for the
      shape this expects. */
@@ -311,7 +521,13 @@
         }
         if (data.role) setView(data.role);
         if (Array.isArray(data.entries)) showEmpty(data.entries.length === 0);
-        if (switchEl) switchEl.hidden = true; // a real session decides the view
+        if (data.company) renderCompanyOverview(data.company);
+        // No audience-switch control exists on this page any more (the
+        // account IS the audience, see setView() above) — there used to be
+        // a line here hiding one, referencing an element ("switchEl") this
+        // file never actually declares. Real backend traffic would have
+        // thrown a ReferenceError the first time this path ran; caught
+        // while wiring the seam live rather than by a user report.
       })
       .catch(function () { /* keep the sample dashboard */ });
   })();
@@ -470,7 +686,7 @@
        screen. Deriving the counts FROM the target is what keeps the
        heading honest, rather than hoping the two happen to agree. */
     var activeRate = isCompany ? 0.07 : 0.30;
-    var targetTotal = isCompany ? 96 : 214;
+    var targetTotal = isCompany ? companyHeatTotal : 214;
 
     for (var w = 0; w < WEEKS; w++) {
       var weekStart = new Date(end);

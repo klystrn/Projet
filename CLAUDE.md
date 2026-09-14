@@ -267,6 +267,67 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.6 updates (Sep 2026) — company dashboard charts wired
+
+Follow-up to v3.5's handover prep: HANDOVER.md §2.8 had flagged the
+company dashboard's six-metric row, hiring funnel, monthly chart, brief
+table and discipline split as static HTML with zero JS touching any of
+it. Asked directly to start wiring them up. `assets/dashboard.js` gained
+`renderCompanyOverview(data.company)`, called from the existing
+`body.dash-page[data-endpoint]` fetch handler (the same one §2.5 already
+used for profile/role/entries) whenever the response carries a `company`
+key — no new endpoint, same seam.
+
+**The render functions derive every discipline split and prose note from
+the same `funnel`/`briefs` arrays rather than accepting them as separate
+API fields — a deliberate design choice, not a shortcut.** The sample
+data's own history (see "Every company figure derives from the brief
+table" under v3.4 above) is exactly the failure mode this avoids: a first
+pass had the discipline split, the monthly bars, the table's own note and
+the heatmap heading all independently hand-typed, and they drifted out of
+agreement with each other. Computing the split and all four notes
+(funnel's "X hires from Y submissions...", monthly's "busiest month...",
+table's "N briefs clear your bar most often...") in JS from the numbers
+that are actually sent makes that class of bug structurally impossible —
+there is only one number to get right per fact, never two that have to be
+kept in sync by whoever writes the API. `buildHeat()`'s `targetTotal` for
+the company grid now reads a module-level `companyHeatTotal` that
+`renderCompanyOverview()` sets from `sum(briefs[].submitted)`, so the
+heatmap's own heading stays in agreement with the real total too, the
+same mechanism the sample data already used deliberately.
+
+**Discipline split buckets against the site's own four-category
+taxonomy** (Product/Engineering/Data/Design, case-insensitive — the same
+set `challenges.html` filters by). A brief in a discipline outside that
+set lands in a shared `other` segment (`[data-seg="other"]`, new in
+`dashboard.css`, a neutral `var(--ink-soft)`) rather than reusing one of
+the four accent colours and visually merging two unrelated disciplines
+under one swatch.
+
+**A real, previously-latent bug caught while wiring this, not by
+inspection.** The fetch handler's success callback had
+`if (switchEl) switchEl.hidden = true;` — `switchEl` was never declared
+anywhere in the file. In non-strict JS that line would silently no-op;
+this file runs `"use strict"`, so it would have thrown a
+`ReferenceError` and aborted the callback the moment a real
+`data-endpoint` ever returned data, taking the profile/role/entries
+handling down with it, not just the company overview. It dates to the
+`.dp-viewswitch` toggle removed in v3.2 ("The visible Student/Company
+`.dp-viewswitch` toggle is gone") — the reference to hide it was never
+cleaned up. Silent until now because nothing has ever set a real
+`data-endpoint` on this page. Removed outright; there is no replacement,
+since the control it referred to doesn't exist on this page any more.
+
+Verified against a local JSON fixture via a headless-browser check
+(deliberately including a brief in a discipline outside the known four,
+to exercise the `other` fallback): all five sections rendered, every
+derived note's numbers matched hand calculations, the heatmap heading
+updated to the fixture's real total, the student view was confirmed
+untouched by the same page load, and there were zero console exceptions.
+HANDOVER.md §2.8 (and its cross-references in §2.5's shape and the seams
+table) rewritten to match — it now reads as a working seam with a real
+data shape, not a gap.
+
 ## v3.5 updates (Sep 2026) — handover prep for Andrei
 
 Explicit founder ask, ahead of backend handover: add a Google sign-in

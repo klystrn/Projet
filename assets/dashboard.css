@@ -538,6 +538,11 @@ button.dp-card .dp-score span{display:block;}
 [data-seg="engineering"]{background:var(--accent);}
 [data-seg="design"]{background:var(--accent-edge);}
 [data-seg="data"]{background:var(--accent-wash);}
+/* Fallback for a discipline outside the site's own four-category taxonomy —
+   see renderDisciplineSplit() in dashboard.js. Neutral rather than reusing
+   one of the four above, which would visually merge an unrelated real
+   discipline into an existing segment's colour. */
+[data-seg="other"]{background:var(--ink-soft);}
 
 @media (max-width:900px){
   .dp-chart-row{grid-template-columns:1fr;}

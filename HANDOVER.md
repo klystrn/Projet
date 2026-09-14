@@ -37,7 +37,7 @@ real before any public launch.
 | Dashboard candidates | `dashboard.html` company view | Five ranked sample candidates. | §2.6. |
 | Dashboard activity feeds | `dashboard.html` `#dpFeedStudent` / `#dpFeedCompany` | Six sample events each. | Real account events, same fetch as §2.5. |
 | Dashboard heatmap | `dashboard.html` `#dpHeat` / `#dpHeatCo` | `buildHeat()` in `assets/dashboard.js` fills 371 cells per grid from a seeded PRNG (seeded so a given account at least looks stable across reloads, not random). | §2.7. |
-| Company overview charts | `dashboard.html` company view: 6-metric row, hiring funnel, monthly chart, brief table, discipline split | **All static HTML, not wired to any fetch at all** — see the honest callout in §2.8, this is the biggest real gap in the handoff. Sample figures are internally consistent by construction (everything derives from 96 submissions / 31 above bar / 5 briefs), so if you change one for a screenshot, re-derive the rest. | §2.8. |
+| Company overview charts | `dashboard.html` company view: 6-metric row, hiring funnel, monthly chart, brief table, discipline split | **Wired, not just sample data** (§2.8) — send real `metrics`/`funnel`/`monthly`/`briefs` and it renders; the discipline split and all prose notes are computed from that data, not separate fields. Until wired, the sample figures shown are internally consistent by construction (everything derives from 96 submissions / 31 above bar / 5 briefs), so if you change one for a screenshot, re-derive the rest. | §2.8. |
 | Every front-end-only form | `login.html`, `signup.html`, footer "get notified" capture | Each carries an empty `data-endpoint`. With nothing set they say the wiring is pending rather than faking a success — reuse that convention for any new form. | §2.1–§2.2. |
 | Google sign-in button | `login.html`, `signup.html` (`[data-oauth="google"]`) | A real, styled button with **no OAuth wired at all** — clicking it reports "not connected yet" through the shared status region. | §2.1.1. |
 | Edit profile | `dashboard.html` | Genuinely saves, but only to `localStorage` on that one device; the dialog says so in its own copy. | §2.7 (Edit profile). |
@@ -77,8 +77,9 @@ before it exists. Every fetch below **fails soft**: a network error, a
 non-2xx status, or a malformed body leaves whatever's already on the page
 alone — never swap a readable page for an error state.
 
-Not every seam below is at that stage yet — §2.8 in particular is closer
-to a spec than a working hook. Each section says plainly which kind it is.
+Not every seam below is at that stage yet — §2.6's entry-detail modal
+still needs its `entries` payload shaped correctly. Each section says
+plainly which kind it is.
 
 | # | Where | Selector | Method | Status |
 |---|---|---|---|---|
@@ -89,8 +90,8 @@ to a spec than a working hook. Each section says plainly which kind it is.
 | 2.4 | `challenges.html` | `#clGrid[data-endpoint]` | GET | Wired, needs a URL |
 | 2.5 | `dashboard.html` | `body.dash-page[data-endpoint]` | GET | Partially wired (profile + role + empty-state only) |
 | 2.6 | `dashboard.html` | entry rows, `data-hk-*` | — | Wired via attributes, no fetch of its own |
-| 2.7 | `dashboard.html` | `#dpHeat` / `#dpHeatCo` | (via 2.5) | `buildHeat()` needs its body replaced |
-| 2.8 | `dashboard.html` company view | 6-metric row, funnel, monthly chart, brief table, discipline split | — | **Not wired at all — needs new render code** |
+| 2.7 | `dashboard.html` | `#dpHeat` / `#dpHeatCo` | (via 2.5) | `buildHeat()` needs its body replaced (company total already syncs to real data via 2.8) |
+| 2.8 | `dashboard.html` company view | 6-metric row, funnel, monthly chart, brief table, discipline split | GET (via 2.5, `data.company`) | **Wired (Sep 2026)** — send the four arrays, get all five sections and their notes |
 | 2.9 | `dashboard.html` | `window.ProjetDashboard.setView()` / `.showEmpty()` | — | JS hooks, call directly once real auth exists |
 
 ### 2.1. Signup
@@ -235,14 +236,12 @@ formats them, the API decides the wording.
 
 ### 2.5. Dashboard profile + role + empty state
 
-`assets/dashboard.js` fetches `body.dash-page[data-endpoint]`. **Read
-this carefully — the fetch handler only actually consumes three of the
-keys below right now** (`profile`, `role`, and the length of `entries`);
-`metrics` and `candidates` are documented in the file's own header
-comment as the intended shape but nothing currently renders them onto
-the page. Treat this whole endpoint as "the shape to build toward," and
-see §2.8 for the part that still needs render code written, not just a
-URL.
+`assets/dashboard.js` fetches `body.dash-page[data-endpoint]`. **The
+fetch handler consumes `profile`, `role`, the length of `entries`, and
+now `company` (§2.8) — `candidates` is still just documented intent, not
+yet rendered** (the company view's candidate list, like the student
+`entries` list, is real markup on the page already; wiring its own fetch
+is the one piece of §2.5 still open).
 
 ```jsonc
 {
@@ -254,9 +253,9 @@ URL.
     "tagsLabel": "Skills", "tags": ["Figma", "A11y"],
     "stats": [{ "label": "Avg. score", "value": "83" }]
   },
-  "metrics":    [{ "value": "85", "label": "Latest score" }],  // documented, NOT yet rendered — see §2.8
   "entries":    [ /* student: past challenges, see §2.6 */ ],
-  "candidates": [ /* company: ranked submissions — documented, NOT yet rendered */ ]
+  "candidates": [ /* company: ranked submissions — documented, NOT yet rendered */ ],
+  "company":    { /* company: the six charts — see §2.8 for the full shape, now wired */ }
 }
 ```
 
@@ -268,8 +267,8 @@ What actually happens on a successful fetch today:
 - `Array.isArray(data.entries)` with length `0` triggers the student
   empty state (`showEmpty(true)`) — this is the one real signal the
   dashboard currently reacts to for "no data yet."
-- The audience toggle switch is hidden (`switchEl.hidden = true`) once
-  any real session data arrives, since a real session decides the view.
+- `data.company`, if present, calls `renderCompanyOverview(data.company)`
+  — see §2.8.
 
 ### 2.6. Entry detail modal (student past-hackathon rows)
 
@@ -297,43 +296,83 @@ The heading text ("38 submissions in the last year," etc.) is derived
 from the summed counts, so it stays correct automatically once the data
 is real.
 
-### 2.8. Company overview charts — the real gap, read this before you start
+### 2.8. Company overview charts — WIRED (Sep 2026), point `data-endpoint` at a URL and go
 
-**This is not a "point data-endpoint at a URL" seam like the others.**
-The company dashboard's six-metric row, hiring funnel, 12-month
-submissions chart, per-brief table, and discipline split are **all
-static HTML in `dashboard.html` with zero JavaScript touching them** —
-`assets/dashboard.js` never queries any of their selectors. They're
-sample numbers hand-typed into the markup, deliberately kept internally
-consistent (everything traces back to 96 submissions / 31 above bar / 5
-briefs — see the comments in `dashboard.html` around each block), but
-there is no render function to hook a fetch into yet. You'll be writing
-that function, not just filling in a URL. All of it is plain
-percentage-sized `<div>`s and one real `<table>` — no charting library,
-matching the rest of the site's dependency-free rule — so this is
-plain-DOM work, not a library integration.
+**This used to be the one real gap in this handoff — it's a real seam
+now, same shape as the others.** `assets/dashboard.js` has
+`renderCompanyOverview(data.company)`, called from the same
+`body.dash-page[data-endpoint]` fetch as §2.5, whenever the response
+carries a `company` key. It replaces the six-metric row, hiring funnel,
+12-month submissions chart, and per-brief table wholesale (same pattern
+`setProfile()` already uses for the profile rail's tags/stats). No
+charting library — still plain percentage-sized `<div>`s and one real
+`<table>`, matching the rest of the site's dependency-free rule.
 
-Exact locations in `dashboard.html`, company view (`#viewCompany`):
+```jsonc
+"company": {
+  "metrics": [{ "value": "3", "label": "Open briefs", "delta": "+1", "direction": "up" }],  // 6 entries
+  "funnel":  [{ "label": "Submissions", "count": 96, "pctOfTop": 100 }],                     // top-to-bottom, ordered
+  "monthly": [{ "month": "Sep", "count": 17, "pctOfPeak": 100 }],                            // 12 entries, oldest first, last = current month
+  "briefs":  [{ "title": "...", "discipline": "Product", "status": "open",
+                "statusLabel": "Open", "submitted": 38, "aboveBar": 12,
+                "topScore": 94, "closesIn": "6 days" }]                                      // one row per brief
+}
+```
 
-| Chart | Selector | Shape needed |
-|---|---|---|
-| 6-metric row | `.dp-metrics.dp-metrics--six` → six `.dp-metric` (`<b>` value, `<span>` label, `.dp-delta.is-up\|is-down\|is-flat` for the period-over-period change) | `[{ value, label, delta, direction: "up"\|"down"\|"flat" }]`, 6 entries |
-| Hiring funnel | `.dp-funnel` → `<li>` per stage (`.dp-funnel-label`, `.dp-funnel-bar > i[style="width:N%"]`, `<b>` count) | `[{ label, count, pctOfTop }]` — `pctOfTop` drives the bar width, top stage should be 100% |
-| Monthly submissions | `.dp-cols` → 12 `<i style="--h:N%"><span>Mon</span></i>` (`.is-now` on the current month) | `[{ month: "Sep", count, pctOfPeak }]`, 12 entries, `pctOfPeak` drives `--h` |
-| Brief table | `.dp-table` `<tbody>` → one `<tr>` per brief (title, discipline, `.cl-pill[data-status]`, subs, above-bar, top score, closes) | `[{ title, discipline, status, statusLabel, submitted, aboveBar, topScore, closesIn }]` |
-| Discipline split | `.dp-split` → `<i data-seg="…" style="width:N%">` + `.dp-split-key` `<li>` per segment | `[{ discipline, pct }]`, ordered biggest first |
+**Deliberately smaller than the table two rows up used to suggest.**
+The discipline split (`.dp-split` / `.dp-split-key`) and all four prose
+sentences under these charts (the funnel's "X hires from Y
+submissions...", the monthly chart's "busiest month...", the table's "N
+briefs clear your bar most often...") are **not API fields** — they're
+computed in JS from `funnel` and `briefs` every time this renders. This
+is the fix for the exact bug class the old hand-typed sample data hit
+once already (see CLAUDE.md, "Every company figure derives from the
+brief table"): two parallel fields for the same fact can drift apart the
+moment one gets updated and the other doesn't. Deriving instead means
+there is only one number to get right per fact, and it is structurally
+impossible for the split or the notes to disagree with the funnel/table
+they describe. Send `funnel` and `briefs` correctly and everything else
+follows.
 
-**Consistency rule, carried over from how the sample data was built**:
-every number across these five charts, plus the metrics row, must derive
-from one shared source (in the sample data: the brief table). If your
-API assembles these from different queries, double-check the totals
-agree before shipping — a dashboard whose own numbers contradict each
-other (the discipline split saying 36% while the table implies 50%, say)
-reads worse than showing nothing.
+- **Discipline split** buckets each brief's `discipline` against the
+  site's own four-category taxonomy (Product/Engineering/Data/Design,
+  the same set `challenges.html` filters by, case-insensitive). Anything
+  outside those four (a `"Marketing"` brief, say) lands in a shared
+  `other` segment (`[data-seg="other"]` in `dashboard.css`, a neutral
+  grey) rather than borrowing one of the four colours and visually
+  merging two unrelated disciplines.
+- **`closesIn`**: pass `null` for a closed brief and the table shows
+  `—`, matching the sample convention.
+- **`status`**: `new | open | filling | closing | closed` — the first
+  four are `challenges.html`'s own status ladder (`open` uses the
+  unstyled base `.cl-pill`), `closed` is dashboard-only styling in
+  `dashboard.css`.
 
-The heatmap's `buildHeat()` (§2.7) already takes a `targetTotal`
-parameter for exactly this reason — pass it the same submissions total
-these charts use, and its heading will agree with them automatically.
+**The heatmap heading stays in sync automatically now, too.**
+`renderCompanyOverview()` sums `briefs[].submitted` into a module-level
+`companyHeatTotal`, and `buildHeat()`'s `targetTotal` (§2.7) reads that
+instead of the old hardcoded `96` — so as soon as real `briefs` data
+comes in, the heatmap's own heading re-renders against the real total
+with no extra wiring.
+
+**A real bug caught while wiring this, not by inspection:** the fetch
+handler's success callback referenced a variable (`switchEl`) this file
+never actually declares — a leftover from the `.dp-viewswitch` toggle
+removed in an earlier round (see CLAUDE.md "v3.2 updates"). It never
+threw because the callback only runs once a real `data-endpoint` exists,
+which nothing has set yet — but it would have thrown a `ReferenceError`
+on the very first real response, right where this whole company-overview
+wiring now lives. Removed; nothing replaced it, since the audience
+toggle it referred to no longer exists on this page.
+
+Verified against a local JSON fixture (deliberately including a brief
+with a discipline outside the known four, to exercise the `other`
+fallback) via a headless-browser check, not just written: all five
+sections render correctly, every derived note's numbers were hand-checked
+against the fixture, the discipline split's `other` bucket rendered with
+the right label and colour, the heatmap heading updated to the real
+total, the student view was unaffected, and there were zero console
+errors.
 
 ### 2.9. Which dashboard view
 
