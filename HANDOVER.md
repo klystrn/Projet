@@ -181,6 +181,20 @@ POST <data-endpoint>
 Same honesty rule as the auth forms: with no endpoint set it says so
 rather than thanking the visitor for a signup that didn't happen.
 
+**It really does POST once you set the endpoint.** Worth stating because
+it did not until the Sep 2026 deep bugs check: the wired path printed
+"Thanks. You're on the list." without calling `fetch` at all, so pointing
+`data-endpoint` at a real route would have confirmed a signup that never
+left the browser. Now:
+
+- **2xx** → "Thanks. You're on the list." and the field clears.
+- **409** → "That address is already on the list." Return this if you
+  want the duplicate case worded that way; any other non-2xx gets a
+  generic retry message.
+- **Network failure** → a generic "Couldn't reach the server" line. The
+  browser's own error text is deliberately never shown.
+- Double submits are ignored while a request is in flight.
+
 ### 2.3. Featured challenges on index.html — NOT a seam, by design
 
 Worth flagging explicitly since it's the first "cards" example the brief
@@ -234,6 +248,21 @@ GET <data-endpoint>  ->  { "challenges": [ Challenge ] }
 so wording can change without touching CSS. `deadline`, `posted` and
 `effort` are **display strings**, not timestamps — the front end never
 formats them, the API decides the wording.
+
+**An empty list is not a failure, and is handled separately.** A failed
+request, a non-2xx or a malformed body all leave the sample cards
+untouched on purpose — a readable list beats an error state. But sending
+`{"challenges": []}` clears the samples, hides the filter row and shows
+`#clNone` ("No open challenges right now"). Until the Sep 2026 deep bugs
+check an empty array went down the same do-nothing path as a network
+error, which left twelve **sample** briefs on screen, naming companies
+that do not exist. Send `[]` when the backlog is empty and the page says
+so honestly.
+
+There are two distinct empty states here and they mean different things:
+`#clNone` (`.cl-none`) is "the API returned nothing"; `#clEmpty`
+(`.cl-empty`) is the filter's own "nothing in that discipline". Don't
+merge them.
 
 **When this goes live**, also drop `challenges.html`'s
 `<meta name="robots" content="noindex">` and add the page to
@@ -586,6 +615,40 @@ already showing the edit.
 - **`archive/` folder removal** — see the pre-launch checklist. Not a
   backend question, but flagged here since it's the one item in this
   handover that's a "delete this" instruction rather than a "build this."
+
+---
+
+## 3a. Sending data this front end won't choke on
+
+From the second, deeper bugs pass (Sep 2026), which drove malformed,
+empty, hostile and oversized payloads through every render function.
+Nothing below throws any more, but two of these produce *wrong* output
+rather than an error, so they are worth knowing before you build the API:
+
+- **Send numbers as numbers.** `"submitted": "40"` (a string) used to be
+  concatenated rather than added — two briefs summed to `"04030"`, which
+  then drove the brief-table note, the discipline percentages and the
+  heatmap total. Every figure is coerced with a `num()` helper now, so a
+  string won't break it, but numeric JSON types are still what to send.
+- **Zero is a real value and is honoured.** A company with briefs posted
+  and no submissions yet correctly renders 0 everywhere, including the
+  heatmap heading. (It used to fall back to the sample 96 there, because
+  the guard was a truthiness test.)
+- **Disciplines outside Product / Engineering / Data / Design** all fall
+  into one shared "Other" segment, labelled "Other". Two unknown
+  disciplines will be summed together, so if Marketing and Legal both
+  matter as separate lines, add them to `DISCIPLINE_SEGS` in
+  `assets/dashboard.js` (and give each a colour in `dashboard.css`).
+- **Array lengths are not clamped.** The six-metric row, the 12-month
+  chart and the funnel render exactly what you send; sending 14 metrics
+  lays out 14. Stick to the documented counts.
+- **Every string is escaped** (`textContent` throughout, verified with
+  script payloads in every field), so markup in a name or title renders
+  as visible text rather than executing. It will still look wrong, so
+  sanitise server-side.
+- **Long unbroken strings** (a pasted URL in a name field, a 60-character
+  skill tag) now wrap instead of pushing the page into horizontal scroll,
+  but they are ugly. Validate lengths on input.
 
 ---
 

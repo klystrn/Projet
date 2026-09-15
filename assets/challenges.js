@@ -230,7 +230,8 @@
 
       var meta = el("div", "cl-meta");
       meta.appendChild(el("span", "cl-deadline", c.deadline));
-      meta.appendChild(el("span", "", c.submitted + " submitted"));
+      // guarded: a brief with no count rendered the literal "undefined submitted"
+      meta.appendChild(el("span", "", (c.submitted == null ? 0 : c.submitted) + " submitted"));
 
       var btn = el("button", "cl-view-brief", "View brief");
       btn.type = "button";
@@ -260,15 +261,40 @@
     return node;
   }
 
+  /* An empty list and a failed request are NOT the same thing, and treating
+     them the same was a real bug: `data.challenges.length` sent a valid
+     "nothing open right now" response down the same do-nothing path as a
+     network error, leaving twelve sample briefs on screen. Those briefs
+     name companies that do not exist, so a live site with an empty backlog
+     would have been presenting invented listings to real visitors — the one
+     thing this project's placeholder rule exists to prevent. A failure still
+     keeps the samples (a readable list beats an error state); only a
+     successful, genuinely empty response clears them. */
+  function showEmptyListing() {
+    grid.textContent = "";
+    grid.removeAttribute("data-placeholder");
+    var none = document.getElementById("clNone");
+    if (none) none.hidden = false;
+    // the count lives inside this group, so it goes with it
+    var filters = document.querySelector(".cl-filters");
+    if (filters) filters.hidden = true; // nothing left to filter
+    /* The filter's own "none in that discipline" note must not stack on top
+       of this one — they would contradict each other, and no filter is even
+       applied here. Deliberately no projet:rendered dispatch either: that
+       re-runs the filter, which is what would raise that note. */
+    var filterEmpty = document.getElementById("clEmpty");
+    if (filterEmpty) filterEmpty.classList.remove("is-shown");
+  }
+
   (function () {
     var endpoint = grid.getAttribute("data-endpoint");
     if (!endpoint) return;
     fetch(endpoint, { headers: { Accept: "application/json" } })
       .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
       .then(function (data) {
-        if (data && Array.isArray(data.challenges) && data.challenges.length) {
-          renderChallenges(data.challenges);
-        }
+        if (!data || !Array.isArray(data.challenges)) return; // malformed: keep the page
+        if (data.challenges.length) renderChallenges(data.challenges);
+        else showEmptyListing();
       })
       .catch(function () { /* keep whatever is already on the page */ });
   })();

@@ -383,6 +383,18 @@
 
   var DISCIPLINE_SEGS = ["product", "engineering", "data", "design"];
 
+  /* Coerce an API figure to a number before doing arithmetic on it. JSON
+     APIs hand numbers back as strings more often than you'd like (Mongo
+     aggregations, ORMs, anything that has been through a spreadsheet), and
+     `total += br.submitted` on a string silently CONCATENATES: two briefs
+     of "40" and "30" summed to the string "04030", which then drove the
+     brief-table note, the discipline percentages and the heatmap total.
+     A wrong total is worse than a missing one, because it looks fine. */
+  function num(v) {
+    var n = typeof v === "number" ? v : parseFloat(v);
+    return isFinite(n) ? n : 0;
+  }
+
   // zero-padded rank string, e.g. 4 -> "04" — shared by entries and candidates
   function pad2(n) {
     var s = String(n);
@@ -612,13 +624,26 @@
     if (!bar || !key || !briefs || !briefs.length) return;
     var totals = {};
     briefs.forEach(function (br) {
-      var label = br.discipline || "Other";
-      var seg = DISCIPLINE_SEGS.indexOf(label.toLowerCase()) !== -1 ? label.toLowerCase() : "other";
-      if (!totals[seg]) totals[seg] = { label: seg === "other" ? label : label, subs: 0 };
-      totals[seg].subs += br.submitted || 0;
+      var label = String(br.discipline || "Other");
+      var known = DISCIPLINE_SEGS.indexOf(label.toLowerCase()) !== -1;
+      var seg = known ? label.toLowerCase() : "other";
+      /* The shared bucket is labelled "Other", not after whichever unknown
+         discipline happened to arrive first. It used to take that first
+         label, so briefs in Marketing and Legal both landed here and the
+         key read "Marketing 60%" for a bar that was half Legal — the same
+         silent merge of two unrelated disciplines the separate `other`
+         colour exists to prevent (see the note above). */
+      if (!totals[seg]) totals[seg] = { label: known ? label : "Other", subs: 0 };
+      totals[seg].subs += num(br.submitted);
     });
     var segs = Object.keys(totals).filter(function (s) { return totals[s].subs > 0; });
-    if (!segs.length) return;
+    /* Nothing to draw, so clear the bar rather than returning and leaving
+       the sample split standing next to real zeroed-out numbers. */
+    if (!segs.length) {
+      bar.innerHTML = "";
+      key.innerHTML = "";
+      return;
+    }
     var grandTotal = segs.reduce(function (sum, s) { return sum + totals[s].subs; }, 0);
     segs.sort(function (a, b) { return totals[b].subs - totals[a].subs; });
     bar.innerHTML = "";
@@ -664,11 +689,11 @@
       cells[5].textContent = br.closesIn || "—";
       tbody.appendChild(tr);
       if (br.status === "closed") closedCount++; else openCount++;
-      totalSubs += br.submitted || 0;
+      totalSubs += num(br.submitted);
       var d = br.discipline || "Other";
       if (!byDiscipline[d]) byDiscipline[d] = { subs: 0, bar: 0 };
-      byDiscipline[d].subs += br.submitted || 0;
-      byDiscipline[d].bar += br.aboveBar || 0;
+      byDiscipline[d].subs += num(br.submitted);
+      byDiscipline[d].bar += num(br.aboveBar);
     });
     if (section) {
       var count = section.querySelector(".dp-count");
@@ -701,7 +726,14 @@
     if (Array.isArray(data.monthly)) renderMonthlyChart(data.monthly);
     if (Array.isArray(data.briefs) && data.briefs.length) {
       var totalSubs = renderBriefTable(data.briefs);
-      if (totalSubs) {
+      /* `>= 0`, not a truthiness test. A brand-new company account — briefs
+         posted, no submissions yet — sends a real 0 here, and `if (0)` left
+         companyHeatTotal on the hardcoded 96, so the heatmap announced "96
+         submissions received" directly above a brief table correctly
+         reading 0. A dashboard contradicting itself on one screen is the
+         exact failure CLAUDE.md v3.4 calls worse than no dashboard, and
+         zero is the most likely state this page is ever seen in. */
+      if (typeof totalSubs === "number" && totalSubs >= 0) {
         companyHeatTotal = totalSubs;
         if (currentView === "company") buildHeat(true);
       }
@@ -1159,22 +1191,31 @@
 
     // Applied over whatever setProfile() just wrote, so a saved edit
     // survives a role switch re-render rather than being silently reverted.
+    /* Every field is coerced with String() before anything string-shaped is
+       done to it. read() already try/catches the JSON.parse, but it trusted
+       the SHAPE of whatever parsed — so a stored {"name":123} reached
+       data.name.trim() and threw a TypeError. That throw happened on this
+       file's own top-level startup path (reapplyProfileEdits runs at load),
+       which aborts the rest of the module, not just the profile edit. One
+       stale or foreign value under this localStorage key took the whole
+       dashboard's JavaScript down with it. */
     function apply(data) {
-      if (!data) return;
-      if (data.name) {
-        setText("dpName", data.name);
+      if (!data || typeof data !== "object") return;
+      if (data.name != null && data.name !== "") {
+        var name = String(data.name).trim();
+        setText("dpName", name);
         // initials follow the name, the same way the sample profile's do
-        var initials = data.name.trim().split(/\s+/).slice(0, 2)
+        var initials = name.split(/\s+/).slice(0, 2)
           .map(function (w) { return w.charAt(0).toUpperCase(); }).join("");
         if (initials) setText("dpAvatar", initials);
-        setText("dpHandle", "@" + data.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, ""));
+        setText("dpHandle", "@" + name.toLowerCase().replace(/[^a-z0-9]+/g, ""));
       }
-      if (data.org) { setText("dpDetOrg", data.org); setText("dpSub", data.org); }
-      if (data.loc) setText("dpDetLoc", data.loc);
-      if (data.bio) setText("dpBio", data.bio);
+      if (data.org) { setText("dpDetOrg", String(data.org)); setText("dpSub", String(data.org)); }
+      if (data.loc) setText("dpDetLoc", String(data.loc));
+      if (data.bio) setText("dpBio", String(data.bio));
       if (data.tags) {
         var tagsEl2 = document.getElementById("dpTags");
-        var list = data.tags.split(",").map(function (t) { return t.trim(); }).filter(Boolean);
+        var list = String(data.tags).split(",").map(function (t) { return t.trim(); }).filter(Boolean);
         if (tagsEl2 && list.length) {
           tagsEl2.textContent = "";
           list.forEach(function (t) {

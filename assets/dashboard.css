@@ -86,9 +86,22 @@ body.dash-page{background:var(--paper-warm);}
    this 12.5px size, under the 4.5:1 AA floor for small text */
 .dp-rank.is-rest{background:var(--line); color:var(--ink-soft);}
 .dp-card-body{flex:1; min-width:0;}
+/* overflow-wrap, because min-width:0 alone only lets the box shrink — it does
+   not let an unbroken RUN break. A pasted URL or email in a name field (or a
+   long single-token skill) stayed one atomic 70-char word, pushed the flex
+   row wider than its track and took the whole page into horizontal scroll:
+   308px of it at 390px wide. Ordinary long names were always fine; it takes
+   a string with no break opportunity in it. */
+.dp-card-title, .dp-card-meta, .dp-chip{overflow-wrap:anywhere;}
 .dp-card-title{font-size:15px; font-weight:700; margin-bottom:3px;}
 .dp-card-meta{font-size:12.5px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
-.dp-chips{display:flex; gap:6px; flex-wrap:wrap; flex:none;}
+/* flex:0 1 auto + min-width:0, not flex:none. overflow-wrap on the chip
+   itself cannot help while its container is locked to max-content — there
+   is no narrower width for the text to wrap into, so one 60-character
+   skill tag sized this box to 399px inside a 350px card and pushed the
+   page into horizontal scroll. Shrinking only ever engages when the row
+   actually overflows, so ordinary short chips lay out exactly as before. */
+.dp-chips{display:flex; gap:6px; flex-wrap:wrap; flex:0 1 auto; min-width:0;}
 .dp-chip{
   font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:600;
   padding:4px 9px; border-radius:999px;
@@ -103,7 +116,10 @@ body.dash-page{background:var(--paper-warm);}
 .dp-score{flex:none; text-align:right; min-width:64px;}
 .dp-score b{display:block; font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; line-height:1;}
 .dp-score span{display:block; margin-top:3px; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
-.dp-fit{flex:none; font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:var(--accent-deep); min-width:48px; text-align:right;}
+/* max-width caps what is meant to be a short percentage ("92%"). flex:none
+   alone let a malformed value grow the cell to 287px and shove the row past
+   the viewport edge — a number field should never be able to do that. */
+.dp-fit{flex:none; font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:var(--accent-deep); min-width:48px; max-width:72px; text-align:right; overflow:hidden; text-overflow:ellipsis;}
 .dp-card .btn{flex:none;}
 
 /* ---------- toolbar (company view) ---------- */

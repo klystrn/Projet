@@ -267,6 +267,130 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v4.0 updates (Sep 2026) — second, deeper bugs pass
+
+Asked directly, right after v3.9 landed: "Run another check. This time go
+deeper, I'm sure there are more bugs to find." There were — nine, and the
+three worst were all in code the first pass had walked past because it
+only ever exercised the happy path. **The method that found them is the
+transferable part: stop clicking things that work and start feeding the
+render functions data they were never shown.** A probe page set
+`data-endpoint` from a query param, and ten fixtures went through it —
+empty arrays, missing fields, nulls, wrong types, 3x the expected array
+lengths, zeroes, negatives, script payloads in every string, a top-level
+array, a top-level string.
+
+**Fixed, worst first:**
+
+1. **The footer capture faked success.** `#footerNotify` with a
+   `data-endpoint` set printed "Thanks. You're on the list." and **never
+   called fetch at all** — no POST, nothing. The unwired path was honest
+   and the wired path was not, which is exactly backwards, and
+   `HANDOVER.md` §2.2 documented a `POST {email}` contract that no code
+   implemented. It really posts now, only claims success on a 2xx, has a
+   409 case for duplicates, ignores double submits, and shows a generic
+   line for network errors rather than leaking the browser's own error
+   text. **Same failure class as the v3.5 company-charts gap: a comment
+   described a seam and nothing implemented it.** When auditing a seam,
+   read what the code *sends*, not what the comment promises.
+2. **An empty challenge listing showed twelve invented companies.**
+   `challenges.js` guarded on `data.challenges.length`, so a perfectly
+   valid `{"challenges": []}` ("nothing open right now") went down the
+   same do-nothing path as a network error and left the sample briefs —
+   Nordwave, Acme Labs, Lumen Works — standing as if they were real
+   listings. That is a content-integrity failure, not just a UX one: it
+   breaks this file's own rule that placeholder content is never dressed
+   up as real. An empty list and a failed request are now different
+   things: failure still keeps the samples (a readable list beats an
+   error state), while a successful empty response clears the grid, hides
+   the filter row and shows `#clNone`.
+   **`.cl-none`, deliberately not `.cl-empty`** — the first attempt
+   reused that name and collided head-on with the filter's existing "no
+   challenges in that discipline" component, creating a duplicate
+   `id="clEmpty"` that silently stole the filter's own element (
+   `getElementById` returns the first match). Caught by my own
+   verification pass, not by inspection. **Grep the CSS for a class name
+   before introducing it** — this file is large enough that a plausible
+   name is often already taken.
+3. **A brand-new company account saw a dashboard contradicting itself.**
+   With briefs posted and no submissions yet, the brief table and all
+   three notes correctly read 0, while the heatmap heading above them
+   announced "96 submissions received" and the discipline split still
+   showed the sample Product 50% / Engineering 28% / Data 15% / Design
+   7%. Two independent causes, both the same shape: `if (totalSubs)`
+   treated a real 0 as "no data" and kept the sample total, and
+   `renderDisciplineSplit()` returned early on an empty result, leaving
+   the sample bar standing. Now `>= 0` and an explicit clear. **Zero is
+   the single most likely state this page is ever seen in, and it was
+   the one state nothing tested.** Exactly the "charts disagreeing with
+   each other on the same screen" failure v3.4 calls worse than no
+   dashboard.
+4. **String-typed numbers concatenated instead of adding.** `"submitted":
+   "40"` made `totalSubs += br.submitted` produce the string `"04030"`,
+   which then drove the table note, the discipline percentages and the
+   heatmap total. JSON APIs hand numbers back as strings more often than
+   you'd like. A `num()` helper coerces every figure now. A wrong total
+   is worse than a missing one, because it looks fine.
+5. **The "other" discipline bucket took the wrong name.** `{ label: seg
+   === "other" ? label : label }` — a ternary returning the same thing
+   either way, so the shared bucket was named after whichever unknown
+   discipline arrived first. Briefs in Marketing and Legal both landed
+   there and the key read "Marketing 60%" for a bar that was half Legal:
+   the exact silent merge of two unrelated disciplines that giving
+   `other` its own colour was supposed to prevent (v3.6). Labelled
+   "Other" now.
+6. **A wrong-typed `projet:profile` aborted the dashboard's whole
+   startup.** `read()` already try/catches the `JSON.parse`, but then
+   trusted the *shape*, so a stored `{"name":123}` reached
+   `data.name.trim()` and threw a `TypeError` — on this file's top-level
+   startup path, which kills every module below it, not just the profile
+   edit. Every field is `String()`-coerced now. **Guarding the parse is
+   not guarding the data.**
+7. **The mobile menu never took the page out of the tab order.** Tabbing
+   past the last menu link walked into the hero CTAs and the logo
+   carousel — elements behind a full-screen overlay, invisible, with no
+   clue where focus had gone. The sheet now sets `inert` on every body
+   child except itself and the nav that owns the toggle (with a
+   `focusin` roving loop as the fallback where `inert` is missing). The
+   nav bar stays visible above the sheet, so the logo and the toggle
+   remaining reachable is correct, and was verified rather than assumed.
+8. **Escape closed the menu and abandoned focus** on a link inside the
+   now-hidden sheet, so the next Tab resumed from `<body>`. It returns
+   focus to `#navToggle` now, the standard return target for a dismissed
+   overlay. `inert` is cleared on all three close paths (Escape, link
+   click, resize past the breakpoint) — checked separately, since a
+   leaked `inert` would freeze the whole page.
+9. **One unbroken 60-character string took the page into horizontal
+   scroll** (308px of it at 390px wide). `overflow-wrap` on the chip
+   could not help while `.dp-chips` was `flex:none` and therefore sized
+   to max-content — there was no narrower width to wrap into. It shrinks
+   now (`flex:0 1 auto; min-width:0`), which only ever engages when the
+   row actually overflows. `.dp-fit` also got a `max-width`: a field that
+   holds "92%" should never be able to grow to 287px. Ordinary long names
+   were always fine; it takes a string with no break opportunity in it.
+
+**A second measurement trap, worth as much as the fixes** (the first was
+v3.9's `scroll-behavior:smooth`). Enter on `.cl-view-brief` appeared not
+to open the brief modal while Space did — a striking, plausible-looking
+keyboard bug. It was my own probe: dispatching `text:"\r"` on the
+`keyDown` **and** a separate `char` event double-activates, and the second
+click landed on the modal's own close button, so the dialog opened and
+shut inside one keypress. A control (a bare `<button>` on a `data:` URL)
+proved the harness activates Enter correctly, and re-running without the
+extra `char` event showed `open=true`. **When dispatching a key that has
+a default action, send `text` or a `char` event, never both** — and
+before reporting a keyboard bug, count the clicks.
+
+**Verified clean under the same hostile battery** (no exceptions, no
+injection, no overflow): every string field escaped against script
+payloads, top-level non-object JSON, arrays 3x their expected length,
+negative and zero figures, corrupted `localStorage` JSON, rapid mode
+toggling mid-crossfade, resize across the 900px breakpoint while the
+How-it-works pin is engaged, four consecutive dashboard role switches
+(one tooltip, correct totals, no orphans), the mobile menu closing on all
+three paths, 320px / 2560px / 200% zoom on six pages, and the dashboard
+tablist's Home / End / Arrow keys.
+
 ## v3.9 updates (Sep 2026) — full bugs check, pre-handover
 
 Asked for directly: "Run a bugs check. This should include functionality,

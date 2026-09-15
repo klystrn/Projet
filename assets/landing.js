@@ -334,10 +334,28 @@
     var toggle = document.getElementById("navToggle");
     var menu = document.getElementById("mobileMenu");
     if (!toggle || !menu) return;
+    /* The sheet covers the page, so while it is open the page behind it
+       has to leave the tab order too. Without this, tabbing past the last
+       menu link walked straight into the hero CTAs and the logo carousel —
+       elements the reader cannot see, with no way to tell where focus had
+       gone. `inert` does it in one attribute (focus, clicks and the
+       accessibility tree all at once); the roving loop below is the
+       fallback for browsers that don't support it yet. */
+    var INERT_OK = "inert" in HTMLElement.prototype;
+    function backdrop(on) {
+      Array.prototype.forEach.call(document.body.children, function (el) {
+        if (el === menu || el.tagName === "SCRIPT") return;
+        // the nav owns the toggle itself, so it must stay operable
+        if (el.contains(toggle)) return;
+        if (on) el.setAttribute("inert", "");
+        else el.removeAttribute("inert");
+      });
+    }
     function setOpen(open) {
       menu.classList.toggle("open", open);
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
       toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      if (INERT_OK) backdrop(open);
     }
     toggle.addEventListener("click", function () {
       setOpen(!menu.classList.contains("open"));
@@ -346,8 +364,24 @@
     menu.addEventListener("click", function (e) {
       if (e.target.closest("a")) setOpen(false);
     });
+    /* Fallback focus loop for no-inert browsers: if focus lands outside
+       the open sheet, pull it back to the first or last item depending on
+       which end it left by. Registered once, and a no-op while closed. */
+    document.addEventListener("focusin", function (e) {
+      if (INERT_OK || !menu.classList.contains("open")) return;
+      if (menu.contains(e.target) || e.target === toggle) return;
+      var items = menu.querySelectorAll("a, button");
+      if (!items.length) return;
+      items[e.relatedTarget === items[items.length - 1] ? 0 : items.length - 1].focus();
+    });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key !== "Escape" || !menu.classList.contains("open")) return;
+      setOpen(false);
+      // Escape left focus sitting on a link inside the now-hidden sheet,
+      // so the next Tab resumed from <body> rather than from the control
+      // that opened it. Hand it back to the toggle, the standard return
+      // target for a dismissed overlay.
+      toggle.focus();
     });
     window.addEventListener("resize", function () {
       if (window.innerWidth > 900) setOpen(false);
@@ -942,11 +976,23 @@
 
   /* ---------------- footer "get notified" capture ----------------
      Front end only, same honesty rule as the auth forms: an empty
-     data-endpoint means it says the wiring is pending, never fakes success. */
+     data-endpoint means it says the wiring is pending, never fakes success.
+
+     It REALLY POSTS once an endpoint is set. That is worth spelling out
+     because the first version of this did not: it printed "Thanks, you're
+     on the list." on the wired path without calling fetch at all, so
+     pointing data-endpoint at a real route would have thanked every
+     visitor for a signup that never left the browser. The unwired path was
+     honest and the wired path was not, which is exactly backwards. Same
+     failure class as the dashboard "seam" that a comment described and no
+     code implemented (see CLAUDE.md, v3.5) — check what the code sends,
+     not what the comment promises. */
   (function () {
     var form = document.getElementById("footerNotify");
     if (!form) return;
     var msg = form.querySelector(".footer-notify-msg");
+    var input = document.getElementById("footerNotifyEmail");
+    var busy = false;
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var endpoint = form.getAttribute("data-endpoint");
@@ -954,7 +1000,36 @@
         msg.textContent = "Not connected yet. This form is the finished front end, waiting on the API.";
         return;
       }
-      msg.textContent = "Thanks. You’re on the list.";
+      if (busy) return; // a double submit would send the address twice
+      busy = true;
+      msg.textContent = "One moment…";
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: input ? input.value.trim() : "" })
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            var e = new Error(res.status === 409
+              ? "That address is already on the list."
+              : "Something went wrong. Please try again.");
+            e.shown = true; // ours, safe to print; see the catch below
+            throw e;
+          }
+          // only now, with a real 2xx in hand, is the confirmation true
+          msg.textContent = "Thanks. You’re on the list.";
+          form.reset();
+        })
+        .catch(function (err) {
+          /* Only messages this code wrote get shown. A rejected fetch
+             carries the browser's own wording ("Failed to fetch", or a
+             CORS/DNS detail), which is noise to a visitor and leaks
+             internals — print the generic line for those instead. */
+          msg.textContent = err && err.shown
+            ? err.message
+            : "Couldn’t reach the server. Please try again.";
+        })
+        .then(function () { busy = false; });
     });
   })();
 
