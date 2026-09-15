@@ -40,7 +40,7 @@ real before any public launch.
 | Company overview charts | `dashboard.html` company view: 6-metric row, hiring funnel, monthly chart, brief table, discipline split | **Wired, not just sample data** (§2.8) — send real `metrics`/`funnel`/`monthly`/`briefs` and it renders; the discipline split and all prose notes are computed from that data, not separate fields. Until wired, the sample figures shown are internally consistent by construction (everything derives from 96 submissions / 31 above bar / 5 briefs), so if you change one for a screenshot, re-derive the rest. | §2.8. |
 | Every front-end-only form | `login.html`, `signup.html`, footer "get notified" capture | Each carries an empty `data-endpoint`. With nothing set they say the wiring is pending rather than faking a success — reuse that convention for any new form. | §2.1–§2.2. |
 | Google sign-in button | `login.html`, `signup.html` (`[data-oauth="google"]`) | A real, styled button with **no OAuth wired at all** — clicking it reports "not connected yet" through the shared status region. | §2.1.1. |
-| Edit profile | `dashboard.html` | Genuinely saves, but only to `localStorage` on that one device; the dialog says so in its own copy. | §2.7 (Edit profile). |
+| Edit profile | `dashboard.html` | **Wired** (§2.10) — genuinely saves, but only to `localStorage` on that one device until `#editForm`'s `data-endpoint` is set; the dialog says so in its own copy either way. | §2.10. |
 | Inert action buttons | `dashboard.html` | Schedule / Compare / Book interviews / View submission are `href="#"`. | No spec yet — ask before building; not covered further in this doc. |
 | Footer links with no page yet | Every page footer | Careers / Contact / Privacy / Terms now render as plain, dimmed `.footer-pending` text (no "SOON" badge any more, but still not links — see "Notice removal" below). | Swap each back to a real `<a href="…">` as its page ships. |
 | `noindex` tags | `challenges.html`, `login.html`, `signup.html` `<head>` | Kept out of search while their content/flow is sample or non-functional. | Remove per-page once that page's content is real, and add the URL to `sitemap.xml` at the same time (contradictory to list a noindexed URL there). |
@@ -97,6 +97,7 @@ documented shape.
 | 2.7 | `dashboard.html` | `#dpHeat` / `#dpHeatCo` | (via 2.5, `data.heatTotal` / `data.company.briefs`) | Heading total wired for both roles; per-day grid is still cosmetic filler, not real data — see §2.7 |
 | 2.8 | `dashboard.html` company view | 6-metric row, funnel, monthly chart, brief table, discipline split | GET (via 2.5, `data.company`) | **Wired (Sep 2026)** — send the four arrays, get all five sections and their notes |
 | 2.9 | `dashboard.html` | `window.ProjetDashboard.setView()` / `.showEmpty()` | — | JS hooks, call directly once real auth exists |
+| 2.10 | `dashboard.html` | `#editForm[data-endpoint]` | PATCH | Wired, needs a URL |
 
 ### 2.1. Signup
 
@@ -511,13 +512,45 @@ the whole page (sets `html[data-audience]`) — nothing else needs to know
 the role. `window.ProjetDashboard.showEmpty(bool)` is the other exposed
 hook, for forcing the student empty state independent of a fetch.
 
-### Edit profile (dashboard.html)
+### 2.10. Edit profile (dashboard.html) — wired, needs a URL
 
-Deliberately real but local right now: it writes to
-`localStorage["projet:profile"]` and the dialog's own copy says exactly
-that ("Saved on this device"). Point it at a `PATCH`/`PUT` endpoint and
-delete the localStorage read/write — `reapplyProfileEdits` (in
-`assets/dashboard.js`) is the only other thing that touches it.
+`#editForm[data-endpoint]`, same convention as every other seam. Empty
+(the shipped default): saves only to `localStorage["projet:profile"]`,
+and the dialog's own note says exactly that ("Saved on this device
+only..."). Set the attribute to a real URL and three things change
+automatically, no other code to touch:
+
+```
+PATCH <data-endpoint>
+Content-Type: application/json
+
+{ "name": "...", "org": "...", "loc": "...", "bio": "...", "tags": "Figma, Front-end, A11y" }
+```
+
+- The dialog's own note switches to "Saved to your account." (read once
+  at page load, from whether the attribute is set — see
+  `assets/dashboard.js`, the block right after `editForm` is looked up).
+- Submitting PATCHes that endpoint. On success, the status line says
+  "Saved." — a real account save, not the local one.
+- On a network error or non-2xx, it **fails soft into the existing local
+  save** rather than losing the edit or claiming a false success: the
+  edit still applies to the page and still writes to `localStorage`, but
+  the status line says "Couldn't reach the server — Saved on this
+  device." rather than silently claiming the account save worked.
+
+`reapplyProfileEdits` (in `assets/dashboard.js`) still re-applies
+whatever's in `localStorage` on a role switch, regardless of whether an
+endpoint is set — that part didn't need to change, since even a real
+account save should feel instant on this same device without waiting on
+a re-fetch. Once a real account exists, the local copy becomes a client-
+side cache of the last known save rather than the only copy — nothing
+here needs to delete it.
+
+Tested with a stubbed `fetch` (this environment's dev server can't
+itself serve a `PATCH`) confirming the exact method/headers/body sent,
+and all three paths — success, request failure, and no endpoint set —
+end with the correct status text and, in every case, the visible profile
+already showing the edit.
 
 ---
 

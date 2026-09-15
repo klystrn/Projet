@@ -113,12 +113,15 @@
       in agreement with the real total instead of the hardcoded 96 sample.
 
    6. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
-      View submission buttons are inert placeholders (href="#"). The Edit
-      profile dialog is deliberately real but local: it writes to
-      localStorage["projet:profile"] and says so in its own copy. Point it
-      at a PATCH endpoint and delete the localStorage read/write — the
-      re-apply hook (reapplyProfileEdits) is the only other thing it
-      touches.
+      View submission buttons are inert placeholders (href="#") — no spec
+      for those yet. Edit profile is wired: set #editForm's data-endpoint
+      and it PATCHes { name, org, loc, bio, tags } there instead of only
+      writing localStorage["projet:profile"] — see HANDOVER.md 2.10 for
+      the full behaviour (success/failure/no-endpoint all handled, the
+      dialog's own note text switches to match). reapplyProfileEdits still
+      re-applies the localStorage copy on every role switch regardless of
+      whether an endpoint is set, so an edit still feels instant on this
+      device without waiting on a re-fetch.
    ========================================================================== */
 (function () {
   "use strict";
@@ -1128,6 +1131,14 @@
     var STORE = "projet:profile";
     var form = document.getElementById("editForm");
     var statusEl = document.getElementById("editStatus");
+
+    // Static copy would go stale the moment a real data-endpoint is set —
+    // read once at setup, since the attribute itself never changes at runtime.
+    var noteEl = document.getElementById("editNote");
+    if (noteEl && form.getAttribute("data-endpoint")) {
+      noteEl.textContent = "Saved to your account.";
+    }
+
     var fields = {
       name: document.getElementById("editName"),
       org: document.getElementById("editOrg"),
@@ -1207,6 +1218,18 @@
       if (pointerOpened && sup) sup(openBtn);
     });
 
+    // Local-only save — the whole thing this dialog did before an
+    // endpoint existed, kept verbatim as the fallback for both "no
+    // endpoint set" and "endpoint set but the request failed."
+    function saveLocal(data, prefix) {
+      var saved = true;
+      try { localStorage.setItem(STORE, JSON.stringify(data)); }
+      catch (err) { saved = false; }
+      // Private mode and full storage both throw here. The page still shows
+      // the edit, so saying "saved" would be a lie by one word.
+      say((prefix || "") + (saved ? "Saved on this device." : "this browser blocked saving it."));
+    }
+
     form.addEventListener("submit", function (e) {
       // method="dialog" would close before this runs, so take the wheel
       e.preventDefault();
@@ -1219,12 +1242,30 @@
         tags: fields.tags.value.trim()
       };
       apply(data);
-      var saved = true;
-      try { localStorage.setItem(STORE, JSON.stringify(data)); }
-      catch (err) { saved = false; }
-      // Private mode and full storage both throw here. The page still shows
-      // the edit, so saying "saved" would be a lie by one word.
-      say(saved ? "Saved on this device." : "Applied, but this browser blocked saving it.");
+
+      var endpoint = form.getAttribute("data-endpoint");
+      if (endpoint) {
+        // A real account exists once this is set: PATCH it there, and only
+        // fall back to the local-only save (with an honest reason why) if
+        // the request itself fails — never silently swap a real account
+        // save for a local one without saying so.
+        say("Saving…");
+        fetch(endpoint, {
+          method: "PATCH",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); })
+          .then(function () { say("Saved."); setTimeout(function () { modal.close(); }, 650); })
+          .catch(function () {
+            saveLocal(data, "Couldn't reach the server — ");
+            setTimeout(function () { modal.close(); }, 650);
+          });
+        return;
+      }
+
+      saveLocal(data, "");
       setTimeout(function () { modal.close(); }, 650);
     });
 

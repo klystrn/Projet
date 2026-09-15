@@ -267,6 +267,59 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.8 updates (Sep 2026) — challenges listing confirmed wired, Edit Profile wired
+
+Asked directly: "Wire up the challenges listing endpoint too. What other
+endpoints are missing?" Checked before touching anything — `challenges.js`
+already had a real, working `#clGrid[data-endpoint]` fetch/render/delegate
+implementation from an earlier round (see the "v3.3 updates" note further
+down: "the challenge listing is a *real, working* seam"). Verified it still
+works end to end against a fresh local fixture (real cards replace the
+sample ones, the now-removed `.cl-notice` element's absence is handled
+gracefully, `data-placeholder` drops, zero console errors) rather than
+trusting the old note. **The only actual gap was that `#clGrid` had no
+`data-endpoint` attribute in the markup at all** — every other true seam
+on the site carries an explicit `data-endpoint=""` so a `grep -rn
+data-endpoint= *.html` finds every seam in one pass; this one was
+functionally identical (an absent attribute and an empty one both read as
+falsy) but invisible to that same grep. Added `data-endpoint=""` to
+`#clGrid` and to `<body class="dash-page">` (same gap, same fix).
+
+**Auditing "what else is missing" surfaced one genuine remaining gap: Edit
+Profile.** Every other item in `HANDOVER.md`'s checklist was already either
+wired-needs-a-URL, or deliberately out of scope for a documented reason
+(Google OAuth is explicitly Andrei's to build; the featured-challenge
+ticket rail on `index.html` is deliberately not a seam; brief-detail pages
+and the inert action buttons have no spec yet). Edit Profile was the one
+thing still hard-coded to `localStorage` only, with no `data-endpoint` path
+out of that at all. Wired it the same way as everything else:
+`#editForm[data-endpoint]`, empty by default (unchanged local-only
+behaviour), and when set, submitting PATCHes `{ name, org, loc, bio, tags }`
+there. Three real behaviours, not just a URL swap:
+- The dialog's own note text ("Saved on this device only...") switches to
+  "Saved to your account." the moment the attribute is set, read once at
+  setup rather than left stale.
+- Success shows "Saved." — a real account save, distinct wording from the
+  local-only path so a real save is never confused with a fallback one.
+- **A failed request fails soft into the existing local save**, not into
+  data loss or a silently-false success: the edit still applies to the
+  visible page and still writes to `localStorage`, with the status line
+  saying "Couldn't reach the server — Saved on this device." — the same
+  honesty convention every other form on this site already follows,
+  extended to a form that previously had no failure path to be honest
+  about because it had nowhere to fail.
+
+Tested with a stubbed `window.fetch` (this environment's dev server
+can't itself serve a `PATCH` request — confirmed directly, a real `PATCH`
+to it returns 501) to verify the exact request shape (method, headers,
+JSON body) and all three paths (stubbed success, stubbed failure, and no
+endpoint set) end with correct status text and the edit already visible
+on the page in every case. Full 7-page regression swept clean afterward.
+`HANDOVER.md` gained a new §2.10 for this and its checklist/seams-table
+rows were corrected; nothing else in the document needed to change, since
+every remaining open item was already accurately described as
+out-of-scope-for-a-reason rather than an overlooked gap.
+
 ## v3.7 updates (Sep 2026) — the rest of the dashboard wired
 
 Explicit follow-up to v3.6: "wire up everything necessary (student,
