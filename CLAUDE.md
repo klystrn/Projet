@@ -267,6 +267,87 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.7 updates (Sep 2026) — the rest of the dashboard wired
+
+Explicit follow-up to v3.6: "wire up everything necessary (student,
+whatever)... something I can just pass over to the projet team." Every
+remaining static section of `dashboard.html` — the student metrics row,
+the student "Past hackathons" entries list, the company candidates list,
+and both roles' activity feeds — now renders from the same
+`body.dash-page[data-endpoint]` fetch the company overview already used.
+There is exactly one fetch, one response shape, everything on the page
+now reads from it. Full spec in `HANDOVER.md` §2.5-2.5d.
+
+**Entries generate their own `data-hk-*` modal payload; the modal itself
+needed zero code changes.** `renderEntries()` builds each `<button
+class="dp-card" data-hk>` with the same attribute set the entry-detail
+modal already reads, because that modal's click handler is delegated on
+`#dpEntries` and queries `data-hk-*` fresh on every open rather than
+caching rows — the exact same delegation discipline `challenges.js`
+already uses for its own grid, now confirmed to pay off a second time.
+`breakdown` accepts either the API's `[{label,score}]` array shape or the
+modal's own flat `"Label:score,Label:score"` string; `renderEntries()`
+flattens the array internally so the API doesn't have to pre-format it.
+
+**A second real, previously-latent bug caught while wiring the candidate
+filter — same class as v3.6's `switchEl`, a stale-reference bug that
+silently worked only because nothing had ever exercised the path.** The
+filter IIFE captured `document.getElementById("dpCandidates")`'s
+`.dp-card` NodeList *once*, at page load, into a closure variable — safe
+as long as the cards never changed, which they never did until this
+round gave `renderCandidates()` a reason to replace them. Refactored
+`apply()` into a standalone `applyCandidateFilter()` function declaration
+(hoists with its body, so `renderCandidates()` — defined earlier in the
+file — can call it after every rebuild) that re-queries `.dp-card` from
+the DOM on every call instead of trusting a cached list. The "38" shown-
+count was hardcoded the same way and is now `cards.length`, computed
+live, so it can't go stale or contradict a real candidate count either.
+
+**A third real bug, this time a math bug in `buildHeat()`, caught only
+because a test fixture finally used a *small* real total.** Every
+"active" cell in the 53×7 grid is floored to `count >= 1` so no active
+day ever silently renders as blank, and the existing drift-correction
+pass can only pull a cell's count back down to 1, never to 0. Both totals
+this shipped with before this round (96, 214) happened to exceed their
+own pool of candidate active cells (~26 and ~111 respectively), so the
+floor never bound and the bug was invisible. Testing this round's new
+`heatTotal` field against a small fixture value (33) exposed it
+immediately: the grid summed to 114 instead, because ~111 cells each got
+floored to at least 1 regardless of how small the real target was, and
+the correction pass couldn't claw enough of that back down. Fixed by
+capping the number of active cells at the target total *before*
+distributing it — when there are more weight>0 candidates than the
+target allows, the weakest-weighted ones are deactivated first, so the
+"every active cell counts at least 1" floor can never sum past the real
+total regardless of how small it is. Verified the two original hardcoded
+samples (96, 214) still land exactly on target after the fix, and that a
+target smaller than its own candidate-cell pool now does too.
+
+**The heatmap's heading total is real for both roles now; the grid of
+individual day-cells underneath it is not, for either role, and that's a
+deliberate scope line, not an oversight.** Company's total derives from
+`company.briefs[].submitted` (already true since v3.6, unchanged);
+student's has no equivalent field in this file's shape to derive from — a
+student's `entries` are individual completed hackathons, not the same
+count as "everything entered, scored, and ranked" the heatmap claims to
+cover — so it reads a new top-level `heatTotal` field directly instead,
+the one figure in this whole handoff that has no way to be derived rather
+than sent. Real per-day counts (as opposed to the real yearly total) are
+explicitly still a `HANDOVER.md`-documented follow-up, not part of this
+round.
+
+Verified against two local JSON fixtures (one per role) via headless-
+browser checks: every rendered field matched the fixture exactly,
+clicking a dynamically-rendered entry opened the modal with the correct
+data pulled from its generated `data-hk-*` attributes, filtering the
+dynamically-rendered candidates by skill correctly hid/showed the right
+cards and recomputed the shown-count, the heatmap total matched the
+fixture's `heatTotal` after the buildHeat() fix, the two original sample
+totals (96, 214) were unaffected, and a full 7-page regression swept zero
+console errors and zero horizontal overflow. `HANDOVER.md` rewritten
+throughout to describe every one of these as a working seam rather than
+"documented intent, not yet rendered."
+
 ## v3.6 updates (Sep 2026) — company dashboard charts wired
 
 Follow-up to v3.5's handover prep: HANDOVER.md §2.8 had flagged the

@@ -33,10 +33,10 @@ real before any public launch.
 | Countdown | `index.html` `.ch-countdown` | `data-countdown-hours="96"` counts down from **page load**, not a calendar date — there's no live challenge data yet. | Point it at a real deadline timestamp (see §2.3). |
 | Testimonials | `index.html` `#tWallTrack` | Five invented quotes, attributed to roles only, never a named real person. Avatars are illustrated silhouettes, not photographs. | Real, permissioned quotes and portraits. |
 | Challenge listing | `challenges.html` `#clGrid` | Twelve sample briefs with invented statuses, activity heatmaps, effort estimates and skills. | The API serves live challenges (§2.4). Also drop the page's `<meta name="robots" content="noindex">` and add it to `sitemap.xml`. |
-| Dashboard past-hackathon rows | `dashboard.html` student view | Three sample rows, plus every `data-hk-*` payload behind their detail modal. | §2.6. |
-| Dashboard candidates | `dashboard.html` company view | Five ranked sample candidates. | §2.6. |
-| Dashboard activity feeds | `dashboard.html` `#dpFeedStudent` / `#dpFeedCompany` | Six sample events each. | Real account events, same fetch as §2.5. |
-| Dashboard heatmap | `dashboard.html` `#dpHeat` / `#dpHeatCo` | `buildHeat()` in `assets/dashboard.js` fills 371 cells per grid from a seeded PRNG (seeded so a given account at least looks stable across reloads, not random). | §2.7. |
+| Dashboard past-hackathon rows | `dashboard.html` student view | **Wired** (§2.5b) — three sample rows shown until `entries` is sent; each generated row still carries the full `data-hk-*` payload its detail modal reads. | §2.5b / §2.6. |
+| Dashboard candidates | `dashboard.html` company view | **Wired** (§2.5c) — five ranked sample candidates shown until `candidates` is sent. | §2.5c. |
+| Dashboard activity feeds | `dashboard.html` `#dpFeedStudent` / `#dpFeedCompany` | **Wired** (§2.5d) — six sample events each, shown until `activity` is sent. | §2.5d. |
+| Dashboard heatmap | `dashboard.html` `#dpHeat` / `#dpHeatCo` | `buildHeat()` in `assets/dashboard.js` still fills all 371 cells per grid from a seeded PRNG — that part is cosmetic, not real per-day data. The **total each grid sums to is wired**, though: company's from `company.briefs[].submitted` (§2.8), student's from a direct `heatTotal` field (§2.7). | §2.7. |
 | Company overview charts | `dashboard.html` company view: 6-metric row, hiring funnel, monthly chart, brief table, discipline split | **Wired, not just sample data** (§2.8) — send real `metrics`/`funnel`/`monthly`/`briefs` and it renders; the discipline split and all prose notes are computed from that data, not separate fields. Until wired, the sample figures shown are internally consistent by construction (everything derives from 96 submissions / 31 above bar / 5 briefs), so if you change one for a screenshot, re-derive the rest. | §2.8. |
 | Every front-end-only form | `login.html`, `signup.html`, footer "get notified" capture | Each carries an empty `data-endpoint`. With nothing set they say the wiring is pending rather than faking a success — reuse that convention for any new form. | §2.1–§2.2. |
 | Google sign-in button | `login.html`, `signup.html` (`[data-oauth="google"]`) | A real, styled button with **no OAuth wired at all** — clicking it reports "not connected yet" through the shared status region. | §2.1.1. |
@@ -77,9 +77,9 @@ before it exists. Every fetch below **fails soft**: a network error, a
 non-2xx status, or a malformed body leaves whatever's already on the page
 alone — never swap a readable page for an error state.
 
-Not every seam below is at that stage yet — §2.6's entry-detail modal
-still needs its `entries` payload shaped correctly. Each section says
-plainly which kind it is.
+Every seam below is now a genuine "point `data-endpoint` at a URL" job —
+none of them need new render code written, only real data sent in the
+documented shape.
 
 | # | Where | Selector | Method | Status |
 |---|---|---|---|---|
@@ -88,9 +88,13 @@ plainly which kind it is.
 | 2.2 | `login.html` | `#loginForm[data-endpoint]` | POST | Wired, needs a URL |
 | 2.3 | every footer | `#footerNotify[data-endpoint]` | POST | Wired, needs a URL |
 | 2.4 | `challenges.html` | `#clGrid[data-endpoint]` | GET | Wired, needs a URL |
-| 2.5 | `dashboard.html` | `body.dash-page[data-endpoint]` | GET | Partially wired (profile + role + empty-state only) |
-| 2.6 | `dashboard.html` | entry rows, `data-hk-*` | — | Wired via attributes, no fetch of its own |
-| 2.7 | `dashboard.html` | `#dpHeat` / `#dpHeatCo` | (via 2.5) | `buildHeat()` needs its body replaced (company total already syncs to real data via 2.8) |
+| 2.5 | `dashboard.html` | `body.dash-page[data-endpoint]` | GET | **Fully wired (Sep 2026)** — profile, role, empty-state |
+| 2.5a | `dashboard.html` | `.dp-metrics` (student's 3-item row) | (via 2.5, `data.metrics`) | Wired |
+| 2.5b | `dashboard.html` | `#dpEntries` (student past hackathons) | (via 2.5, `data.entries`) | Wired, incl. `data-hk-*` generation |
+| 2.5c | `dashboard.html` | `#dpCandidates` (company ranked list) | (via 2.5, `data.candidates`) | Wired |
+| 2.5d | `dashboard.html` | `#dpFeedStudent` / `#dpFeedCompany` | (via 2.5, `data.activity`) | Wired |
+| 2.6 | `dashboard.html` | entry rows, `data-hk-*` | — | Wired via attributes, generated by 2.5b, no fetch of its own |
+| 2.7 | `dashboard.html` | `#dpHeat` / `#dpHeatCo` | (via 2.5, `data.heatTotal` / `data.company.briefs`) | Heading total wired for both roles; per-day grid is still cosmetic filler, not real data — see §2.7 |
 | 2.8 | `dashboard.html` company view | 6-metric row, funnel, monthly chart, brief table, discipline split | GET (via 2.5, `data.company`) | **Wired (Sep 2026)** — send the four arrays, get all five sections and their notes |
 | 2.9 | `dashboard.html` | `window.ProjetDashboard.setView()` / `.showEmpty()` | — | JS hooks, call directly once real auth exists |
 
@@ -234,14 +238,11 @@ formats them, the API decides the wording.
 `<meta name="robots" content="noindex">` and add the page to
 `sitemap.xml` (see the pre-launch checklist).
 
-### 2.5. Dashboard profile + role + empty state
+### 2.5. Dashboard profile, role, and empty state
 
-`assets/dashboard.js` fetches `body.dash-page[data-endpoint]`. **The
-fetch handler consumes `profile`, `role`, the length of `entries`, and
-now `company` (§2.8) — `candidates` is still just documented intent, not
-yet rendered** (the company view's candidate list, like the student
-`entries` list, is real markup on the page already; wiring its own fetch
-is the one piece of §2.5 still open).
+`assets/dashboard.js` fetches `body.dash-page[data-endpoint]` once, and
+that single response now drives every section on the page (2.5a–2.5d,
+2.7 and 2.8 below all read from it too — there is only ever one fetch).
 
 ```jsonc
 {
@@ -253,48 +254,169 @@ is the one piece of §2.5 still open).
     "tagsLabel": "Skills", "tags": ["Figma", "A11y"],
     "stats": [{ "label": "Avg. score", "value": "83" }]
   },
-  "entries":    [ /* student: past challenges, see §2.6 */ ],
-  "candidates": [ /* company: ranked submissions — documented, NOT yet rendered */ ],
-  "company":    { /* company: the six charts — see §2.8 for the full shape, now wired */ }
+  "metrics":    [ /* student's 3-item row — see §2.5a */ ],
+  "entries":    [ /* student: past hackathons — see §2.5b */ ],
+  "candidates": [ /* company: ranked submissions — see §2.5c */ ],
+  "activity":   [ /* whichever feed matches `role` — see §2.5d */ ],
+  "heatTotal":  52,                /* student heatmap total — see §2.7 */
+  "company":    { /* company: the six charts — see §2.8 */ }
 }
 ```
 
-What actually happens on a successful fetch today:
+What happens on a successful fetch:
 - `data.profile` merges over the matching sample profile (`student` or
   `company`) in `PROFILES`.
 - `data.role` calls `setView(data.role)`, which also re-tints the page
   via `html[data-audience]`.
 - `Array.isArray(data.entries)` with length `0` triggers the student
-  empty state (`showEmpty(true)`) — this is the one real signal the
-  dashboard currently reacts to for "no data yet."
+  empty state (`showEmpty(true)`); a non-empty array also renders it
+  (§2.5b).
+- `data.metrics`, if the role is `student`, renders the 3-item row
+  (§2.5a). Company's own metrics row is a separate field, `company.metrics`
+  (§2.8) — the two rows have different shapes (3 plain vs. 6 with a
+  delta), so they're deliberately not the same field.
+- `data.candidates`, if present, renders the ranked list (§2.5c).
+- `data.activity`, if present, renders whichever feed matches `role`
+  (§2.5d).
+- `data.heatTotal`, if the role is `student`, re-syncs the heatmap
+  heading (§2.7).
 - `data.company`, if present, calls `renderCompanyOverview(data.company)`
-  — see §2.8.
+  (§2.8).
+
+Every one of these fails soft independently: an absent or empty field
+just leaves that section's sample content in place, same as the rest of
+the site's forms and lists.
+
+### 2.5a. Student metrics row
+
+`.dp-metrics:not(.dp-metrics--six)`, from `data.metrics` — a flat array
+of `{ value, label }`, always 3 items in the shipped layout (Latest
+score / Latest fit / Latest rank), no delta field (unlike the company
+row in §2.8, which does carry one).
+
+### 2.5b. Student past-hackathon entries
+
+`#dpEntries`, from `data.entries`. Each entry becomes a `<button
+class="dp-card" data-hk data-hk-*="...">` — the same markup and
+attributes the entry-detail modal already reads (§2.6), generated fresh
+each time so the modal needs no code changes at all.
+
+```jsonc
+{
+  "title": "Onboarding conversion", "company": "Nordwave", "discipline": "Product",
+  "date": "Aug 2026", "rank": 4, "entrants": 38, "score": 85, "fit": 83,
+  "status": "Interview", "statusKind": "win",              // "win" | "quiet" — drives the pill's colour
+  "solution": "Reworked the first-run flow so...",
+  "breakdown": [{ "label": "Problem framing", "score": 88 }, { "label": "Execution", "score": 86 }],
+  "feedback": "Clear reasoning from their funnel data."
+}
+```
+
+`breakdown` accepts either that array shape or the modal's own raw
+`"Label:score,Label:score"` string — `renderEntries()` flattens the
+array into that string internally, so send whichever is easier on your
+end. The section's own "N entries" / "Showing all N entries" text is
+recomputed from `entries.length`, not hardcoded.
+
+**Rank-badge tier is decorative, not a numeric readout** (the rank number
+is already the row's own text): the first entry in the array gets the
+accent-highlighted tier, the last gets the muted one, everything between
+is the plain default fill — a simple first/last split rather than a
+proportional one, so it stays sensible at any list length. Send `entries`
+in whatever order you want that highlight to land on (newest-first, to
+match the sample).
+
+### 2.5c. Company candidates
+
+`#dpCandidates`, from `data.candidates`.
+
+```jsonc
+{ "name": "Tan Wei Jie", "meta": "NUS · Year 3 Computer Science",
+  "skills": ["React", "TypeScript"], "score": 94, "fit": 92, "rank": 1 }
+```
+
+Populates `data-skills`/`data-name` on each generated card too, so the
+existing skill-filter and search box (`#dpSearch`, the four
+`.dp-filter` buttons) keep working against real cards with no changes —
+`assets/dashboard.js`'s `applyCandidateFilter()` re-queries `.dp-card`
+from the DOM on every call rather than caching a NodeList once, so a
+render happening after the filter's listeners were already wired doesn't
+strand it (a real bug this fixed: the previous version cached the
+sample cards at page load and hardcoded "38" as the total shown-count,
+both of which broke the moment a real list replaced the sample one).
+Same first/last rank-badge tiering as §2.5b — the Schedule button is
+`.btn-primary` on the top-tier row, `.btn-ghost` on every other.
+
+**The four skill-filter chips (React / A11y / Node) are fixed, not
+generated from whichever skills happen to be in the current list** — a
+hiring lead filters by the skills they usually care about, not by
+whatever one fetch happens to contain. Add/remove `.dp-filter` buttons
+in `dashboard.html` directly if the set of skills worth filtering by
+changes; nothing in the JS needs updating to match, since a filter
+simply matches its own `data-skill` substring against each card's
+`data-skills`.
+
+### 2.5d. Activity feed
+
+`#dpFeedStudent` / `#dpFeedCompany` (`assets/dashboard.js` picks
+whichever matches `role`), from `data.activity`.
+
+```jsonc
+{ "kind": "win" | "score" | null, "title": "Shortlisted for interview",
+  "sub": "Nordwave · Onboarding conversion", "date": "28 Aug 2026" }
+```
+
+`kind` drives the feed dot's colour (omit it, or send `null`, for a
+plain neutral dot — used by the sample data for "submitted"/"joined"
+style events that aren't a win or a score). The tab's own "N events"
+count is recomputed from the real feed's length once it renders.
 
 ### 2.6. Entry detail modal (student past-hackathon rows)
 
-No fetch of its own. Each row carries its whole modal payload as
-`data-hk-*` attributes, read fresh every time it's opened: `title`,
-`company`, `discipline`, `date`, `rank`, `entrants`, `score`, `fit`,
-`status`, `status-kind` (`win` | `quiet`), `solution`, `breakdown`,
-`feedback`. Render these attributes from the API response (e.g. as part
-of `entries` in §2.5) and the modal itself needs no code changes.
-`breakdown` is a comma-separated `"Label:score"` list, e.g.
-`"Problem framing:88,Execution:86"`.
+No fetch of its own — generated by §2.5b. Each row carries its whole
+modal payload as `data-hk-*` attributes, read fresh every time it's
+opened: `title`, `company`, `discipline`, `date`, `rank`, `entrants`,
+`score`, `fit`, `status`, `status-kind` (`win` | `quiet`), `solution`,
+`breakdown`, `feedback`. `breakdown` on the DOM attribute is always the
+comma-separated `"Label:score"` string; send the array shape in §2.5b's
+JSON and `renderEntries()` converts it for you.
 
 ### 2.7. Contribution heatmap
 
-`buildHeat(isCompany)` in `assets/dashboard.js` currently fills
-`#dpHeat` (student) / `#dpHeatCo` (company) from a seeded PRNG, so the
-sample history is at least stable across reloads rather than reshuffling
-on every visit. Replace its body with real per-day data: **53 weeks × 7
-days, oldest first, column by column**, each cell needing `{ level: 0-4,
-count, date }` — `level` drives the colour, `count`/`date` drive the
-hover tooltip, and the two must agree (the sample data derives `count`
-from the same draw that picked `level` for exactly this reason — a real
-API keeps them consistent for free since they come from the same row).
-The heading text ("38 submissions in the last year," etc.) is derived
-from the summed counts, so it stays correct automatically once the data
-is real.
+`buildHeat(isCompany)` in `assets/dashboard.js` fills `#dpHeat`
+(student) / `#dpHeatCo` (company), 53 weeks × 7 days per grid. **Two
+different things are wired here, and only one of them is real data —
+read this before assuming the whole grid reflects real per-day counts:**
+
+- **The heading total** (the number in "N submissions/contributions in
+  the last year") is real once you send it: `company.briefs[].submitted`
+  summed (§2.8, no separate field needed) drives the company grid's
+  total; the top-level `heatTotal` field (§2.5) drives the student
+  grid's, since entries (§2.5b, individual completed hackathons) aren't
+  the same count as the broader "entered, scored, ranked" activity the
+  student heatmap claims to cover — there's nothing else in this file's
+  shape to derive it from, so it has to be sent directly.
+- **Which individual days are "active," and how heavily** is still a
+  seeded PRNG, cosmetically distributed to sum to that real total — not
+  actual per-day counts from your database. If real day-by-day activity
+  ever matters (not just the yearly total), replace the cell-generation
+  loop in `buildHeat()` with real data: it wants `{ level: 0-4, count,
+  date }` per cell, oldest first, column by column — `level` drives the
+  colour, `count`/`date` drive the hover tooltip, and the two need to
+  agree (derive `count` from `level`, or vice versa, whichever your data
+  naturally gives you — never draw them independently, or a darker cell
+  can end up with a smaller tooltip figure than a lighter one beside it).
+
+**A real bug the total-wiring caught, worth knowing if you touch this
+function**: every "active" cell is floored to `count >= 1`, and for a
+small `heatTotal` (a brand-new account with only a handful of events)
+that floor alone can sum past the real total, since it forces more
+total activity than the number actually calls for — confirmed with a
+target of 33 against ~111 candidate active days, which floored to 114
+before this was fixed. `buildHeat()` now caps the number of active cells
+at the target total before distributing it (dropping the
+weakest-weighted candidates first), so this can't recur regardless of
+how small a real total ends up being.
 
 ### 2.8. Company overview charts — WIRED (Sep 2026), point `data-endpoint` at a URL and go
 
