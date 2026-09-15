@@ -34,7 +34,9 @@ body.dash-page{background:var(--paper-warm);}
   display:flex; align-items:center; justify-content:center;
   font-size:25px; font-weight:800;
 }
-.dp-rail h2{font-size:21px; margin-bottom:4px;}
+/* #dpName is the page's <h1> (the only one on the page — there is no page
+   title above the dashboard), sized as a rail heading rather than a hero */
+.dp-rail h1{font-size:21px; margin-bottom:4px;}
 .dp-rail-sub{font-size:13px; color:var(--muted); margin-bottom:18px;}
 .dp-tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:22px;}
 .dp-tag{
@@ -50,7 +52,7 @@ body.dash-page{background:var(--paper-warm);}
 .dp-main{min-width:0;}
 .dp-section{margin-bottom:30px;}
 .dp-section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:14px;}
-.dp-section-head h3{font-size:19px;}
+.dp-section-head h2{font-size:19px;}
 .dp-section-head .dp-count{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);}
 
 .dp-metrics{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;}
@@ -80,7 +82,9 @@ body.dash-page{background:var(--paper-warm);}
   background:var(--ink);
 }
 .dp-rank.is-top{background:var(--accent-deep);}
-.dp-rank.is-rest{background:var(--line); color:var(--muted);}
+/* ink-soft, not --muted: --muted only reaches ~4.0:1 on the --line fill at
+   this 12.5px size, under the 4.5:1 AA floor for small text */
+.dp-rank.is-rest{background:var(--line); color:var(--ink-soft);}
 .dp-card-body{flex:1; min-width:0;}
 .dp-card-title{font-size:15px; font-weight:700; margin-bottom:3px;}
 .dp-card-meta{font-size:12.5px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
@@ -135,7 +139,7 @@ body.dash-page{background:var(--paper-warm);}
 }
 .dp-empty[hidden]{display:none;}
 .dp-empty > *{position:relative; z-index:1;}
-.dp-empty h4{font-size:21px; margin-bottom:7px; font-weight:800;}
+.dp-empty h3{font-size:21px; margin-bottom:7px; font-weight:800;}
 .dp-empty p{font-size:14.5px; color:rgba(255,255,255,.72); max-width:44ch; line-height:1.55;}
 .dp-placeholder-card{
   background:#fff; border:1px dashed var(--line); border-radius:var(--radius-lg);
@@ -222,7 +226,7 @@ body.dash-page{background:var(--paper-warm);}
   background:var(--paper); padding:18px 20px 16px;
 }
 .dp-heat-card .dp-section-head{margin-bottom:14px;}
-.dp-heat-card h3{font-size:15px;}
+.dp-heat-card h2{font-size:15px;}
 .dp-heat-legend{
   display:flex; align-items:center; gap:3px;
   font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted);
@@ -474,7 +478,7 @@ button.dp-card .dp-score span{display:block;}
   background:var(--paper); padding:18px 20px 16px; margin-bottom:0;
 }
 .dp-chart-card .dp-section-head{margin-bottom:16px;}
-.dp-chart-card h3{font-size:15px;}
+.dp-chart-card h2{font-size:15px;}
 .dp-chart-note{margin-top:14px; font-size:12.5px; line-height:1.5; color:var(--muted);}
 
 /* ---------- funnel ---------- */

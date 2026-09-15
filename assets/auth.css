@@ -44,6 +44,10 @@
   position:relative; height:var(--stage-h); overflow:hidden;
   background:var(--ink);
 }
+/* auth.js adds this for the single frame it takes to honour a ?mode= on
+   load, so a reload lands on that face instead of replaying the slide.
+   Transitions only — the entrance keyframes are untouched by design. */
+.auth-stage.is-instant, .auth-stage.is-instant *{transition:none !important;}
 
 /* ==========================================================================
    THE SIGNAL FIELD — the backdrop, drawn entirely in CSS (Aug 2026)

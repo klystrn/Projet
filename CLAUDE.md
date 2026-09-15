@@ -267,6 +267,117 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v3.9 updates (Sep 2026) — full bugs check, pre-handover
+
+Asked for directly: "Run a bugs check. This should include functionality,
+compatibility, performance, security, and visual presentation... Fix
+anything needed." Everything below was found by running the site, not by
+reading it — a CDP crawl of all seven pages at 1440 and 390 (console
+errors, uncaught exceptions, failed requests, broken links/anchors/images,
+missing alt/labels/names, duplicate ids, heading order, `target=_blank`
+without `rel`, CLS), an interactive smoke pass over every control (mode
+toggle, mobile menu, ticket/brief/entry/edit modals, rail arrows, FAQ
+accordion, dashboard tabs + arrow keys, candidate search, heat tooltip,
+footer capture, auth validation/pending/Google-stub, mode switch), a
+computed-style contrast probe over every visible text node, an asset-size
+inventory, and XSS reflection probes on `?role=`/`?view=`. **Clean on all
+of that except the fixes listed here.** Zero errors, zero overflow, CLS
+0.0000 on every page at both widths, no broken links or 404s, both query
+params inert against injection (`?role=` only matches a fixed
+`business|builder` set; `?view=` only `student|company`).
+
+**Fixed:**
+
+1. **Dashboard's inert actions were `href="#"` anchors** (Schedule ×5,
+   Compare, Book interviews, `#hkSubmission`, plus the `renderCandidates()`
+   template). Every click scrolled the page to the top — the same silent
+   jump the footer's `.footer-pending` spans were introduced to stop. Now
+   `<button type="button">` with no handler. **Not** converted to
+   `.footer-pending`-style spans, since these will become real actions,
+   not pages; a button with no handler is the honest state of "not built
+   yet."
+2. **`dashboard.html` had no `<h1>`.** `#dpName` (the profile name) is the
+   h1 now, with `.dp-rail h1` replacing the old `.dp-rail h2` selector.
+   That alone would have created a 1→3 skip (every rail block and section
+   heading was h3), so those all became h2, the two empty-state h4s became
+   h3, and the three tag-scoped selectors (`.dp-section-head h2`,
+   `.dp-heat-card h2`, `.dp-chart-card h2`, `.dp-empty h3`) moved with
+   them. `.dp-rail-h` is class-styled so it needed nothing. The modal
+   titles (`#hkTitle`, `#editTitle`) stay h2 with `.dp-modal-h` h3s under
+   them. Verified skip-free in both views after.
+3. **Three real contrast failures**, measured from computed styles, not
+   guessed — each is small bold text well under the 4.5:1 AA floor:
+   - `.dash-rank` on the hero card (index.html) was white on a hardcoded
+     inline `#ff5b24` (3.1:1 at 11px). The inline colours are gone from
+     all three copies (both `data-mode-copy` strings and the static
+     fallback); it now uses the same class ladder as the real dashboard —
+     `.is-top` on `--accent-deep` (5.09:1 orange / 6.68:1 blue), plain on
+     `--ink`, `.is-rest` on `--line` + `--ink-soft` (9.16:1). Side effect
+     worth knowing: the badges re-tint in company mode now instead of
+     staying orange. The v2-era note further down about hero-card accents
+     "staying fixed orange on purpose" is about the retired
+     `hero-visual.webp` card and no longer applies.
+   - `.dp-rank.is-rest` was `--muted` on `--line` (4.02:1) → `--ink-soft`.
+   - `.logo-chip-name` / `.logo-chip-mark` were `--muted-large` (3.53:1).
+     That token was justified in Known issues #7 as a large-text exception
+     for the old 23px/900 wordmark chips; the v3.2 mark+name lockup is
+     13–15px, so the exception silently stopped applying. Both now
+     `--muted` (5.16:1). **`--muted-large` is defined but unused now** —
+     left in place as a documented token rather than deleted.
+4. **Founder avatars on about.html were 800×800 PNGs (790KB + 451KB)
+   displayed at 56×56.** Replaced with 168px WebP (7.7KB + 4.9KB, 3× the
+   display size for retina, alpha channel dropped after confirming every
+   pixel was fully opaque). The 800px PNG originals stay on disk as
+   masters, unreferenced. **Do not reapply the retired `ffmpeg -q:v 82`
+   convention from Known issues #3 to these** — that caveat is about
+   zoomed gradient art; a 56px photo is the opposite case.
+5. **Candidate search only matched names.** Typing "react" into a box
+   whose empty state says "pick a different skill" returned "No candidates
+   match" — `applyCandidateFilter()` now matches `data-skills` too.
+6. **Auth mode switch didn't survive a reload** (and left the tab title
+   wrong). `setMode()` in `auth.js` now writes `?mode=login|signup` via
+   `history.replaceState` and swaps `document.title`; on load a matching
+   `?mode=` is honoured **instantly** — `.auth-stage.is-instant` in
+   `auth.css` zeroes transitions (never the entrance keyframes) for the
+   two frames the swap takes, so a reload lands on the face rather than
+   replaying the slide into it. `signup.html?role=business&mode=login`
+   still prefills the role (site.js's `?role=` path is untouched).
+7. Static no-js text on the two heatmap headings said "52 submissions" /
+   "38 submissions"; aligned to what `buildHeat()` actually renders (214
+   contributions / 96 submissions received). Cosmetic — both are hidden
+   under no-js anyway.
+
+**Checked and deliberately not changed:**
+- `login.html`/`signup.html` each contain two `<h1>`s (one per face). The
+  inactive face is `visibility:hidden` and no-js stacks both as two
+  complete forms — that is the documented design, not a heading bug.
+- The mobile menu's links are page links (`challenges.html`, not
+  `#challenges`), so a "menu link didn't scroll to the section" reading of
+  the first probe was my selector, not a bug.
+- `html{scroll-behavior:smooth}` means any CDP probe that reads `scrollY`
+  within ~300ms of a `scrollTo`/`scrollIntoView`/focus is reading mid-
+  animation. Two "button click scrolled the page" findings in this pass
+  were exactly that; confirmed clean with `scrollBehavior='auto'` set
+  first. **Set it before measuring scroll positions in any future probe.**
+- The `&`, `let `, `class `, `:has(`, `content-visibility` and
+  `accent-color` hits from the CSS/JS feature scan are all inside comments.
+  Live risky features are `svh` (with a `vh` fallback line everywhere),
+  `image-set()` (inside `@supports`, WebP fallback), `<dialog>`
+  (`showModal` guarded), `inert`, `backdrop-filter`, scroll-snap — all
+  baseline across the four evergreen browsers.
+- Cross-browser: only Chromium is runnable in this sandbox, and it cannot
+  decode video or load the webfonts (proxy). Firefox/Safari/Edge, real
+  iOS/Android, and font-swap CLS all need a check outside it — noted in
+  HANDOVER.md §4, not silently skipped.
+- Security is what a static site can be: no inline event handlers, all
+  dynamic text goes through `textContent` (the one `innerHTML` in
+  `renderCandidates` is a fixed template with values set via
+  `textContent` after), every external resource is `https`, both
+  `target=_blank` links carry `rel="noopener noreferrer"`, the signup
+  password enforces `minlength=8` client-side. SSL, SQL injection, rate
+  limiting and server-side password rules are the API's — listed in
+  HANDOVER.md §4 for Andrei rather than pretended to be covered here.
+
 ## v3.8 updates (Sep 2026) — challenges listing confirmed wired, Edit Profile wired
 
 Asked directly: "Wire up the challenges listing endpoint too. What other

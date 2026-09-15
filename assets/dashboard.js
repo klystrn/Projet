@@ -113,8 +113,10 @@
       in agreement with the real total instead of the hardcoded 96 sample.
 
    6. ACTIONS + PROFILE EDITS.  The Schedule / Compare / Book interviews /
-      View submission buttons are inert placeholders (href="#") — no spec
-      for those yet. Edit profile is wired: set #editForm's data-endpoint
+      View submission buttons are inert placeholders — real <button
+      type="button"> elements with no handler, NOT href="#" anchors (those
+      scrolled the page to the top on every click, which read as a bug
+      rather than as "not built yet"). No spec for those yet. Edit profile is wired: set #editForm's data-endpoint
       and it PATCHes { name, org, loc, bio, tags } there instead of only
       writing localStorage["projet:profile"] — see HANDOVER.md 2.10 for
       the full behaviour (success/failure/no-endpoint all handled, the
@@ -336,7 +338,10 @@
       var skills = card.getAttribute("data-skills") || "";
       var name = card.getAttribute("data-name") || "";
       var okSkill = candidateFilterSkill === "all" || skills.indexOf(candidateFilterSkill) !== -1;
-      var okName = !q || name.indexOf(q) !== -1;
+      // the search box matches skills as well as names: the empty state's
+      // own copy says "pick a different skill", so typing "react" into it
+      // has to find the React candidates, not report no matches
+      var okName = !q || name.indexOf(q) !== -1 || skills.indexOf(q) !== -1;
       var match = okSkill && okName;
       // hidden, not just visually gone: a filtered-out card should leave
       // the accessibility tree and the tab order too
@@ -486,7 +491,7 @@
         "<div class=\"dp-chips\"></div>" +
         "<div class=\"dp-score\"><b></b><span>Score</span></div>" +
         "<div class=\"dp-fit\"></div>" +
-        "<a href=\"#\" class=\"btn " + btnCls + " btn-sm\">Schedule</a>";
+        "<button type=\"button\" class=\"btn " + btnCls + " btn-sm\">Schedule</button>";
       art.querySelector(".dp-rank").textContent = pad2(c.rank != null ? c.rank : i + 1);
       art.querySelector(".dp-card-title").textContent = c.name;
       art.querySelector(".dp-card-meta").textContent = c.meta || "";

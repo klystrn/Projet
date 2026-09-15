@@ -41,7 +41,7 @@ real before any public launch.
 | Every front-end-only form | `login.html`, `signup.html`, footer "get notified" capture | Each carries an empty `data-endpoint`. With nothing set they say the wiring is pending rather than faking a success — reuse that convention for any new form. | §2.1–§2.2. |
 | Google sign-in button | `login.html`, `signup.html` (`[data-oauth="google"]`) | A real, styled button with **no OAuth wired at all** — clicking it reports "not connected yet" through the shared status region. | §2.1.1. |
 | Edit profile | `dashboard.html` | **Wired** (§2.10) — genuinely saves, but only to `localStorage` on that one device until `#editForm`'s `data-endpoint` is set; the dialog says so in its own copy either way. | §2.10. |
-| Inert action buttons | `dashboard.html` | Schedule / Compare / Book interviews / View submission are `href="#"`. | No spec yet — ask before building; not covered further in this doc. |
+| Inert action buttons | `dashboard.html` | Schedule / Compare / Book interviews / View submission are real `<button type="button">` elements with no handler (they were `href="#"` anchors until the Sep 2026 bugs check — those scrolled the page to the top on every click). Clicking one does nothing, visibly. | No spec yet — ask before building; not covered further in this doc. |
 | Footer links with no page yet | Every page footer | Careers / Contact / Privacy / Terms now render as plain, dimmed `.footer-pending` text (no "SOON" badge any more, but still not links — see "Notice removal" below). | Swap each back to a real `<a href="…">` as its page ships. |
 | `noindex` tags | `challenges.html`, `login.html`, `signup.html` `<head>` | Kept out of search while their content/flow is sample or non-functional. | Remove per-page once that page's content is real, and add the URL to `sitemap.xml` at the same time (contradictory to list a noindexed URL there). |
 | `archive/` folder | repo root (~7.3MB: `archive/v2/`, `archive/split-spectrum-auth/`, `archive/projet-split-hero/`, and five standalone superseded HTML files) | Every previous major iteration of this site, kept as design history during the build. Nothing in it is linked from any live page. | **Delete the whole `archive/` folder** once the design history has no further reference value to the team (e.g. after the round of feedback following this handover). Confirm with the founders before deleting — it's history, not a support requirement, but it's their call, not a technical one. |
@@ -575,9 +575,134 @@ already showing the edit.
   built to avoid. If briefs get real URLs, say so and the cards become
   links.
 - **Inert dashboard actions.** Schedule / Compare / Book interviews /
-  View submission are `href="#"` placeholders with no spec yet.
+  View submission are `<button type="button">` placeholders with no
+  handler and no spec yet. When they get one, the `renderCandidates()`
+  template in `assets/dashboard.js` is where the per-candidate Schedule
+  button is generated — attach a delegated click handler on
+  `#dpCandidates` rather than per-button, since that list is rebuilt on
+  every fetch.
 - **Terms / privacy links** on `signup.html` are plain text, not links —
   no such pages exist yet.
 - **`archive/` folder removal** — see the pre-launch checklist. Not a
   backend question, but flagged here since it's the one item in this
   handover that's a "delete this" instruction rather than a "build this."
+
+---
+
+## 4. Bugs check (Sep 2026) — what was verified, what wasn't, what's yours
+
+A full functionality / compatibility / performance / security / visual
+pass was run before this handover. Everything below "Verified clean" was
+actually executed in a headless browser against every page at desktop
+(1440) and phone (390) width, not read off the source. The fixes it
+produced are in the git history (commit "Bugs check…") and described in
+`CLAUDE.md` under "v3.9 updates".
+
+### Verified clean
+
+- **Functionality.** Every nav/footer/CTA link resolves; no `#` dead
+  links remain (the dashboard's placeholder actions are now real
+  `<button type="button">`s — see the checklist row); no broken images;
+  no local 404s; zero console errors and zero uncaught exceptions on all
+  seven pages. Every interactive control was driven and checked: the
+  audience toggle (desktop + mobile menu), the mobile menu open/close,
+  the featured-challenge rail arrows + ticket modal, the challenges
+  filter + brief modal, the FAQ accordion, the about-page story pin, the
+  dashboard tabs (mouse + arrow keys), candidate search/filters + empty
+  state, the entry-detail and edit-profile modals, the heatmap tooltip,
+  the footer capture, both auth forms' validation and their honest
+  "not connected yet" states, the Google stub, and the login↔signup
+  switch. All forms behave as §2 documents.
+- **Accessibility.** Every image has `alt` + `width`/`height`; every
+  input is labelled; every button has a name; no duplicate ids; heading
+  order is skip-free on every page (dashboard now has an `<h1>`); both
+  `target="_blank"` links carry `rel="noopener noreferrer"`; every
+  interactive element clears the 24×24 minimum on a 390px screen. Text
+  contrast was measured from computed styles on every visible node —
+  three real AA failures were found and fixed; the remaining flags are
+  text over gradients, where the probe can't read the real backdrop.
+- **Layout.** Zero horizontal overflow on every page at both widths;
+  cumulative layout shift 0.0000 on every page (with fonts unavailable —
+  see below). Mobile: the company brief table scrolls inside its own
+  container, the six-metric grid drops to two columns.
+- **Injection.** `?role=` and `?view=` are the only URL inputs the front
+  end reads; both are matched against fixed allow-lists and never
+  written into markup. No inline event handlers anywhere; every piece of
+  dynamic text goes through `textContent`. No third-party scripts at all
+  — the only external requests are the two font CDNs, both `https`.
+
+### Could NOT be verified from the build environment — please check
+
+- **Browsers other than Chromium.** Only headless Chromium runs in the
+  sandbox. Nothing in the CSS/JS is outside the evergreen baseline
+  (`svh` has a `vh` fallback line, `image-set()` is inside `@supports`,
+  `<dialog>`, `inert`, `backdrop-filter`, scroll-snap are all baseline
+  across Chrome/Firefox/Safari/Edge), but a real pass in **Safari
+  (macOS + iOS)**, **Firefox** and **Edge** is still owed. The two
+  Safari-specific things to eyeball: the sticky How-it-works pin and the
+  auth page's `100svh` stage on iOS with the address bar collapsing.
+- **Real devices.** Responsive layouts were checked by viewport
+  emulation, not on hardware. Worth 10 minutes on one iPhone and one
+  Android phone — touch scrolling the featured-challenge rail and the
+  brief table especially.
+- **Webfont layout shift.** The sandbox blocks Fontshare/Google Fonts,
+  so the CLS figure above was measured with fallback fonts. Satoshi and
+  JetBrains Mono load with `display=swap`, so expect a small swap shift
+  on a cold cache. If it's visible, the fix is a `<link rel="preload">`
+  for the two WOFF2 files, not a code change.
+- **Network speed.** Page weight is small (see below) but wasn't
+  throttled — run Lighthouse once against the deployed URL, on a 4G
+  profile.
+
+### Security — the parts that are the API's, not the front end's
+
+Listed so nobody assumes the front end covers them:
+
+- **SSL/HTTPS.** Hosting concern. Every resource the pages request is
+  already `https://`, so there's no mixed content to fix once the site
+  is served over TLS. Add HSTS at the host.
+- **SQL/NoSQL injection.** Server-side only. The front end sends plain
+  JSON (`{ email, password, role, … }`, see §2.1) — treat every field as
+  untrusted and use parameterised queries / a schema validator on the
+  Mongo side. Nothing the front end does prevents injection; nothing it
+  does needs to.
+- **Password rules.** The signup field enforces `minlength="8"` and the
+  browser's own `type="password"` handling, nothing more. Length,
+  breach-list checks, hashing (bcrypt/argon2), rate limiting and lockout
+  are the API's. The front end will display whatever `error` string the
+  API returns for a rejected password (§2.1).
+- **CSRF / sessions / cookies.** See §3 — no token handling exists yet
+  because there's no API to agree it with.
+- **Dependencies.** There are none. No npm, no framework, no bundler,
+  no third-party script — so there is nothing to keep patched on the
+  front end. The one "component" is the vendored `.claude/skills/
+  impeccable/` design tool, which is dev-only and never served.
+
+### Deploy weight — most of `assets/` should not ship
+
+`assets/` is **31.8MB**, but the live pages load about **1.3MB** of it
+(fonts excluded). The rest is masters and retired artwork kept on disk
+for regeneration, which this repo's conventions deliberately preserve
+but which has no business on a CDN:
+
+| Size | File | Why it's there |
+|---|---|---|
+| 18.7MB | `fluid_animation_3500ms.mp4` | raw 4K master, referenced by no page |
+| 2.7MB + 0.9MB | `fluid-loop.mp4` / `.webm` | the retired final-CTA video |
+| 2.7MB | `official-spectrum.png` | master for the retired spectrum split |
+| 1.2MB | `fluid-full.png` | master for the How-it-works AVIF/WebP |
+| 1.2MB + 0.6MB | `Logo Background 2.png` / `4.png` | masters for retired hero art |
+| 0.8MB + 0.5MB | `founder-le-mai-thi.png` / `founder-andrei-loh.png` | 800px originals; the live avatars are the 168px `.webp` |
+| 0.6MB | `fluid-foreground.png` | Figma layer export, unused |
+| 0.4MB | `hero-visual.avif` / `.webp`, `fluid.webp` | retired v2 hero/poster |
+| ~0.2MB | `Logo Full *.png`, `Logo 3 V2*.png`, `Logo O Alone.png`, `icon-mark.png`, `Test.png`, `favicon.svg` | raw logo exports; the live logos are `logo-dark.png`/`logo-white.png` + the generated favicons |
+
+Plus `archive/` (7.3MB) — already on the checklist.
+
+**Recommendation:** either exclude the above from the deploy (a
+`.vercelignore`/`.netlifyignore`/build-copy step listing them), or move
+the masters into a `masters/` folder outside the web root before the
+first deploy. Do not delete them without checking `CLAUDE.md`'s "Known
+issues" #3 and #5 first — the regeneration commands there depend on the
+`.png` masters. A one-line check for what's actually loaded: open each
+page with DevTools' Network panel and filter by `assets/`.

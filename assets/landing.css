@@ -434,7 +434,14 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   width:28px; height:28px; border-radius:8px; flex:none;
   display:flex; align-items:center; justify-content:center;
   font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#fff;
+  background:var(--ink);
 }
+/* Same three-step ladder as the real dashboard's .dp-rank (top / plain /
+   rest), driven by class rather than the inline hex it used to carry. White
+   on the raw --orange only reached 3.1:1 at 11px; --accent-deep clears AA
+   and, unlike a hardcoded orange, follows the audience toggle. */
+.dash-rank.is-top{background:var(--accent-deep);}
+.dash-rank.is-rest{background:var(--line); color:var(--ink-soft);}
 .dash-row-body{flex:1; min-width:0;}
 .dash-row-title{font-size:13.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .dash-row-meta{font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
@@ -484,9 +491,12 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
   width:32px; height:32px; flex:none; border-radius:9px;
   display:flex; align-items:center; justify-content:center;
   background:var(--paper-warm); border:1px solid var(--line);
-  font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--muted-large);
+  font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--muted);
 }
-.logo-chip-name{font-size:15px; font-weight:700; color:var(--muted-large);}
+/* --muted, not --muted-large: that token's 3.5:1 was justified when the
+   chips were a 23px/900 wordmark (large-text 3:1 threshold); the v3.2
+   mark+name lockup is 13-15px, which needs the full 4.5:1 */
+.logo-chip-name{font-size:15px; font-weight:700; color:var(--muted);}
 .logo-chip:focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:999px;}
 
 /* the whole section's kill switch — see the HTML comment above it */
