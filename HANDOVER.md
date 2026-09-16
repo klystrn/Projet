@@ -618,6 +618,59 @@ already showing the edit.
 
 ---
 
+## 3b. Fixtures and the smoke test
+
+Two things in the repo exist to make wiring the API a shorter conversation
+than reading §2.
+
+### `fixtures/` — sample responses you can point a seam at
+
+Static JSON matching every response shape the front end reads, including
+the awkward cases. Serve the repo and set the relevant `data-endpoint` to
+a fixture path:
+
+| Fixture | Seam | What it proves |
+|---|---|---|
+| `dashboard-student.json` | `<body class="dash-page">` | Full student dashboard renders |
+| `dashboard-student-empty.json` | same | `entries: []` drives the empty state |
+| `dashboard-company.json` | same | All six company charts, every figure derived from `briefs[]` |
+| `dashboard-company-empty.json` | same | A company with **zero** submissions reads 0 everywhere |
+| `challenges.json` | `#clGrid` | Live briefs replace the twelve samples |
+| `challenges-empty.json` | same | An empty backlog shows a real empty state, not sample briefs |
+
+If your response renders wrong, diff it against the matching fixture —
+that difference is the bug. `fixtures/README.md` has the details.
+
+### `test/smoke.mjs` — run it before you push
+
+```
+node test/smoke.mjs              # everything
+node test/smoke.mjs --pages      # the seven pages only
+node test/smoke.mjs --fixtures   # the seams only
+```
+
+Dependency-free (no `npm install`), needs **Node 22+** and any Chrome or
+Chromium — set `CHROME_PATH` if it isn't found automatically. It spawns
+its own static server and browser, so nothing needs to be running first.
+Exit code is 1 on any failure.
+
+Across the seven pages at desktop and phone width it checks: uncaught
+exceptions, `console.error`, failed local requests, horizontal overflow,
+duplicate ids, skipped heading levels, `<h1>` count, missing `alt`, broken
+images, unlabelled inputs, buttons with no accessible name,
+`target="_blank"` without `rel="noopener"`, in-page anchors with no target,
+and `href="#"` links. Then it loads each fixture through the real seam and
+asserts the rendered result.
+
+`.github/workflows/smoke.yml` runs it on every push and PR.
+
+**It is verified to actually fail.** Injecting a dead link, a duplicate id
+and a short fixture was caught as seven failures with exit code 1 — worth
+re-checking if you ever change the harness, since a smoke test that cannot
+fail is worse than none.
+
+---
+
 ## 3a. Sending data this front end won't choke on
 
 From the second, deeper bugs pass (Sep 2026), which drove malformed,

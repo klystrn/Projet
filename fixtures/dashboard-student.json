@@ -1,0 +1,171 @@
+{
+  "role": "student",
+  "profile": {
+    "initials": "CL",
+    "name": "Chloe Lim",
+    "handle": "@chloelim",
+    "bio": "Design engineer in training. I like interfaces that survive contact with real users.",
+    "org": "SUTD \u00b7 Year 3 Design & AI",
+    "loc": "Singapore",
+    "joined": "Joined February 2026",
+    "tagsLabel": "Skills",
+    "tags": [
+      "Figma",
+      "Front-end",
+      "A11y"
+    ],
+    "stats": [
+      {
+        "label": "Challenges done",
+        "value": "3"
+      },
+      {
+        "label": "Avg. score",
+        "value": "83"
+      },
+      {
+        "label": "Best rank",
+        "value": "#2"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "value": "85",
+      "label": "Latest score"
+    },
+    {
+      "value": "83%",
+      "label": "Latest fit"
+    },
+    {
+      "value": "#4",
+      "label": "Latest rank"
+    }
+  ],
+  "entries": [
+    {
+      "title": "Onboarding conversion",
+      "company": "Nordwave",
+      "discipline": "Product",
+      "date": "Aug 2026",
+      "rank": 4,
+      "entrants": 38,
+      "score": 85,
+      "fit": 83,
+      "status": "Interview",
+      "statusKind": "win",
+      "solution": "Cut the signup flow from five steps to three and deferred workspace naming until after the first successful action.",
+      "breakdown": [
+        {
+          "label": "Problem framing",
+          "score": 88
+        },
+        {
+          "label": "Execution",
+          "score": 86
+        },
+        {
+          "label": "Communication",
+          "score": 81
+        }
+      ],
+      "feedback": "Strong instinct for what to cut. Would have liked one more pass on the empty state."
+    },
+    {
+      "title": "Cut onboarding drop-off in the mobile app",
+      "company": "Fieldstone",
+      "discipline": "Design",
+      "date": "Jul 2026",
+      "rank": 2,
+      "entrants": 26,
+      "score": 91,
+      "fit": 88,
+      "status": "Closed",
+      "statusKind": null,
+      "solution": "Replaced the modal tutorial with inline coach marks tied to the first three real actions.",
+      "breakdown": [
+        {
+          "label": "Problem framing",
+          "score": 92
+        },
+        {
+          "label": "Execution",
+          "score": 93
+        },
+        {
+          "label": "Communication",
+          "score": 87
+        }
+      ],
+      "feedback": "Best submission in the set. Clear reasoning, and the prototype actually ran."
+    },
+    {
+      "title": "Rebuild the pricing page conversion flow",
+      "company": "Anchorpoint",
+      "discipline": "Product",
+      "date": "Jun 2026",
+      "rank": 11,
+      "entrants": 41,
+      "score": 72,
+      "fit": 64,
+      "status": "Closed",
+      "statusKind": null,
+      "solution": "Added an annual/monthly toggle and moved the comparison table above the fold.",
+      "breakdown": [
+        {
+          "label": "Problem framing",
+          "score": 70
+        },
+        {
+          "label": "Execution",
+          "score": 76
+        },
+        {
+          "label": "Communication",
+          "score": 69
+        }
+      ],
+      "feedback": "Solid execution, but the brief asked about enterprise pricing and that went unaddressed."
+    }
+  ],
+  "activity": [
+    {
+      "kind": "win",
+      "title": "Shortlisted for interview",
+      "sub": "Nordwave \u00b7 Onboarding conversion",
+      "date": "28 Aug 2026"
+    },
+    {
+      "kind": "score",
+      "title": "Scored 85, ranked #4 of 38",
+      "sub": "Nordwave \u00b7 Onboarding conversion",
+      "date": "24 Aug 2026"
+    },
+    {
+      "kind": null,
+      "title": "Submitted your solution",
+      "sub": "Nordwave \u00b7 Onboarding conversion",
+      "date": "19 Aug 2026"
+    },
+    {
+      "kind": "score",
+      "title": "Scored 91, ranked #2 of 26",
+      "sub": "Fieldstone \u00b7 Cut onboarding drop-off",
+      "date": "30 Jul 2026"
+    },
+    {
+      "kind": null,
+      "title": "Joined a challenge",
+      "sub": "Fieldstone \u00b7 Cut onboarding drop-off",
+      "date": "18 Jul 2026"
+    },
+    {
+      "kind": "score",
+      "title": "Scored 72, ranked #11 of 41",
+      "sub": "Anchorpoint \u00b7 Rebuild the pricing page",
+      "date": "27 Jun 2026"
+    }
+  ],
+  "heatTotal": 187
+}

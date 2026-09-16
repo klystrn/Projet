@@ -454,6 +454,18 @@
       <div class="footer-brand">
         <img class="logo-img" src="assets/logo-white.png" alt="Projet" width="267" height="88">
         <p>Proof-based hiring. Companies post real challenges, builders ship real work.</p>
+        <!-- FRONT END ONLY: empty data-endpoint makes this say the wiring is
+             pending rather than fake a success. Point it at a real route.
+             Markup is byte-identical to index/about/faq so landing.js's one
+             handler drives all four without a per-page branch. -->
+        <form id="footerNotify" data-endpoint="">
+          <label for="footerNotifyEmail" class="footer-notify-label">Get notified about new challenges</label>
+          <div class="footer-notify-row">
+            <input type="email" id="footerNotifyEmail" name="email" autocomplete="email" placeholder="you@email.com" required>
+            <button type="submit" class="btn btn-accent">Notify me</button>
+          </div>
+          <p class="footer-notify-msg" role="status" aria-live="polite"></p>
+        </form>
       </div>
       <div class="footer-col">
         <h3>Product</h3>
