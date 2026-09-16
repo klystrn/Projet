@@ -2912,13 +2912,16 @@ chooser is gone — harmless, just never populated.
    - **Featured challenge cards** — three sample briefs, not live listings.
 2. **The countdown clock — built, into Featured Challenges, on a placeholder
    deadline.** Asked and confirmed: a "next challenge closes in" timer
-   (`.ss-countdown` in `index.html`, ticking logic in `landing.js`) sits
-   above the challenge cards. It counts down from a **relative** placeholder
-   — `data-countdown-hours="144"` (144h = 6 days, matching the top card's
-   "6 days left") computed from page-load time, not a fixed calendar date,
+   (`.ch-countdown` in `index.html`, ticking logic in `landing.js`) sits
+   above the ticket rail. It counts down from a **relative** placeholder
+   — `data-countdown-hours="96"` (96h = 4 days, matching the first ticket's
+   "4 days left") computed from page-load time, not a fixed calendar date,
    since there's no live challenge data yet. The HTML pre-renders
-   "06d 00h 00m 00s" so a no-js visitor sees a sane static value instead of
-   nothing. Swap `data-countdown-hours` (or point it at a real deadline
+   "04d 00h 00m 00s" so a no-js visitor sees a sane static value instead of
+   nothing. (This entry said `.ss-countdown` / 144h / "06d" until the Sep
+   2026 final check — stale on all three since the v3.3 ticket-rail rebuild
+   moved it out of the retired spectrum split. `.ss-countdown` in the
+   v2-history section further up is correct *as history*.) Swap `data-countdown-hours` (or point it at a real deadline
    timestamp) once real challenge data exists. Distinct from the original
    "clock counting down to the next event" idea floated for the hero — that
    one is still not built, since there's still no real *event* date, only a
