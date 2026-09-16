@@ -315,7 +315,7 @@
   border-color:var(--line); box-shadow:0 1px 2px rgba(20,19,15,.04);
   transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
 }
-.auth-card .field input:hover{border-color:#c9c5b8;}
+.auth-card .field input:hover{border-color:var(--line-strong);}
 
 /* The mode-switch prompt ("New to Projet? Create an account") is a
    <button>, not an <a> — it has to be, since it drives the JS slide

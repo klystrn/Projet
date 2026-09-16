@@ -12,6 +12,7 @@ colors:
   paper: "#ffffff"
   paper-warm: "#f5f4ef"
   hairline: "#e6e3da"
+  hairline-strong: "#c9c5b8"   # hover border for input-like controls
   muted: "#726d5f"
   muted-large: "#8f8874"
 typography:

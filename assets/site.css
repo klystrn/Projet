@@ -4,6 +4,11 @@
   --paper:#ffffff;
   --paper-warm:#f5f4ef;
   --line:#e6e3da;
+  /* one step darker than the hairline. The hover border for input-like
+     controls (the Google button, the auth inputs) — subtler than the
+     var(--ink) hover the outline BUTTONS use, which is deliberate: these
+     are fields, not actions. Was a bare #c9c5b8 literal in two files. */
+  --line-strong:#c9c5b8;
   --orange:#ff5b24;
   --orange-deep:#c73e10;
   --navy:#161c3f;
@@ -323,7 +328,7 @@ nav.links a:hover{color:var(--ink);}
   font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
   transition:border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
 }
-.auth-google:hover{border-color:#c9c5b8; background:var(--paper-warm);}
+.auth-google:hover{border-color:var(--line-strong); background:var(--paper-warm);}
 .auth-google:active{transform:translateY(1px);}
 .auth-google:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
 .auth-google-icon{width:18px; height:18px; flex:none;}
