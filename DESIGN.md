@@ -42,6 +42,64 @@ typography:
     fontSize: "11.5px"
     fontWeight: 600
     letterSpacing: "0.14em"
+  # ---------------------------------------------------------------------
+  # scale — an INVENTORY of every font-size the shipped CSS actually uses,
+  # not an idealised ramp. Generated from assets/*.css; the five named
+  # roles above are the ones to reach for, this is what exists.
+  #
+  # It is longer than a designed scale should be, and the half-pixel pairs
+  # below (12/12.5/13, 14/14.5/15 and so on) are real drift from tuning
+  # sizes rule-by-rule over many rounds rather than picking from a ramp.
+  # They are recorded rather than smoothed over: consolidating them means
+  # re-rendering ~100 declarations, which is a deliberate design pass, not
+  # a cleanup to slip into a bug-fix commit. See DESIGN-NOTES below.
+  # ---------------------------------------------------------------------
+  scale:
+    px-9: "9px"               # 6 rules
+    px-9-5: "9.5px"           # 2 rules
+    px-10: "10px"             # 10 rules
+    px-10-5: "10.5px"         # 20 rules
+    px-11: "11px"             # 29 rules
+    px-11-5: "11.5px"         # 18 rules
+    px-12: "12px"             # 24 rules
+    px-12-5: "12.5px"         # 21 rules
+    px-13: "13px"             # 23 rules
+    px-13-5: "13.5px"         # 16 rules
+    px-14: "14px"             # 29 rules
+    px-14-5: "14.5px"         # 15 rules
+    px-15: "15px"             # 21 rules
+    px-15-5: "15.5px"         # 2 rules
+    px-16: "16px"             # 7 rules
+    px-16-5: "16.5px"         # 4 rules
+    px-17: "17px"             # 8 rules
+    px-17-5: "17.5px"         # 3 rules
+    px-18: "18px"             # 7 rules
+    px-18-5: "18.5px"         # 2 rules
+    px-19: "19px"             # 6 rules
+    px-20: "20px"             # 1 rule
+    px-21: "21px"             # 5 rules
+    px-22: "22px"             # 5 rules
+    px-23: "23px"             # 3 rules
+    px-24: "24px"             # clamp endpoint only
+    px-25: "25px"             # 1 rule
+    px-26: "26px"             # 3 rules
+    px-27: "27px"             # clamp endpoint only
+    px-28: "28px"             # clamp endpoint only
+    px-29: "29px"             # 1 rule
+    px-30: "30px"             # clamp endpoint only
+    px-32: "32px"             # clamp endpoint only
+    px-34: "34px"             # clamp endpoint only
+    px-36: "36px"             # clamp endpoint only
+    px-38: "38px"             # clamp endpoint only
+    px-40: "40px"             # 1 rule
+    px-42: "42px"             # clamp endpoint only
+    px-44: "44px"             # clamp endpoint only
+    px-46: "46px"             # clamp endpoint only
+    px-50: "50px"             # clamp endpoint only
+    px-52: "52px"             # 1 rule
+    px-54: "54px"             # clamp endpoint only
+    px-58: "58px"             # clamp endpoint only
+    px-68: "68px"             # clamp endpoint only
 rounded:
   pill: "999px"
   sm: "13px"
@@ -49,6 +107,27 @@ rounded:
   lg: "20px"
   xl: "26px"
   xxl: "28px"
+  # -------------------------------------------------------------------
+  # Below: every other radius the shipped CSS uses, same inventory
+  # approach as typography.scale. Note that `sm` (13px) and `lg` (20px)
+  # above are documented but used by NOTHING — they describe a scale
+  # that was never adopted. The small end (2-12px) is where the real
+  # drift is. `99px` is almost certainly a typo for the `999px` pill
+  # used 32 times; at these element sizes both render fully round, so
+  # it is harmless today and worth normalising on the same pass.
+  # -------------------------------------------------------------------
+  px-2: "2px"             # 7 rules
+  px-3: "3px"             # 3 rules
+  px-4: "4px"             # 9 rules
+  px-6: "6px"             # 4 rules
+  px-8: "8px"             # 2 rules
+  px-9: "9px"             # 1 rule
+  px-10: "10px"           # 3 rules
+  px-11: "11px"           # 1 rule
+  px-12: "12px"           # 12 rules
+  px-22: "22px"           # 2 rules
+  px-24: "24px"           # 1 rule
+  px-99: "99px"           # 9 rules
 spacing:
   xs: "8px"
   sm: "14px"
@@ -105,6 +184,49 @@ components:
 ---
 
 # Design System: Projet
+
+## DESIGN-NOTES: the type scale is an inventory, not a ramp
+
+`typography.scale` in the frontmatter above lists **45 font sizes** — every
+value the shipped CSS actually uses. That is far more than a designed system
+should carry, and the document says so rather than presenting it as
+intentional.
+
+**What happened.** The five named roles (`display`, `headline`, `title`,
+`body`, `label`) are real and carry meaning. Everything else accreted: sizes
+were tuned rule-by-rule across many rounds, each for a good local reason —
+several are documented in `CLAUDE.md` with the measurement that produced
+them (the hero's 72px clamp max is the largest that keeps both audience
+headlines to one line per `<br>` segment; the fold-reserve math depends on
+the nav and logo-strip heights). None of them were picked off a ramp,
+because there was no enumerated ramp to pick from.
+
+**The drift, specifically.** Nine half-pixel pairs sit in the list:
+
+```
+10 / 10.5      11 / 11.5      12 / 12.5      13 / 13.5      14 / 14.5
+15 / 15.5      16 / 16.5      17 / 17.5      18 / 18.5
+```
+
+A 0.5px difference is not a deliberate typographic distinction at these
+sizes — it is two people (or one person on two days) reaching for "about
+this big." Roughly 100 declarations are involved.
+
+**Why it was documented rather than consolidated.** Collapsing those pairs
+re-renders text across every page, and several components measure their own
+layout from the resulting metrics — the testimonial spotlight reserves a
+height from the tallest rendered quote, the hero computes `--fold-reserve`
+from real element heights. That is a deliberate design pass with a visual
+regression check at the end, not something to slip into a bug-fix commit
+during a handover. Recording the inventory changes no pixels and makes the
+problem visible; smoothing it over in the document would have hidden it.
+
+**If you do the consolidation**, the shape of the work is: pick one value
+per pair (frequency counts are in the comments beside each entry — `14px`
+is used 29 times against `14.5px`'s 15, for instance), replace, then re-run
+`node test/smoke.mjs` and re-check the three components above by eye at
+1440 and 390. Trim `typography.scale` to match afterwards, or this document
+goes stale in the other direction.
 
 ## Overview
 
