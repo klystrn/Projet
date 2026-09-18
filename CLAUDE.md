@@ -267,6 +267,87 @@ listener is even registered for a visitor who's never going to see the pin.
 - `#heroDash` (index.html's hero card) is **no longer a backend seam** —
   see "v3.2 updates" below, it's a pure graphic now.
 
+## v4.1 updates (Sep 2026) — handover packaging: test harness, cleanup, 404
+
+Asked directly, after v4.0's bugs pass: build the fixtures/smoke-test/CI
+harness, add the footer capture to the two pages missing it, reconcile
+DESIGN.md, and answer "what else is left" for a same-day handover.
+
+**Test harness.** `fixtures/*.json` — one hand-built sample response per
+documented backend seam (dashboard student/company, both populated and
+empty; challenges, both populated and empty), internally consistent with
+the "derive, don't duplicate" rule this file already documents elsewhere
+(the company fixture's five briefs sum to exactly its own 96
+submissions/31 above-bar, not a separately-typed total). `test/smoke.mjs`
+is a dependency-free Node 22+ script that drives real headless Chromium
+over raw CDP (no Playwright, matching this repo's no-npm-install rule):
+it serves the repo, opens all seven pages at desktop+mobile, checks for
+console errors, broken images, duplicate ids, heading-order skips,
+missing labels/alt/names, `target=_blank` without `rel`, dead `href="#"`
+links and horizontal overflow, then loads every fixture through its real
+`data-endpoint` seam and asserts against fixture-only values (not values
+that happen to match the sample data — an early draft of this test
+passed against `dashboard-student.json` by coincidence, since its
+`heatTotal` originally matched the sample; changed to a distinct value
+specifically so the test can tell "fixture loaded" from "fixture silently
+ignored"). Verified the harness actually catches regressions by injecting
+a dead link, a duplicate id and a wrong fixture value and confirming all
+three fail the run. Wired to CI at `.github/workflows/smoke.yml`.
+
+**`assets/site.css` trimmed 57.8KB → 26.0KB (-70%, 365 of 583 rule
+blocks).** `login.html`/`signup.html` are the only pages that load this
+file, but it still carried the CSS for the entire retired
+single-audience marketing site (`business.html`/`builders.html` and
+their shared hero/pain-points/comparison-grid/pricing/old-rubric-demo
+sections — see the v2-history section far below), none of it referenced
+by any live page since the v3 rebuild. Confirmed dead by cross-
+referencing every selector's class/id tokens against these two pages'
+actual `class="..."` attributes and their JS, using a small tokenizer
+with a round-trip correctness check (`assert reconstructed === original`)
+before trusting it for a destructive rewrite. What survives:
+`.field`/`.role-toggle`/`.auth-submit`/`.auth-status`/`.auth-alt`/
+`.auth-fineprint` (the form internals `auth.css` reuses wholesale) and
+the base `.btn` family. Verified safe with `node test/smoke.mjs` (all
+checks pass) and a before/after screenshot pixel-diff at both widths —
+the only deltas found were the Signal Field's own documented continuous
+animation (the `.af-mark::before` glow pulse, independent bloom
+positions) landing on different frames between two separately-timed
+loads, not a dropped rule.
+
+**`404.html`, new.** Same nav/footer as every other page. The hero panel
+reuses the auth pages' Signal Field (`.af-bloom`/`.af-ring` from
+`assets/auth.css`) for its gradient/ring language only, in a new
+`assets/notfound.css` — **no brand mark**, asked for explicitly ("I don't
+want the logo on the 404 page, just the gradient and design style"), and
+no `--field-x` mode travel either, since there's no login/signup duality
+here to swap between. The mark's absence leaves one ring's own
+`::before` carrying the ambient breathing glow instead (same
+`--orange`-based rgba `.af-mark::before` already used, not a new shade,
+scoped by the impeccable design-color check). Copy is "quiet but useful"
+per the chosen direction: one headline with a small pun in the
+"proof, not paper" register ("This page has no proof of work.") kept
+well clear of the retired live-defense/rubric framing (removed three
+times — see "Copy framing" above, still don't reintroduce it), one plain
+line, a primary "Back to home" button, and the four links a lost visitor
+actually wants (Challenges, About us, FAQs, Log in). Added to
+`test/smoke.mjs`'s page list; needed one fix to pass its own heading-
+order check — an `<h2 class="sr-only">More pages</h2>` ahead of the link
+list, since the page's `<h1>` was otherwise followed directly by the
+shared footer's `<h3>` columns with nothing in between.
+
+**Deploy note, not yet actioned**: a static `404.html` is a host
+convention, not automatic everywhere. Netlify/GitHub Pages auto-detect
+it; Vercel needs an explicit route. Whoever deploys needs to verify the
+live URL actually returns HTTP `404` for a bad path (`curl -sI`), not a
+"soft 404" (a `200` serving this page's content) — full note in
+`HANDOVER.md` §5.
+
+**Terms/privacy pages are explicitly Andrei's to build now**, not an
+open front-end decision — noted in `HANDOVER.md` §3 so it isn't mistaken
+for a gap waiting on a decision. No front-end action needed beyond
+swapping the existing `.footer-pending` spans to real links once those
+pages exist.
+
 ## v4.0 updates (Sep 2026) — second, deeper bugs pass
 
 Asked directly, right after v3.9 landed: "Run another check. This time go

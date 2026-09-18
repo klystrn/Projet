@@ -611,7 +611,10 @@ already showing the edit.
   `#dpCandidates` rather than per-button, since that list is rebuilt on
   every fetch.
 - **Terms / privacy links** on `signup.html` are plain text, not links —
-  no such pages exist yet.
+  no such pages exist yet. **These are explicitly Andrei's to build**, not
+  a front-end gap waiting on a decision — no action needed here once
+  they exist beyond swapping the `.footer-pending` spans back to real
+  `<a href="…">` links (see the pre-launch checklist).
 - **`archive/` folder removal** — see the pre-launch checklist. Not a
   backend question, but flagged here since it's the one item in this
   handover that's a "delete this" instruction rather than a "build this."
@@ -822,3 +825,33 @@ first deploy. Do not delete them without checking `CLAUDE.md`'s "Known
 issues" #3 and #5 first — the regeneration commands there depend on the
 `.png` masters. A one-line check for what's actually loaded: open each
 page with DevTools' Network panel and filter by `assets/`.
+
+---
+
+## 5. The 404 page (Sep 2026)
+
+`404.html` is built: full site nav + footer, the Signal Field
+gradient/ring background from the auth pages (no brand mark — asked for
+explicitly), and a quiet copy panel (headline, one line, a primary "Back
+to home" button, four secondary links). It's in `test/smoke.mjs`'s page
+list and passes the same checks as every other page. Static HTML, no
+`data-endpoint`, nothing to wire up.
+
+**One thing that IS yours: making the host actually serve it as a 404.**
+A static file named `404.html` is not automatically an error page —
+that's a host convention, and hosts differ:
+- **Netlify / GitHub Pages** auto-detect a root `404.html` and serve it
+  with a real `404` status for any unmatched path. Nothing to configure.
+- **Vercel** does not do this automatically for a plain static
+  deployment — it needs an explicit rewrite/route (or the Vercel-specific
+  `404.html` convention for its static builder, depending on which
+  Vercel project type this ends up on) pointing unmatched paths at this
+  file.
+
+**Verify after deploy, not just that the page looks right**: hit a
+nonsense URL on the live domain and check the actual HTTP status code
+(`curl -sI https://myprojet.co/this-does-not-exist`), not just that
+`404.html`'s content renders. A "soft 404" — the right-looking page
+served with a `200` — tells search engines the broken URL is real
+content, which is worse for SEO than an ugly error page with the
+correct status.

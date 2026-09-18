@@ -35,7 +35,7 @@ const only = process.argv.includes("--pages") ? "pages"
            : process.argv.includes("--fixtures") ? "fixtures" : "all";
 
 const PAGES = ["index.html","challenges.html","about.html","faq.html",
-               "dashboard.html","login.html","signup.html"];
+               "dashboard.html","login.html","signup.html","404.html"];
 
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
