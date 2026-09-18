@@ -294,25 +294,53 @@ ignored"). Verified the harness actually catches regressions by injecting
 a dead link, a duplicate id and a wrong fixture value and confirming all
 three fail the run. Wired to CI at `.github/workflows/smoke.yml`.
 
-**`assets/site.css` trimmed 57.8KB → 26.0KB (-70%, 365 of 583 rule
-blocks).** `login.html`/`signup.html` are the only pages that load this
-file, but it still carried the CSS for the entire retired
-single-audience marketing site (`business.html`/`builders.html` and
-their shared hero/pain-points/comparison-grid/pricing/old-rubric-demo
-sections — see the v2-history section far below), none of it referenced
-by any live page since the v3 rebuild. Confirmed dead by cross-
-referencing every selector's class/id tokens against these two pages'
-actual `class="..."` attributes and their JS, using a small tokenizer
-with a round-trip correctness check (`assert reconstructed === original`)
-before trusting it for a destructive rewrite. What survives:
+**`assets/site.css` trimmed twice, 57.8KB down to 11.7KB in the end —
+read the second pass, the first one had a real gap.** `login.html`/
+`signup.html` are the only pages that load this file, but it still
+carried the CSS for the entire retired single-audience marketing site
+(`business.html`/`builders.html` and their shared hero/pain-points/
+comparison-grid/pricing/old-rubric-demo sections — see the v2-history
+section far below), none of it referenced by any live page since the v3
+rebuild.
+
+The first pass (57.8KB → 26.0KB, 365 of 583 rule blocks) cross-referenced
+every selector's class/id tokens against these two pages' actual
+`class="..."` attributes and their JS, using a small tokenizer with a
+round-trip correctness check before trusting it for a destructive
+rewrite — and still left roughly 40 dead rule blocks behind (`.hero`,
+`.hero-visual`, `.pain-item`, `.offer-card`, `.model-card`,
+`.steps-grid`/`.step`, `.rubric-card`, `.dd-turn`/`.dd-verdict` — the old
+rubric/defense demo's own CSS, still there — `.faq-item`, `.nav-dropdown`,
+`header.nav.is-compact`, a bare `footer{}` rule, two whole
+`@media(max-width:900px/640px)` blocks, and more). **Root cause: the
+"check the JS too" half of that cross-reference was a plain substring
+search, and several of these dead selectors appear as literal TEXT
+inside `site.js`'s own `querySelector`/`classList` calls** — e.g. a
+guarded, permanently-no-op `document.querySelector('.hero-visual
+.texture')` IIFE left over from the old page. A class name showing up
+anywhere in the JS file's text is not evidence the CSS does anything; it
+can just as easily be a query that will always return nothing on these
+two pages. Caught this second time by the impeccable design hook
+flagging `.hero-visual`'s undocumented gradient colour literals on a
+routine post-edit scan, which prompted actually checking whether
+`.hero-visual` appears in `login.html`'s/`signup.html`'s rendered markup
+(it doesn't) rather than trusting the earlier JS-text check. Re-verified
+properly this time against ONLY classes present in the two pages' actual
+markup — no JS string content counted as "used" — and removed all of
+it, landing at 11.7KB. What survives, unchanged from the first pass:
 `.field`/`.role-toggle`/`.auth-submit`/`.auth-status`/`.auth-alt`/
-`.auth-fineprint` (the form internals `auth.css` reuses wholesale) and
-the base `.btn` family. Verified safe with `node test/smoke.mjs` (all
-checks pass) and a before/after screenshot pixel-diff at both widths —
-the only deltas found were the Signal Field's own documented continuous
-animation (the `.af-mark::before` glow pulse, independent bloom
-positions) landing on different frames between two separately-timed
-loads, not a dropped rule.
+`.auth-fineprint` (the form internals `auth.css` reuses wholesale), the
+base `.btn` family, and the page-wide resets. Verified safe both times
+with `node test/smoke.mjs` (all checks pass) and a visual pass on both
+pages at desktop width — pixel-identical to before on the second pass;
+the first pass's before/after diff had shown small deltas, all traced to
+the Signal Field's own documented continuous animation (the
+`.af-mark::before` glow pulse, independent bloom positions) landing on
+different frames between two separately-timed loads, not a dropped rule.
+**Lesson for any future "is this class still used" check on this repo**:
+grep the HTML's actual `class="..."` attributes, never a JS file's text —
+a page can load a script that queries for a class its own markup no
+longer has, and the query just silently returns nothing forever.
 
 **`404.html`, new.** Same nav/footer as every other page. The hero panel
 reuses the auth pages' Signal Field (`.af-bloom`/`.af-ring` from
