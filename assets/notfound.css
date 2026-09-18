@@ -1,0 +1,81 @@
+/* ==========================================================================
+   Projet — 404.html only.
+
+   The Signal Field from the auth pages (assets/auth.css's .af-bloom/
+   .af-ring) reused for its gradient/ring language, not its markup: this
+   page has no login/signup duality to swap between, so there's no
+   --field-x/--field-y travel and no brand mark (asked for explicitly —
+   "I don't want the logo on the 404 page, just the gradient and design
+   style"). Blooms sit centred and still; one ring gets a slow ambient
+   pulse (borrowed from .af-mark::before's breathing glow, minus the mark
+   it used to sit behind) so the section isn't completely inert.
+
+   Colour is fixed warm/cool/violet, same call as --grad-cta: it already
+   reads as the brand spectrum by construction, so it isn't re-tinted by
+   the audience toggle the way --grad-accent/--grad-dark are.
+   ========================================================================== */
+
+.nf-hero{
+  position:relative; overflow:hidden;
+  /* Same "only ever grows" min-height trick as .final in landing.css:
+     fill whatever room is left under the nav and above the footer, but
+     never squash the content if that room is smaller than it needs. */
+  min-height:calc(100vh - var(--nav-h, 78px) - var(--footer-h, 392px));
+  min-height:calc(100svh - var(--nav-h, 78px) - var(--footer-h, 392px));
+  display:flex; align-items:center; justify-content:center;
+  padding:clamp(56px,8vw,96px) 0;
+  background:var(--ink);
+  color:#fff; text-align:center;
+}
+
+.nf-field{position:absolute; inset:0; z-index:0; pointer-events:none;}
+.nf-bloom{position:absolute; inset:0;}
+.nf-bloom-warm{background:radial-gradient(720px 620px at 34% 30%, rgba(255,91,36,.40), rgba(255,91,36,0) 66%);}
+.nf-bloom-cool{background:radial-gradient(680px 600px at 68% 72%, rgba(47,107,255,.34), rgba(47,107,255,0) 68%);}
+.nf-bloom-violet{background:radial-gradient(560px 520px at 50% 50%, rgba(122,63,143,.30), rgba(122,63,143,0) 70%);}
+
+.nf-ring{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  border:1px solid rgba(255,255,255,.16); border-radius:50%;
+}
+.nf-ring-1{width:560px; height:560px;}
+.nf-ring-2{width:360px; height:360px; border-color:rgba(255,255,255,.13);}
+/* The one bit of ambient life left once the mark itself is gone — the same
+   focal glow that used to sit behind .af-mark (same --orange-based rgba
+   .af-mark::before uses in auth.css, not a new shade), now centred on the
+   inner ring instead. animation-fill-mode isn't needed here (no entrance
+   delay to hold through), unlike .af-mark::before's own version of this. */
+.nf-ring-2::before{
+  content:''; position:absolute; inset:-1px; border-radius:50%;
+  box-shadow:0 0 90px 20px rgba(255,91,36,.18);
+  animation:nf-pulse 7s ease-in-out infinite;
+}
+@keyframes nf-pulse{
+  0%,100%{opacity:.55; transform:scale(.96);}
+  50%{opacity:1; transform:scale(1.04);}
+}
+
+.nf-panel{position:relative; z-index:1; max-width:560px; margin:0 auto; padding:0 32px;}
+.nf-code{
+  display:block; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:18px;
+}
+.nf-panel h1{font-size:clamp(30px,4.2vw,44px); margin-bottom:14px;}
+.nf-panel p{font-size:17px; line-height:1.6; color:rgba(255,255,255,.74); margin-bottom:30px;}
+.nf-actions{display:flex; justify-content:center; margin-bottom:34px;}
+
+.nf-links{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:10px 20px;
+  list-style:none; margin:0; padding-top:26px; border-top:1px solid rgba(255,255,255,.14);
+  font-family:'JetBrains Mono',monospace; font-size:13px;
+}
+.nf-links a{color:rgba(255,255,255,.72); text-decoration:none; padding:4px 2px; display:inline-block;}
+.nf-links a:hover{color:#fff; text-decoration:underline;}
+/* Same white outline .flow-step-link already uses for a link on a dark
+   surface — .btn's own two-tone ring (landing.css) covers the CTA button
+   above, but a bare <a> here carries no .btn class to inherit that from. */
+.nf-links a:focus-visible{outline:2px solid #fff; outline-offset:3px; border-radius:4px;}
+
+@media (prefers-reduced-motion:reduce){
+  .nf-ring-2::before{animation:none; opacity:.85; transform:scale(1);}
+}

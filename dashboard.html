@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | Projet</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- landing.css first (tokens + gradient system + shared chrome), then this page's own -->
+<link rel="stylesheet" href="assets/landing.css">
+<link rel="stylesheet" href="assets/dashboard.css">
+<meta name="description" content="Your Projet dashboard: challenge history, scores and rankings.">
+<link rel="canonical" href="https://myprojet.co/dashboard.html">
+<!-- An account surface, and currently sample data. Keep noindex even once
+     it is real: a signed-in dashboard has no business in search results. -->
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14130f">
+<script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="dash-page" data-endpoint="">
+
+<a class="skip-link" href="#top">Skip to main content</a>
+
+<!-- ============================ NAV (shared with index.html) ============================ -->
+<header class="nav" id="siteNav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="logo" aria-label="Projet home">
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+      </a>
+    </div>
+    <!-- No audience toggle here, unlike every signed-out page. Reaching
+         this page means you are logged in, so the audience is a fact about
+         the account, not a preference to flip: dashboard.js sets
+         html[data-audience] from the resolved role instead, which is what
+         re-tints the accent. -->
+    <nav class="links">
+      <a href="challenges.html">Challenges</a>
+      <a href="about.html">About us</a>
+      <a href="faq.html">FAQs</a>
+    </nav>
+    <!-- The dashboard is only ever reached signed in, so it offers a way
+         OUT of that state rather than the "Log in" prompt every other page
+         shows a signed-out visitor. Wired in landing.js. -->
+    <div class="nav-cta">
+      <button type="button" class="btn btn-ghost btn-sm" id="navLogout">Log out</button>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="m-link" href="challenges.html">Challenges</a>
+    <a class="m-link" href="about.html">About us</a>
+    <a class="m-link" href="faq.html">FAQs</a>
+    <div class="mobile-menu-ctas">
+      <button type="button" class="btn btn-ghost" id="navLogoutMobile">Log out</button>
+    </div>
+  </div>
+</header>
+
+<main id="top" tabindex="-1">
+  <div class="wrap">
+
+    <div class="dp-body">
+      <div class="dp-grid">
+
+        <!-- ================= PROFILE COLUMN =================
+             Laid out on the GitHub profile reference the founder pointed
+             at: avatar, name, handle, bio, an Edit profile button directly
+             under it, then a details list, then blocks for skills and
+             stats. Every value here is filled by dashboard.js from either
+             its sample profile or a real API response. -->
+        <aside class="dp-rail">
+          <div class="dp-avatar" id="dpAvatar">CL</div>
+          <h1 id="dpName">Chloe Lim</h1>
+          <p class="dp-handle" id="dpHandle">@chloelim</p>
+          <p class="dp-bio" id="dpBio">Design engineer in training. I like interfaces that survive contact with real users.</p>
+          <button type="button" class="btn btn-ghost dp-edit" id="dpEditBtn">Edit profile</button>
+
+          <ul class="dp-details" id="dpDetails">
+            <li><span class="dp-det-ic" aria-hidden="true">&#9679;</span><span id="dpDetOrg">SUTD &middot; Year 3 Design &amp; AI</span></li>
+            <li><span class="dp-det-ic" aria-hidden="true">&#9679;</span><span id="dpDetLoc">Singapore</span></li>
+            <li><span class="dp-det-ic" aria-hidden="true">&#9679;</span><span id="dpDetJoined">Joined February 2026</span></li>
+          </ul>
+
+          <div class="dp-rail-block">
+            <h2 class="dp-rail-h" id="dpTagsH">Skills</h2>
+            <div class="dp-tags" id="dpTags">
+              <span class="dp-tag">Figma</span>
+              <span class="dp-tag">Front-end</span>
+              <span class="dp-tag">A11y</span>
+            </div>
+          </div>
+
+          <div class="dp-rail-block">
+            <h2 class="dp-rail-h">At a glance</h2>
+            <div id="dpRailStats">
+              <div class="dp-stat"><span>Challenges done</span><b>3</b></div>
+              <div class="dp-stat"><span>Avg. score</span><b>83</b></div>
+              <div class="dp-stat"><span>Best rank</span><b>#2</b></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ================= MAIN COLUMN ================= -->
+        <div class="dp-main">
+
+          <!-- Tabs. A real ARIA tab pattern this time (tablist/tab/tabpanel
+               with aria-controls + roving tabindex in dashboard.js), unlike
+               the spectrum-split control on the home page that was demoted
+               to plain toggle buttons — here the panels really do replace
+               one another, which is what the pattern promises. -->
+          <div class="dp-tabs" role="tablist" aria-label="Dashboard sections" id="dpTabs">
+            <button type="button" role="tab" id="tabBtnOverview" aria-controls="tabOverview" aria-selected="true" data-tab="overview">Overview</button>
+            <button type="button" role="tab" id="tabBtnActivity" aria-controls="tabActivity" aria-selected="false" tabindex="-1" data-tab="activity">Activity</button>
+          </div>
+
+          <!-- ===================== OVERVIEW ===================== -->
+          <div class="dp-tabpanel" id="tabOverview" role="tabpanel" aria-labelledby="tabBtnOverview" tabindex="0">
+
+            <!-- ===== STUDENT VIEW ===== -->
+            <section id="viewStudent">
+              <div class="dp-metrics">
+                <div class="dp-metric"><b>85</b><span>Latest score</span></div>
+                <div class="dp-metric"><b>83%</b><span>Latest fit</span></div>
+                <div class="dp-metric"><b>#4</b><span>Latest rank</span></div>
+              </div>
+
+              <!-- Contribution heatmap. Cells are built by dashboard.js;
+                   the summary sentence under it is real markup, so a no-js
+                   visitor still gets the number the grid encodes rather
+                   than an empty box. -->
+              <div class="dp-section dp-heat-card">
+                <div class="dp-section-head">
+                  <h2 id="dpHeatTitle">214 contributions in the last year</h2>
+                  <span class="dp-heat-legend" aria-hidden="true">Less<i data-lv="0"></i><i data-lv="1"></i><i data-lv="2"></i><i data-lv="3"></i><i data-lv="4"></i>More</span>
+                </div>
+                <div class="dp-heat-scroll">
+                  <div class="dp-heat-months" id="dpHeatMonths" aria-hidden="true"></div>
+                  <div class="dp-heat-body">
+                    <div class="dp-heat-days" aria-hidden="true"><span>Mon</span><span>Wed</span><span>Fri</span></div>
+                    <div class="dp-heat" id="dpHeat" aria-hidden="true"></div>
+                  </div>
+                </div>
+                <p class="dp-heat-note" id="dpHeatNote">Activity across challenges you entered, scored and were ranked on.</p>
+              </div>
+
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h2>Past hackathons</h2>
+                  <span class="dp-count">3 entries</span>
+                </div>
+                <!-- Single column, one row per entry — the layout the
+                     founder asked to keep. Each row is a real <button> now
+                     rather than an <article>, because it opens the detail
+                     modal: a keyboard user gets Enter/Space and a focus
+                     ring for free, which a div with a click handler does
+                     not. Data for the modal rides on each row as
+                     data-hk-* attributes, read fresh on every open. -->
+                <!-- PLACEHOLDER[dashboard-entries] -->
+                <div class="dp-list" id="dpEntries" data-placeholder="dashboard-entries">
+                  <button type="button" class="dp-card" data-hk
+                    data-hk-title="Onboarding conversion" data-hk-company="Nordwave"
+                    data-hk-discipline="Product" data-hk-date="Aug 2026" data-hk-rank="4"
+                    data-hk-entrants="38" data-hk-score="85" data-hk-fit="83"
+                    data-hk-status="Interview" data-hk-status-kind="win"
+                    data-hk-solution="Reworked the first-run flow so a new account reaches its first real result in three steps instead of seven, and argued the cut from Nordwave's own drop-off data rather than from best practice."
+                    data-hk-breakdown="Problem framing:88,Execution:86,Evidence:81,Communication:84"
+                    data-hk-feedback="Clear reasoning from their funnel data. Wanted to see this one in a room.">
+                    <span class="dp-rank is-top">04</span>
+                    <span class="dp-card-body">
+                      <span class="dp-card-title">Onboarding conversion</span>
+                      <span class="dp-card-meta">Nordwave &middot; Product &middot; Aug 2026</span>
+                    </span>
+                    <span class="dp-pill">Interview</span>
+                    <span class="dp-score"><b>85</b><span>83% fit</span></span>
+                  </button>
+                  <button type="button" class="dp-card" data-hk
+                    data-hk-title="Cut onboarding drop-off in the mobile app" data-hk-company="Fieldstone"
+                    data-hk-discipline="Design" data-hk-date="Jul 2026" data-hk-rank="2"
+                    data-hk-entrants="26" data-hk-score="91" data-hk-fit="88"
+                    data-hk-status="Closed" data-hk-status-kind="quiet"
+                    data-hk-solution="Rebuilt setup as three screens a user can leave and come back to, with the permission prompts moved to the moment each one is actually needed."
+                    data-hk-breakdown="Problem framing:92,Execution:90,Evidence:88,Communication:89"
+                    data-hk-feedback="Strongest submission on evidence. The staged permissions idea went into our own backlog.">
+                    <span class="dp-rank">02</span>
+                    <span class="dp-card-body">
+                      <span class="dp-card-title">Cut onboarding drop-off in the mobile app</span>
+                      <span class="dp-card-meta">Fieldstone &middot; Design &middot; Jul 2026</span>
+                    </span>
+                    <span class="dp-pill is-quiet">Closed</span>
+                    <span class="dp-score"><b>91</b><span>88% fit</span></span>
+                  </button>
+                  <button type="button" class="dp-card" data-hk
+                    data-hk-title="Rebuild the pricing page conversion flow" data-hk-company="Anchorpoint"
+                    data-hk-discipline="Product" data-hk-date="Jun 2026" data-hk-rank="11"
+                    data-hk-entrants="31" data-hk-score="72" data-hk-fit="64"
+                    data-hk-status="Closed" data-hk-status-kind="quiet"
+                    data-hk-solution="Split the plan chooser from the checkout step and cut the comparison table down to the three fields people actually compared in the session recordings."
+                    data-hk-breakdown="Problem framing:74,Execution:70,Evidence:66,Communication:78"
+                    data-hk-feedback="Good instinct on the table. The case for the split needed numbers behind it.">
+                    <span class="dp-rank is-rest">11</span>
+                    <span class="dp-card-body">
+                      <span class="dp-card-title">Rebuild the pricing page conversion flow</span>
+                      <span class="dp-card-meta">Anchorpoint &middot; Product &middot; Jun 2026</span>
+                    </span>
+                    <span class="dp-pill is-quiet">Closed</span>
+                    <span class="dp-score"><b>72</b><span>64% fit</span></span>
+                  </button>
+                </div>
+                <div class="dp-listfoot">
+                  <span class="dp-listfoot-note">Showing all 3 entries</span>
+                  <div class="dp-listfoot-actions">
+                    <a href="challenges.html" class="btn btn-accent">Find your next challenge</a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===== STUDENT EMPTY STATE =====
+                 Shown when the account has no submissions. Kept in the markup
+                 rather than generated so a no-js visitor with an empty account
+                 still sees a real prompt. dashboard.js flips between this and
+                 #viewStudent. -->
+            <section id="viewStudentEmpty" hidden>
+              <div class="dp-empty">
+                <div>
+                  <h3>You haven't submitted a challenge yet</h3>
+                  <p>Pick one from the open list. Your first score and rank will show up right here, and companies see it the moment it lands.</p>
+                </div>
+                <a href="challenges.html" class="btn btn-accent">Browse challenges</a>
+              </div>
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h2>Past hackathons</h2>
+                  <span class="dp-count">0 entries</span>
+                </div>
+                <div class="dp-placeholder-card">
+                  <span class="dp-rank is-rest">&ndash;</span>
+                  <div class="dp-card-body">
+                    <div class="dp-card-title">No submissions yet</div>
+                    <div class="dp-card-meta">Your first entry will appear here</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===== COMPANY VIEW ===== -->
+            <section id="viewCompany" hidden>
+              <!-- Six metrics rather than the student view's three: a company
+                   is tracking a pipeline, not a personal record, so the row
+                   carries the whole funnel's headline numbers at once. Each
+                   one shows a period-on-period delta, which is the thing a
+                   hiring lead actually reads a dashboard for. -->
+              <div class="dp-metrics dp-metrics--six">
+                <div class="dp-metric"><b>3</b><span>Open briefs</span><i class="dp-delta is-up">+1</i></div>
+                <div class="dp-metric"><b>96</b><span>Submissions</span><i class="dp-delta is-up">+38</i></div>
+                <div class="dp-metric"><b>31</b><span>Above your bar</span><i class="dp-delta is-up">+12</i></div>
+                <div class="dp-metric"><b>14</b><span>Shortlisted</span><i class="dp-delta is-up">+5</i></div>
+                <div class="dp-metric"><b>9</b><span>Interviews</span><i class="dp-delta is-up">+4</i></div>
+                <div class="dp-metric"><b>2</b><span>Hires</span><i class="dp-delta is-flat">0</i></div>
+              </div>
+
+              <!-- Two charts side by side. Both are drawn with plain divs
+                   sized by percentage rather than any charting library
+                   (dependency-free, same as the rest of the site), and both
+                   state every figure they encode as real text next to the
+                   bar, so the visual is never the only way to read the
+                   number. That is why the bars themselves are aria-hidden:
+                   they would otherwise be announced as meaningless. -->
+              <div class="dp-chart-row">
+                <div class="dp-section dp-chart-card">
+                  <div class="dp-section-head">
+                    <h2>Hiring funnel</h2>
+                    <span class="dp-count">Across all briefs</span>
+                  </div>
+                  <ol class="dp-funnel">
+                    <li><span class="dp-funnel-label">Submissions</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:100%"></i></span><b>96</b></li>
+                    <li><span class="dp-funnel-label">Above bar</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:32%"></i></span><b>31</b></li>
+                    <li><span class="dp-funnel-label">Shortlisted</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:15%"></i></span><b>14</b></li>
+                    <li><span class="dp-funnel-label">Interviewed</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:9%"></i></span><b>9</b></li>
+                    <li><span class="dp-funnel-label">Hired</span><span class="dp-funnel-bar" aria-hidden="true"><i style="width:2%"></i></span><b>2</b></li>
+                  </ol>
+                  <p class="dp-chart-note">2 hires from 96 submissions, a 2.1% end-to-end rate. 31 of 96 cleared your scoring bar.</p>
+                </div>
+
+                <div class="dp-section dp-chart-card">
+                  <div class="dp-section-head">
+                    <h2>Submissions by month</h2>
+                    <span class="dp-count">Last 12 months</span>
+                  </div>
+                  <!-- Heights are each month's count as a share of the peak
+                       month, and the twelve counts sum to the same 96 the
+                       metrics row, the funnel and the brief table all state:
+                       3+4+2+6+7+5+9+8+11+10+14+17. A chart on the same screen
+                       as its own source data has to add up to it. -->
+                  <div class="dp-cols" aria-hidden="true">
+                    <i style="--h:18%"><span>Oct</span></i><i style="--h:24%"><span>Nov</span></i>
+                    <i style="--h:12%"><span>Dec</span></i><i style="--h:35%"><span>Jan</span></i>
+                    <i style="--h:41%"><span>Feb</span></i><i style="--h:29%"><span>Mar</span></i>
+                    <i style="--h:53%"><span>Apr</span></i><i style="--h:47%"><span>May</span></i>
+                    <i style="--h:65%"><span>Jun</span></i><i style="--h:59%"><span>Jul</span></i>
+                    <i style="--h:82%"><span>Aug</span></i><i class="is-now" style="--h:100%"><span>Sep</span></i>
+                  </div>
+                  <p class="dp-chart-note">Busiest month so far is September with 17 submissions, up from 2 in December.</p>
+                </div>
+              </div>
+
+              <div class="dp-section dp-heat-card">
+                <div class="dp-section-head">
+                  <h2 id="dpHeatTitleCo">96 submissions received in the last year</h2>
+                  <span class="dp-heat-legend" aria-hidden="true">Less<i data-lv="0"></i><i data-lv="1"></i><i data-lv="2"></i><i data-lv="3"></i><i data-lv="4"></i>More</span>
+                </div>
+                <div class="dp-heat-scroll">
+                  <div class="dp-heat-months" id="dpHeatMonthsCo" aria-hidden="true"></div>
+                  <div class="dp-heat-body">
+                    <div class="dp-heat-days" aria-hidden="true"><span>Mon</span><span>Wed</span><span>Fri</span></div>
+                    <div class="dp-heat" id="dpHeatCo" aria-hidden="true"></div>
+                  </div>
+                </div>
+                <p class="dp-heat-note" id="dpHeatNoteCo">Submissions received across every brief you have posted.</p>
+              </div>
+
+              <!-- Per-brief tracking. A real <table>: this is genuinely
+                   tabular (several briefs, same columns), which is exactly
+                   what a table is for and what gives a screen reader row and
+                   column association for free. The fill bar in the last
+                   column is decorative on top of the number beside it, not
+                   instead of it. -->
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h2>Your briefs</h2>
+                  <span class="dp-count">3 open &middot; 2 closed</span>
+                </div>
+                <div class="dp-table-scroll">
+                  <table class="dp-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Brief</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Subs</th>
+                        <th scope="col">Above bar</th>
+                        <th scope="col">Top score</th>
+                        <th scope="col">Closes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><b>Onboarding conversion</b><span>Product</span></td>
+                        <td><span class="cl-pill" data-status="filling">Filling fast</span></td>
+                        <td>38</td><td>12</td><td>94</td><td>6 days</td>
+                      </tr>
+                      <tr>
+                        <td><b>Cut checkout API latency</b><span>Engineering</span></td>
+                        <td><span class="cl-pill" data-status="closing">Closing soon</span></td>
+                        <td>27</td><td>9</td><td>91</td><td>2 days</td>
+                      </tr>
+                      <tr>
+                        <td><b>Stock-alert dashboard</b><span>Design</span></td>
+                        <td><span class="cl-pill" data-status="new">New</span></td>
+                        <td>7</td><td>2</td><td>78</td><td>13 days</td>
+                      </tr>
+                      <tr>
+                        <td><b>Churn signal pipeline</b><span>Data</span></td>
+                        <td><span class="cl-pill" data-status="closed">Closed</span></td>
+                        <td>14</td><td>5</td><td>88</td><td>&mdash;</td>
+                      </tr>
+                      <tr>
+                        <td><b>Referral loop prototype</b><span>Product</span></td>
+                        <td><span class="cl-pill" data-status="closed">Closed</span></td>
+                        <td>10</td><td>3</td><td>82</td><td>&mdash;</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="dp-chart-note">96 submissions across 5 briefs. Data briefs clear your bar most often, at 36%.</p>
+              </div>
+
+              <!-- Where the submissions come from. A single segmented bar
+                   rather than a pie: the parts are being compared against
+                   each other along one axis, which a bar does better and an
+                   inline SVG pie would only make harder to label. -->
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h2>Submissions by discipline</h2>
+                  <span class="dp-count">All time</span>
+                </div>
+                <!-- Shares are computed from the brief table above, not
+                     picked to look tidy: Product 48 of 96, Engineering 27,
+                     Data 14, Design 7. Ordered biggest first so the bar and
+                     the key read in the same direction. -->
+                <div class="dp-split" aria-hidden="true">
+                  <i data-seg="product" style="width:50%"></i>
+                  <i data-seg="engineering" style="width:28%"></i>
+                  <i data-seg="data" style="width:15%"></i>
+                  <i data-seg="design" style="width:7%"></i>
+                </div>
+                <ul class="dp-split-key">
+                  <li><i data-seg="product"></i>Product <b>50%</b></li>
+                  <li><i data-seg="engineering"></i>Engineering <b>28%</b></li>
+                  <li><i data-seg="data"></i>Data <b>15%</b></li>
+                  <li><i data-seg="design"></i>Design <b>7%</b></li>
+                </ul>
+              </div>
+
+              <div class="dp-section">
+                <div class="dp-section-head">
+                  <h2>Onboarding conversion</h2>
+                  <span class="dp-count">Sorted by score</span>
+                </div>
+
+                <div class="dp-toolbar" role="group" aria-label="Filter candidates">
+                  <label class="dp-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                    <span class="sr-only">Search candidates</span>
+                    <input type="search" id="dpSearch" placeholder="Search candidates">
+                  </label>
+                  <button class="dp-filter" data-skill="all" aria-pressed="true">All skills</button>
+                  <button class="dp-filter" data-skill="react" aria-pressed="false">React</button>
+                  <button class="dp-filter" data-skill="a11y" aria-pressed="false">A11y</button>
+                  <button class="dp-filter" data-skill="node" aria-pressed="false">Node</button>
+                  <span class="dp-sort">Score, high to low</span>
+                </div>
+
+                <!-- PLACEHOLDER[dashboard-candidates] -->
+                  <div class="dp-list" id="dpCandidates" data-placeholder="dashboard-candidates">
+                  <article class="dp-card" data-skills="react typescript" data-name="tan wei jie">
+                    <span class="dp-rank is-top">01</span>
+                    <div class="dp-card-body">
+                      <div class="dp-card-title">Tan Wei Jie</div>
+                      <div class="dp-card-meta">NUS &middot; Year 3 Computer Science</div>
+                    </div>
+                    <div class="dp-chips"><span class="dp-chip">React</span><span class="dp-chip">TypeScript</span></div>
+                    <div class="dp-score"><b>94</b><span>Score</span></div>
+                    <div class="dp-fit">92%</div>
+                    <button type="button" class="btn btn-primary btn-sm">Schedule</button>
+                  </article>
+                  <article class="dp-card" data-skills="a11y react" data-name="nur aisyah rahman">
+                    <span class="dp-rank is-top">02</span>
+                    <div class="dp-card-body">
+                      <div class="dp-card-title">Nur Aisyah Rahman</div>
+                      <div class="dp-card-meta">NTU &middot; Year 4 Information Systems</div>
+                    </div>
+                    <div class="dp-chips"><span class="dp-chip">A11y</span><span class="dp-chip">React</span></div>
+                    <div class="dp-score"><b>91</b><span>Score</span></div>
+                    <div class="dp-fit">88%</div>
+                    <button type="button" class="btn btn-primary btn-sm">Schedule</button>
+                  </article>
+                  <article class="dp-card" data-skills="node postgres" data-name="rajesh kumar">
+                    <span class="dp-rank">03</span>
+                    <div class="dp-card-body">
+                      <div class="dp-card-title">Rajesh Kumar</div>
+                      <div class="dp-card-meta">SMU &middot; Year 2 Software Engineering</div>
+                    </div>
+                    <div class="dp-chips"><span class="dp-chip">Node</span><span class="dp-chip">Postgres</span></div>
+                    <div class="dp-score"><b>88</b><span>Score</span></div>
+                    <div class="dp-fit">79%</div>
+                    <button type="button" class="btn btn-ghost btn-sm">Schedule</button>
+                  </article>
+                  <article class="dp-card" data-skills="figma front-end" data-name="chloe lim">
+                    <span class="dp-rank is-rest">04</span>
+                    <div class="dp-card-body">
+                      <div class="dp-card-title">Chloe Lim</div>
+                      <div class="dp-card-meta">SUTD &middot; Year 3 Design &amp; AI</div>
+                    </div>
+                    <div class="dp-chips"><span class="dp-chip">Figma</span><span class="dp-chip">Front-end</span></div>
+                    <div class="dp-score"><b>85</b><span>Score</span></div>
+                    <div class="dp-fit">83%</div>
+                    <button type="button" class="btn btn-ghost btn-sm">Schedule</button>
+                  </article>
+                  <article class="dp-card" data-skills="python sql" data-name="muhammad farhan">
+                    <span class="dp-rank is-rest">05</span>
+                    <div class="dp-card-body">
+                      <div class="dp-card-title">Muhammad Farhan</div>
+                      <div class="dp-card-meta">NUS &middot; Year 4 Business Analytics</div>
+                    </div>
+                    <div class="dp-chips"><span class="dp-chip">Python</span><span class="dp-chip">SQL</span></div>
+                    <div class="dp-score"><b>82</b><span>Score</span></div>
+                    <div class="dp-fit">76%</div>
+                    <button type="button" class="btn btn-ghost btn-sm">Schedule</button>
+                  </article>
+                </div>
+
+                <div class="dp-empty" id="dpNoMatch" hidden style="margin-top:16px;">
+                  <div>
+                    <h3>No candidates match that filter</h3>
+                    <p>Clear the search or pick a different skill to see the rest of the ranking.</p>
+                  </div>
+                </div>
+
+                <div class="dp-listfoot">
+                  <span class="dp-listfoot-note" id="dpShown">5 of 38 shown</span>
+                  <div class="dp-listfoot-actions">
+                    <button type="button" class="btn btn-ghost">Compare</button>
+                    <button type="button" class="btn btn-accent">Book interviews</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- ===================== ACTIVITY ===================== -->
+          <div class="dp-tabpanel" id="tabActivity" role="tabpanel" aria-labelledby="tabBtnActivity" tabindex="0" hidden>
+            <div class="dp-section">
+              <div class="dp-section-head">
+                <h2 id="dpActTitle">Recent activity</h2>
+                <span class="dp-count" id="dpActCount">6 events</span>
+              </div>
+              <!-- PLACEHOLDER[dashboard-activity] -->
+              <ol class="dp-feed" id="dpFeedStudent" data-placeholder="dashboard-activity">
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
+                  <div><b>Shortlisted for interview</b><span>Nordwave &middot; Onboarding conversion</span></div><time>28 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
+                  <div><b>Scored 85, ranked #4 of 38</b><span>Nordwave &middot; Onboarding conversion</span></div><time>24 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Submitted your solution</b><span>Nordwave &middot; Onboarding conversion</span></div><time>19 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
+                  <div><b>Scored 91, ranked #2 of 26</b><span>Fieldstone &middot; Cut onboarding drop-off</span></div><time>30 Jul 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Submitted your solution</b><span>Fieldstone &middot; Cut onboarding drop-off</span></div><time>22 Jul 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Joined Projet</b><span>Account created</span></div><time>11 Feb 2026</time></li>
+              </ol>
+              <!-- The company account tracks a pipeline, not a personal
+                   record, so its feed is brief- and candidate-level events.
+                   dashboard.js swaps which of the two is shown; before this
+                   the company view was showing the student's own history. -->
+              <ol class="dp-feed" id="dpFeedCompany" data-placeholder="dashboard-activity" hidden>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
+                  <div><b>Hired Tan Wei Jie</b><span>Onboarding conversion &middot; offer accepted</span></div><time>2 Sep 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="win" aria-hidden="true"></span>
+                  <div><b>3 interviews booked</b><span>Onboarding conversion &middot; shortlist unlocked</span></div><time>29 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
+                  <div><b>12 submissions cleared your bar</b><span>Onboarding conversion &middot; 38 scored</span></div><time>24 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Brief closed to new entries</b><span>Churn signal pipeline &middot; 14 submissions</span></div><time>18 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" data-kind="score" aria-hidden="true"></span>
+                  <div><b>Posted a new brief</b><span>Cut checkout API latency &middot; Engineering</span></div><time>11 Aug 2026</time></li>
+                <li class="dp-feed-item"><span class="dp-feed-dot" aria-hidden="true"></span>
+                  <div><b>Workspace created</b><span>Nordwave joined Projet</span></div><time>14 Jan 2026</time></li>
+              </ol>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HACKATHON DETAIL MODAL ====================
+       Native <dialog>, same pattern as the two brief modals elsewhere on
+       the site. Populated from the clicked row's own data-hk-* attributes.
+       Enhancement only: every row already shows title, company, discipline,
+       date, rank, score and fit inline, so a no-js visitor loses the
+       solution write-up and the score breakdown, never the entry itself. -->
+  <dialog class="dp-modal" id="hkModal" aria-labelledby="hkTitle">
+    <div class="dp-modal-inner">
+      <button class="dp-modal-close" id="hkClose" type="button" aria-label="Close entry">&times;</button>
+      <div class="dp-modal-top">
+        <span class="dp-modal-tag" id="hkTag"></span>
+        <span class="dp-pill" id="hkStatus"></span>
+      </div>
+      <h2 id="hkTitle"></h2>
+      <p class="dp-modal-sub" id="hkSub"></p>
+
+      <div class="dp-modal-stats">
+        <div><b id="hkRank"></b><span>Your rank</span></div>
+        <div><b id="hkScore"></b><span>Score</span></div>
+        <div><b id="hkFit"></b><span>Fit</span></div>
+      </div>
+
+      <h3 class="dp-modal-h">Your solution</h3>
+      <p id="hkSolution"></p>
+
+      <h3 class="dp-modal-h">Score breakdown</h3>
+      <ul class="dp-bars" id="hkBars"></ul>
+
+      <h3 class="dp-modal-h">Reviewer note</h3>
+      <p class="dp-modal-quote" id="hkFeedback"></p>
+
+      <div class="dp-modal-actions">
+        <button type="button" class="btn btn-ghost" id="hkSubmission">View submission</button>
+        <a href="challenges.html" class="btn btn-accent">Find a similar challenge</a>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ==================== EDIT PROFILE MODAL ====================
+       Semi-functional by design: it really does edit the page, and it
+       really does persist, but only into localStorage on this device --
+       there is no account API yet. That is stated in the dialog itself
+       rather than implied, the same honesty rule the auth forms and the
+       footer capture already follow: never fake a save that did not
+       happen. dashboard.js re-applies the saved values on load. -->
+  <dialog class="dp-modal" id="editModal" aria-labelledby="editTitle">
+    <form class="dp-modal-inner" id="editForm" method="dialog" data-endpoint="">
+      <button class="dp-modal-close" id="editClose" type="button" aria-label="Close editor">&times;</button>
+      <h2 id="editTitle">Edit profile</h2>
+      <p class="dp-modal-note" id="editNote">Saved on this device only. Profiles move to your account once the API is connected.</p>
+
+      <label class="dp-field"><span>Name</span><input type="text" id="editName" name="name" maxlength="60" required></label>
+      <label class="dp-field"><span>Headline</span><input type="text" id="editOrg" name="org" maxlength="80"></label>
+      <label class="dp-field"><span>Location</span><input type="text" id="editLoc" name="loc" maxlength="60"></label>
+      <label class="dp-field"><span>Bio</span><textarea id="editBio" name="bio" rows="3" maxlength="220"></textarea></label>
+      <label class="dp-field"><span>Skills</span><input type="text" id="editTags" name="tags" maxlength="120" placeholder="Comma separated"></label>
+
+      <p class="dp-modal-status" id="editStatus" role="status"></p>
+      <div class="dp-modal-actions">
+        <button type="button" class="btn btn-ghost" id="editReset">Reset to sample</button>
+        <button type="submit" class="btn btn-accent">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+</main>
+
+<footer id="footer">
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:0; padding-top:0;">
+      <span>&copy; 2026 Projet. All rights reserved.</span>
+      <span>Singapore</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/landing.js"></script>
+<script src="assets/dashboard.js"></script>
+</body>
+</html>

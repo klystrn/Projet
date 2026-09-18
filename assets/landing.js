@@ -1,26 +1,57 @@
 /* ==========================================================================
-   Projet — landing page behaviour
-   Vanilla, no dependencies. Loaded only by index.html.
+   Projet — v3 landing page behaviour
+   Dependency-free. Shared by index.html, challenges.html and dashboard.html;
+   every effect self-skips when its element is absent, so the same file can
+   drive all three pages.
 
-   Structure: one shared rAF-gated scroll/resize ticker drives every
-   continuous scroll-linked effect (progress bar, nav compaction, hero
-   handoff, spectrum-split immersion, fluid-flow scrub). Enter/exit-only
-   effects use IntersectionObserver instead, since they don't need a
-   continuous progress value.
-
-   Every effect checks `reducedMotion` and renders its END STATE immediately
-   rather than skipping — nothing on this page is allowed to stay hidden
-   because motion is off or JS never ran.
+   Retired in v3 (do not reinstate without a fresh instruction):
+     - the spectrum-split (Featured challenges / Success stories) stage
+     - the hero cursor-tilt parallax
+   The How-it-works pinned scroll-scrub was on this list too, but has since
+   been reinstated (reshaped: cropped to the right 5/8, title fixed left,
+   step-by-step with a final all-4 recap before it unpins) — see that
+   section below.
+   The hard rule from v2 still stands: every effect renders its END STATE when
+   motion is off or JS never runs. Nothing is gated behind a scroll effect.
    ========================================================================== */
 (function () {
   "use strict";
 
-  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reducedMotion) document.documentElement.classList.add("reduced-motion");
+  var reducedMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var clamp = function (v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; };
+  function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 
-  /* ---------------- shared scroll ticker ---------------- */
+  /* ---------------- hero dashboard mock's CTA ----------------
+     #heroDash's mock ends in an "Open dashboard" button — fine for a
+     visitor who already has an account, but a prompt to open a dashboard
+     they don't have yet for anyone who doesn't. In practice a signed-in
+     visitor never reaches this page at all (see the redirect in index.html's
+     own <head>), but this checks the same seam directly rather than leaning
+     on that alone, the same way the final-CTA-hiding code below does — a
+     visitor with the flag set some other way (a stale value from a past
+     session, JS re-run after the redirect somehow didn't fire) should still
+     get the right button here, not a dead promise of dashboard access.
+     Declared at top level (not nested in the audience-toggle IIFE below) so
+     applyModeCopy() can call it every time it rewrites #heroDash's markup —
+     a wholesale innerHTML swap would otherwise silently undo whatever this
+     function just changed. Self-skips wherever #heroDash doesn't exist. */
+  function updateHeroDashCta() {
+    var heroDash = document.getElementById("heroDash");
+    if (!heroDash) return;
+    var link = heroDash.querySelector(".dash-foot a");
+    if (!link) return;
+    var loggedIn = false;
+    try { loggedIn = localStorage.getItem("projet:loggedIn") === "1"; } catch (e) { /* private mode */ }
+    if (loggedIn) return; // ships already correct: "Open dashboard" -> dashboard.html
+    var business = document.documentElement.getAttribute("data-audience") === "business";
+    link.textContent = business ? "Post a challenge" : "Join Us";
+    link.setAttribute("href", "signup.html?role=" + (business ? "business" : "builder"));
+  }
+
+  /* ---------------- shared scroll ticker ----------------
+     One rAF-gated listener drives every scroll-linked effect, rather than
+     each registering its own. */
   var scrollUpdaters = [];
   var ticking = false;
   function onScroll() {
@@ -34,34 +65,267 @@
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
 
-  /* ---------------- section reveal ---------------- */
+  /* ---------------- section reveal ----------------
+     One IntersectionObserver per element, EXCEPT for anything sitting
+     inside a [data-reveal-group].
+
+     Why the exception: IntersectionObserver clips a target's rect against
+     every scrollable ancestor, not just the viewport. The featured-
+     challenges rail is an overflow-x:auto scroller, so a ticket parked
+     past its right edge has an empty intersection rect and never fires,
+     no matter how far down the page the reader is. The tickets therefore
+     stayed at opacity 0 until the rail itself was scrolled sideways, and
+     then animated in under the cursor — the reported "cards spawn in when
+     you first scroll horizontally, meaning they aren't pre-existing".
+
+     Marking the rail as a group makes the CONTAINER the observed target
+     (it intersects normally on vertical scroll) and reveals every
+     [data-reveal] inside it at once. The per-ticket transition-delay
+     stagger is untouched, so the entrance still reads left to right —
+     it just now happens when the section arrives, which is what a reader
+     scrolling down actually sees. */
   (function () {
-    var els = document.querySelectorAll("[data-reveal]");
+    var els = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
     if (!els.length) return;
     if (reducedMotion || !("IntersectionObserver" in window)) {
       els.forEach(function (el) { el.classList.add("revealed"); });
       return;
     }
+    var opts = { rootMargin: "0px 0px -8% 0px", threshold: 0.06 };
+
+    var groups = Array.prototype.slice.call(document.querySelectorAll("[data-reveal-group]"));
+    var grouped = [];
+    groups.forEach(function (g) {
+      grouped = grouped.concat(Array.prototype.slice.call(g.querySelectorAll("[data-reveal]")));
+    });
+
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        e.target.classList.add("revealed");
-        io.unobserve(e.target);
+        if (e.isIntersecting) { e.target.classList.add("revealed"); io.unobserve(e.target); }
       });
-    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
-    els.forEach(function (el) { io.observe(el); });
+    }, opts);
+    els.forEach(function (el) { if (grouped.indexOf(el) === -1) io.observe(el); });
+
+    if (groups.length) {
+      var gio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("revealed");
+          e.target.querySelectorAll("[data-reveal]").forEach(function (el) {
+            el.classList.add("revealed");
+          });
+          gio.unobserve(e.target);
+        });
+      }, opts);
+      groups.forEach(function (g) { gio.observe(g); });
+    }
   })();
 
-  /* ---------------- scroll progress bar + nav compaction ---------------- */
+  /* Suppress the focus ring that a modal hands back to its trigger when
+     the modal was opened by POINTER and dismissed with Escape.
+
+     Reported as "click a challenge card, press escape, black lines suddenly
+     appear" — those lines are the trigger button's own :focus-visible ring
+     (a 4px --ink box-shadow). <dialog> correctly returns focus to whatever
+     opened it, and because Escape is a key press the browser flips the
+     interaction modality to keyboard, so :focus-visible matches on an
+     element the reader last touched with a mouse. Correct for a keyboard
+     user, a visual glitch for a mouse user.
+
+     So the ring is suppressed only when BOTH are true: the modal was opened
+     by pointer, and it is being dismissed by Escape. A keyboard user who
+     opened it with Enter still gets the ring back, which is the whole point
+     of returning focus in the first place. The flag clears on the next
+     keydown or blur, so tabbing back to the button shows the ring again. */
+  function suppressReturnRing(trigger) {
+    if (!trigger) return;
+    trigger.setAttribute("data-noring", "");
+    // Registered on the next tick deliberately: this runs inside the
+    // Escape keydown's own dispatch, and a capture listener added mid-
+    // dispatch can still be reached by that same event, which would clear
+    // the flag before the ring it exists to suppress has even painted.
+    setTimeout(function () {
+      function clear() {
+        trigger.removeAttribute("data-noring");
+        trigger.removeEventListener("blur", clear);
+        document.removeEventListener("keydown", clear, true);
+      }
+      trigger.addEventListener("blur", clear);
+      document.addEventListener("keydown", clear, true);
+    }, 0);
+  }
+  window.ProjetUI = window.ProjetUI || {};
+  window.ProjetUI.suppressReturnRing = suppressReturnRing;
+
+  /* ---------------- scroll progress + nav compaction ---------------- */
   (function () {
     var bar = document.getElementById("scrollProgress");
-    var nav = document.querySelector("header.nav");
+    var nav = document.getElementById("siteNav");
     if (!bar && !nav) return;
     scrollUpdaters.push(function () {
-      var max = document.documentElement.scrollHeight - window.innerHeight;
-      var y = window.pageYOffset;
-      if (bar) bar.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
-      if (nav) nav.classList.toggle("is-compact", y > 48);
+      var y = window.scrollY || 0;
+      if (bar) {
+        var max = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.transform = "scaleX(" + (max > 0 ? clamp(y / max, 0, 1) : 0) + ")";
+      }
+      if (nav) nav.classList.toggle("compact", y > 48);
+    });
+  })();
+
+  /* ---------------- how-it-works: pinned fluid-scrub ----------------
+     .flow-scroll is a tall (520vh, desktop-only via CSS) wrapper; .flow-stage
+     sticks inside it, split 3/8 (title + rail) : 5/8 (scrub). Scroll progress
+     maps to one beat per step, and only the current beat's step carries
+     .is-active, so the right-hand panel really does show one at a time.
+     The left rail tracks the same beat (.is-active on the current step,
+     .is-done on everything before it) — the rail is where each step is
+     NAMED and the panel is where it is EXPLAINED, so between them nothing
+     is stated on screen twice. There is no separate recap beat any more:
+     the rail already shows all four continuously, which is what that beat
+     was for. Steps/rail items are re-queried live each frame rather than
+     cached, since [data-mode-copy] replaces these nodes wholesale on every
+     audience switch. Desktop + motion-ok only: mobile and reduced-motion
+     render the plain flat list from CSS alone, no JS needed there. */
+  (function () {
+    var scrollWrap = document.getElementById("flowScroll");
+    var stepsWrap = document.getElementById("flowSteps");
+    var rail = document.getElementById("flowRail");
+    var fluid = document.getElementById("flowFluid");
+    if (!scrollWrap || !stepsWrap) return;
+    /* Reduced motion still opts out entirely — that fallback renders the
+       flat stacked list from CSS alone and has nothing for this to drive.
+       The width gate that used to sit here is gone: the pin runs on mobile
+       now (landing.css re-flows the stage into two stacked rows below
+       900px). Nothing in this updater is width-dependent — it maps scroll
+       progress onto step indices and pans .flow-fluid by whatever overage
+       measureFluid() finds, and that measurement already re-runs on resize,
+       so it picks up the narrow layout's own box for free. */
+    if (reducedMotion) return;
+
+    // .flow-fluid's own box is sized larger than .flow-right (see
+    // landing.css) so the pan has somewhere to travel; measured in px once
+    // (and on resize) rather than every scroll frame, since it only changes
+    // when the viewport does. offsetWidth/offsetHeight, not
+    // getBoundingClientRect, since the latter would report the *transformed*
+    // box once a pan is already applied.
+    var overageW = 0, overageH = 0, panX = 1, panYStart = 1, panYEnd = 0;
+    function measureFluid() {
+      if (!fluid || !fluid.parentElement) return;
+      var container = fluid.parentElement;
+      overageW = fluid.offsetWidth - container.clientWidth;
+      overageH = fluid.offsetHeight - container.clientHeight;
+      /* How MUCH of that overage the scrub actually sweeps, 0-1. Read from
+         CSS so it stays a per-mode property alongside --fluid-ar and
+         --fluid-zoom rather than a hardcoded number in here.
+
+         Why it exists: the spectrum artwork company mode uses is a diagonal
+         band with dark margin either side of it, so panning the full overage
+         runs the last beat off the band and into that margin — measured 48%
+         dark at the end, which is what left the closing frame reading darker
+         and bluer-by-absence rather than actually blue. Stopping short keeps
+         the final beat ON the band. Defaults to 1, so student mode's
+         full-bleed artwork is unaffected. */
+      var cs = getComputedStyle(fluid);
+      var px = parseFloat(cs.getPropertyValue("--fluid-pan-x"));
+      var y0 = parseFloat(cs.getPropertyValue("--fluid-pan-y-start"));
+      var y1 = parseFloat(cs.getPropertyValue("--fluid-pan-y-end"));
+      panX = isNaN(px) ? 1 : px;
+      // vertical is a START->END pair, not a single factor: the old formula
+      // always finished at 0 (hard against the artwork's top edge), and for
+      // the spectrum image that is precisely where its blue band is
+      // NARROWEST and the dark margin widest. Being able to stop the sweep
+      // part-way down is what lets the closing beat land where the blue is
+      // actually broad. Defaults reproduce the original 1 -> 0 sweep exactly.
+      panYStart = isNaN(y0) ? 1 : y0;
+      panYEnd = isNaN(y1) ? 0 : y1;
+    }
+    measureFluid();
+    window.addEventListener("resize", measureFluid);
+    /* An audience swap resizes this box too, not just a viewport resize:
+       company mode overrides BOTH --fluid-ar and --fluid-zoom (a different
+       artwork with a different aspect ratio), so .flow-fluid's own width and
+       height change the moment html[data-audience] flips.
+
+       Without re-measuring there, the scrub kept panning by whatever overage
+       it measured on load — student mode's 1009x180 — while company mode's
+       box is actually 2523x1485 against the same 900px column, i.e. 1623x585
+       of real travel. The pan therefore stopped roughly two-thirds of the way
+       across the spectrum artwork and never reached its blue end, which is
+       exactly the "not enough blue at the end" report.
+
+       A MutationObserver on the attribute rather than a hook called from
+       applyModeCopy(): the dependency is genuinely "these CSS custom
+       properties changed", and the attribute is what changes them, so
+       watching it directly cannot drift out of sync with the copy-swap code
+       the way an explicit call site would. */
+    if ("MutationObserver" in window) {
+      new MutationObserver(function () {
+        measureFluid();
+        onScroll();
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-audience"] });
+    }
+
+    scrollUpdaters.push(function () {
+      var steps = stepsWrap.querySelectorAll(".flow-step");
+      if (!steps.length) return;
+      var railItems = rail ? rail.querySelectorAll(".flow-rail-item") : [];
+      var rect = scrollWrap.getBoundingClientRect();
+      var scrollable = scrollWrap.offsetHeight - window.innerHeight;
+      var progress = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
+
+      // one beat per step, nothing after them
+      var stepIdx = clamp(Math.floor(progress * steps.length), 0, steps.length - 1);
+
+      // re-applied every tick rather than only on change: [data-mode-copy]
+      // replaces these nodes wholesale on an audience swap, which would
+      // otherwise silently lose .is-active until progress next changed.
+      for (var i = 0; i < steps.length; i++) steps[i].classList.toggle("is-active", i === stepIdx);
+      for (var j = 0; j < railItems.length; j++) {
+        railItems[j].classList.toggle("is-active", j === stepIdx);
+        railItems[j].classList.toggle("is-done", j < stepIdx);
+      }
+      // mirrors the old background-position:0%->100% horizontal / 100%->0%
+      // vertical pan, just expressed as a compositor-only translate instead
+      // of a paint-triggering background-position
+      if (fluid) {
+        var x = -overageW * panX * progress;
+        var y = -overageH * (panYStart + (panYEnd - panYStart) * progress);
+        fluid.style.transform = "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0)";
+      }
+    });
+  })();
+
+  /* ---------------- about: pinned story beats ----------------
+     about.html only. Same shape as the how-it-works updater above: map
+     progress through a tall wrapper onto one beat, toggle .is-active on it
+     and .is-done on everything before it, and let CSS do the rest (here
+     that is a grid-template-rows expand, not a crossfade). Self-skips when
+     #storyScroll is absent, which is every other page that loads this file.
+
+     Gated the same three ways the CSS is, and the width gate matters here
+     in a way it did not for the flow section: below 800px the CSS drops the
+     pin and expands every point, so leaving this running would keep
+     collapsing three of them back down again on scroll. */
+  (function () {
+    var wrap = document.getElementById("storyScroll");
+    var list = document.getElementById("storyList");
+    if (!wrap || !list) return;
+    if (reducedMotion) return;
+    var narrow = window.matchMedia && window.matchMedia("(max-width:800px)");
+    if (narrow && narrow.matches) return;
+
+    scrollUpdaters.push(function () {
+      if (narrow && narrow.matches) return;
+      var items = list.querySelectorAll(".story-item");
+      if (!items.length) return;
+      var rect = wrap.getBoundingClientRect();
+      var scrollable = wrap.offsetHeight - window.innerHeight;
+      var progress = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
+      var idx = clamp(Math.floor(progress * items.length), 0, items.length - 1);
+      for (var i = 0; i < items.length; i++) {
+        items[i].classList.toggle("is-active", i === idx);
+        items[i].classList.toggle("is-done", i < idx);
+      }
     });
   })();
 
@@ -70,520 +334,624 @@
     var toggle = document.getElementById("navToggle");
     var menu = document.getElementById("mobileMenu");
     if (!toggle || !menu) return;
-    function set(open) {
+    /* The sheet covers the page, so while it is open the page behind it
+       has to leave the tab order too. Without this, tabbing past the last
+       menu link walked straight into the hero CTAs and the logo carousel —
+       elements the reader cannot see, with no way to tell where focus had
+       gone. `inert` does it in one attribute (focus, clicks and the
+       accessibility tree all at once); the roving loop below is the
+       fallback for browsers that don't support it yet. */
+    var INERT_OK = "inert" in HTMLElement.prototype;
+    function backdrop(on) {
+      Array.prototype.forEach.call(document.body.children, function (el) {
+        if (el === menu || el.tagName === "SCRIPT") return;
+        // the nav owns the toggle itself, so it must stay operable
+        if (el.contains(toggle)) return;
+        if (on) el.setAttribute("inert", "");
+        else el.removeAttribute("inert");
+      });
+    }
+    function setOpen(open) {
       menu.classList.toggle("open", open);
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
       toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      if (INERT_OK) backdrop(open);
     }
-    toggle.addEventListener("click", function () { set(!menu.classList.contains("open")); });
-    // any nav choice closes the sheet, including same-page anchors — otherwise
-    // the page scrolls away behind a menu still covering it
-    menu.addEventListener("click", function (e) { if (e.target.closest("a")) set(false); });
+    toggle.addEventListener("click", function () {
+      setOpen(!menu.classList.contains("open"));
+    });
+    // any nav choice closes the sheet, including same-page anchors
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) setOpen(false);
+    });
+    /* Fallback focus loop for no-inert browsers: if focus lands outside
+       the open sheet, pull it back to the first or last item depending on
+       which end it left by. Registered once, and a no-op while closed. */
+    document.addEventListener("focusin", function (e) {
+      if (INERT_OK || !menu.classList.contains("open")) return;
+      if (menu.contains(e.target) || e.target === toggle) return;
+      var items = menu.querySelectorAll("a, button");
+      if (!items.length) return;
+      items[e.relatedTarget === items[items.length - 1] ? 0 : items.length - 1].focus();
+    });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && menu.classList.contains("open")) { set(false); toggle.focus(); }
+      if (e.key !== "Escape" || !menu.classList.contains("open")) return;
+      setOpen(false);
+      // Escape left focus sitting on a link inside the now-hidden sheet,
+      // so the next Tab resumed from <body> rather than from the control
+      // that opened it. Hand it back to the toggle, the standard return
+      // target for a dismissed overlay.
+      toggle.focus();
     });
-    window.addEventListener("resize", function () { if (window.innerWidth > 900) set(false); });
+    window.addEventListener("resize", function () {
+      if (window.innerWidth > 900) setOpen(false);
+    });
   })();
 
-  /* ---------------- Active-section nav highlight ----------------
-     Whichever in-page section is actually in view keeps its nav link
-     underlined without needing a hover — a quiet wayfinding cue on top of
-     the plain anchor list. */
+  /* ---------------- active-section nav highlight ----------------
+     One IntersectionObserver over the in-page targets, picking whichever
+     section is closest to viewport centre. No scroll listener of its own. */
   (function () {
-    var links = document.querySelectorAll("[data-nav-link]");
+    var links = Array.prototype.slice.call(document.querySelectorAll("nav.links a[data-nav-link]"));
     if (!links.length || !("IntersectionObserver" in window)) return;
-    var sections = [];
+    var map = {};
+    var targets = [];
     links.forEach(function (a) {
-      var id = a.getAttribute("href").slice(1);
-      var el = document.getElementById(id);
-      if (el) sections.push({ el: el, link: a });
+      var hash = a.getAttribute("href");
+      if (!hash || hash.charAt(0) !== "#") return;
+      var el = document.querySelector(hash);
+      if (!el) return;
+      map[hash] = a;
+      targets.push(el);
     });
-    if (!sections.length) return;
+    if (!targets.length) return;
 
-    function setCurrent(id) {
-      links.forEach(function (a) {
-        a.classList.toggle("is-current", a.getAttribute("href") === "#" + id);
-      });
-    }
-
+    var visible = {};
     var io = new IntersectionObserver(function (entries) {
-      // pick the entry closest to the vertical centre of the viewport among
-      // those currently intersecting, rather than just "first seen"
-      var visible = entries.filter(function (e) { return e.isIntersecting; });
-      if (!visible.length) return;
-      var mid = window.innerHeight / 2;
-      visible.sort(function (a, b) {
-        return Math.abs(a.boundingClientRect.top + a.boundingClientRect.height / 2 - mid) -
-               Math.abs(b.boundingClientRect.top + b.boundingClientRect.height / 2 - mid);
+      entries.forEach(function (e) {
+        visible["#" + e.target.id] = e.isIntersecting
+          ? Math.abs((e.boundingClientRect.top + e.boundingClientRect.bottom) / 2 - window.innerHeight / 2)
+          : Infinity;
       });
-      setCurrent(visible[0].target.id);
-    }, { threshold: 0.2, rootMargin: "-88px 0px -40% 0px" });
-
-    sections.forEach(function (s) { io.observe(s.el); });
+      var best = null, bestDist = Infinity;
+      Object.keys(visible).forEach(function (k) {
+        if (visible[k] < bestDist) { bestDist = visible[k]; best = k; }
+      });
+      links.forEach(function (a) { a.classList.remove("is-current"); });
+      if (best && map[best]) map[best].classList.add("is-current");
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    targets.forEach(function (t) { io.observe(t); });
   })();
 
-  /* ---------------- Audience mode toggle ----------------
-     Re-tints --accent (orange for companies, blue for builders/students) via
-     html[data-audience] rather than navigating anywhere — this is one shared
-     page, not two separate audience pages, so the toggle is a product-level
-     control, not a router. Persists the choice and carries it into the
-     nav's Sign up link as ?role=, same convention the old audience chooser
-     used. Internal value stays "builder" (matches ?role=builder elsewhere)
-     even though the visible label reads "For students" — only the label
-     text changed, not the plumbing. */
+  /* ---------------- audience mode toggle ----------------
+     Re-tints the whole page via html[data-audience] (the CSS gradient tokens
+     all swap off that one attribute), rewrites every [data-mode-copy]
+     element, updates the signup links, and repoints the nav dashboard link
+     at the matching view. One shared page, not two routed ones. */
+  var SWAP_MS = 160;
   (function () {
-    var opts = document.querySelectorAll(".mode-opt");
-    if (!opts.length) return;
-    var signupLinks = document.querySelectorAll(
-      '.nav-cta a[href^="signup.html"], .mobile-menu-ctas a[href^="signup.html"]'
-    );
-    // Elements whose whole content differs per mode — data-business/
-    // data-builder hold each mode's full markup, swapped in via innerHTML.
-    // Some (.flow-steps) get rebuilt entirely by a scroll-scrub that caches
-    // its own references to the .flow-step nodes, so it needs a nudge to
-    // re-query after its content is replaced out from under it.
-    var modeCopyEls = document.querySelectorAll("[data-mode-copy]");
+    var STORE = "projet:audience";
+    var switches = document.querySelectorAll(".mode-switch");
+    var copyEls = document.querySelectorAll("[data-mode-copy]");
+    var navDash = document.getElementById("navDash");
+    var navDashMobile = document.getElementById("navDashMobile");
+    var navDashLabel = document.getElementById("navDashLabel");
 
-    // animate=false is for the initial page-load call only, where the inline
-    // HTML already matches the resolved default mode — fading elements out
-    // and back in to swap in identical content would just be a pointless
-    // flash on first paint. Every later, user-triggered toggle animates.
-    var SWAP_MS = 160;
-    function applyModeCopy(mode, animate) {
-      var flowEl = document.getElementById("flow");
-      if (!animate || reducedMotion) {
-        modeCopyEls.forEach(function (el) {
-          var html = el.getAttribute("data-" + mode);
-          if (html != null) el.innerHTML = html;
+    var stored = null;
+    try { stored = localStorage.getItem(STORE); } catch (e) { /* private mode */ }
+    // builder/student is the default mode
+    var mode = stored === "business" ? "business" : "builder";
+
+    function applyModeCopy(animate) {
+      if (!copyEls.length) return;
+      if (!animate) {
+        copyEls.forEach(function (el) {
+          var next = el.getAttribute("data-" + (mode === "business" ? "business" : "builder"));
+          if (next != null) el.innerHTML = next;
         });
-        if (flowEl && flowEl.refreshFlow) flowEl.refreshFlow();
+        updateHeroDashCta(); // #heroDash's innerHTML was just replaced wholesale
+        onScroll(); // re-run scroll-linked updaters against the fresh nodes
         return;
       }
-      modeCopyEls.forEach(function (el) {
-        // the entrance stagger's inline transition-delay (e.g. ".16s") is
-        // still sitting on these elements from page load and would otherwise
-        // also postpone THIS transition by the same amount, since inline
-        // transition-delay outranks the stylesheet's implicit 0s — it has no
-        // purpose after the one-time entrance cascade, so clear it here.
+      copyEls.forEach(function (el) {
+        // The entrance stagger leaves an inline transition-delay on these
+        // elements forever after load, and an inline delay outranks the
+        // stylesheet's implicit 0s — it would silently delay this fade too.
         el.style.transitionDelay = "0s";
         el.classList.add("mode-swap");
       });
       setTimeout(function () {
-        modeCopyEls.forEach(function (el) {
-          var html = el.getAttribute("data-" + mode);
-          if (html != null) el.innerHTML = html;
+        copyEls.forEach(function (el) {
+          var next = el.getAttribute("data-" + (mode === "business" ? "business" : "builder"));
+          if (next != null) el.innerHTML = next;
           el.classList.remove("mode-swap");
         });
-        if (flowEl && flowEl.refreshFlow) flowEl.refreshFlow();
-      }, SWAP_MS);
+        updateHeroDashCta(); // same reason as above, on the animated path
+        // e.g. the how-it-works pin: .flow-tl's nodes were just replaced
+        // wholesale, and nothing re-drives scrollUpdaters until the next
+        // real scroll event — without this, .is-active/--flow-progress
+        // would sit blank on the new nodes until the reader scrolls again.
+        onScroll();
+      }, reducedMotion ? 0 : SWAP_MS);
     }
 
-    function apply(mode, persist, animate) {
+    function apply(animate) {
       document.documentElement.setAttribute("data-audience", mode);
-      opts.forEach(function (o) {
-        o.setAttribute("aria-current", o.getAttribute("data-audience") === mode ? "true" : "false");
+      switches.forEach(function (sw) {
+        sw.querySelectorAll(".mode-opt").forEach(function (b) {
+          b.setAttribute("aria-current", b.getAttribute("data-audience") === mode ? "true" : "false");
+        });
       });
-      signupLinks.forEach(function (a) { a.href = "signup.html?role=" + mode; });
-      applyModeCopy(mode, animate !== false);
-      if (persist) {
-        try { localStorage.setItem("projet:audience", mode); } catch (e) {}
-      }
+      // signup links carry the role through
+      document.querySelectorAll('a[href^="signup.html"]').forEach(function (a) {
+        if (a.closest("[data-mode-copy]")) return; // those are rewritten wholesale
+        a.setAttribute("href", "signup.html?role=" + (mode === "business" ? "business" : "builder"));
+      });
+      // Every dashboard link on the page follows the current mode, not just
+      // the nav's own chip — the footer's "Dashboard" link (about.html,
+      // challenges.html, faq.html, and index.html's own footer) was still
+      // hardcoded to ?view=student regardless of which mode the reader had
+      // toggled to, so a company-mode visitor's footer link sent them to the
+      // student view. [data-mode-copy] descendants (the hero card's own
+      // "Open dashboard" button) are excluded the same way signup links are:
+      // they already carry the right ?view= per mode in their own business/
+      // builder HTML strings, rewritten wholesale on swap.
+      var view = mode === "business" ? "company" : "student";
+      var label = mode === "business" ? "Company dashboard" : "My dashboard";
+      document.querySelectorAll('a[href^="dashboard.html"]').forEach(function (a) {
+        if (a.closest("[data-mode-copy]")) return;
+        a.setAttribute("href", "dashboard.html?view=" + view);
+      });
+      if (navDashLabel) navDashLabel.textContent = label;
+
+      applyModeCopy(animate);
+      try { localStorage.setItem(STORE, mode); } catch (e) { /* ignore */ }
     }
 
-    opts.forEach(function (o) {
-      o.addEventListener("click", function () { apply(o.getAttribute("data-audience"), true); });
+    switches.forEach(function (sw) {
+      sw.addEventListener("click", function (e) {
+        var btn = e.target.closest(".mode-opt");
+        if (!btn) return;
+        var next = btn.getAttribute("data-audience");
+        if (!next || next === mode) return;
+        mode = next;
+        apply(true);
+      });
     });
 
-    var stored = null;
-    try { stored = localStorage.getItem("projet:audience"); } catch (e) {}
-    apply(stored === "business" ? "business" : "builder", false, false);
+    // first call: the inline HTML already matches the resolved default, so
+    // there is nothing to visibly swap
+    apply(false);
   })();
 
-  /* ---------------- Hero cursor tilt ----------------
-     Desktop pointer only — the one interaction the otherwise-static hero
-     visual keeps. Transition is set inline only on mouseleave (the snap-back)
-     rather than in the stylesheet: .hero-visual also carries [data-reveal]'s
-     entrance transition, and a permanent CSS transition on the same
-     `transform` property here would win the cascade (equal specificity, later
-     in the file) and silently shorten the load-in stagger from .7s to
-     whatever this used. */
+  /* ---------------- final CTA — hidden once signed in ----------------
+     No real auth exists yet, so this is a front-end seam matching the
+     project's existing conventions (localStorage["projet:audience"],
+     dashboard.html's ?view=): reads localStorage["projet:loggedIn"], with
+     a ?loggedin=1 / ?loggedin=0 query param so it can actually be tested
+     without a backend. Defaults to signed-out (CTA visible) so nothing
+     changes for a real visitor until real auth exists. challenges.html has
+     its own separate .cl-cta and is untouched by this. */
   (function () {
-    var visual = document.getElementById("heroVisual");
-    if (!visual || reducedMotion) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    var MAX_DEG = 7;
-    visual.addEventListener("mousemove", function (e) {
-      visual.style.transition = "";
-      var r = visual.getBoundingClientRect();
-      var px = (e.clientX - r.left) / r.width - 0.5;
-      var py = (e.clientY - r.top) / r.height - 0.5;
-      visual.style.transform =
-        "perspective(900px) rotateX(" + (-py * MAX_DEG).toFixed(2) + "deg) rotateY(" +
-        (px * MAX_DEG).toFixed(2) + "deg)";
-    });
-    visual.addEventListener("mouseleave", function () {
-      visual.style.transition = "transform .5s cubic-bezier(.16,.84,.44,1)";
-      visual.style.transform = "";
+    var final = document.querySelector(".final");
+    if (!final) return;
+    var STORE = "projet:loggedIn";
+    var params = new URLSearchParams(window.location.search);
+    if (params.has("loggedin")) {
+      try { localStorage.setItem(STORE, params.get("loggedin") === "1" ? "1" : "0"); } catch (e) { /* private mode */ }
+    }
+    var loggedIn = false;
+    try { loggedIn = localStorage.getItem(STORE) === "1"; } catch (e) { /* private mode */ }
+    if (loggedIn) final.hidden = true;
+  })();
+
+  /* ---------------- dashboard "Log out" ----------------
+     dashboard.html is only ever reached signed in, so its nav offers a way
+     OUT of that state instead of the "Log in" prompt every other page shows
+     — clearing the same projet:loggedIn seam the pages above read, then
+     sending the reader back to the landing page. Self-skips everywhere else,
+     since only dashboard.html has these buttons. */
+  (function () {
+    var buttons = document.querySelectorAll("#navLogout, #navLogoutMobile");
+    if (!buttons.length) return;
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        try { localStorage.removeItem("projet:loggedIn"); } catch (e) { /* private mode */ }
+        window.location.href = "index.html";
+      });
     });
   })();
 
-  /* ---------------- hero count-up ----------------
-     Values are pre-rendered in the HTML at their real figures, so no-js and
-     reduced-motion visitors just see the finished number. */
+  /* ---------------- final CTA + footer sized to one screenful ----------------
+     .final's own min-height (landing.css) reads --nav-h/--footer-h to cap
+     itself at exactly "whatever's left below the nav once the footer's own
+     height is subtracted" — so the CTA and footer together land on one
+     viewport-height, nav included, rather than spilling an extra stretch
+     past it. Both heights are measured LIVE rather than hardcoded: the nav
+     changes height when it compacts on scroll, and the footer changes
+     height whenever its column grid wraps at a narrower width, so a fixed
+     number would drift out of sync with either. Self-skips when there's no
+     .final on the page (challenges.html, dashboard.html). */
   (function () {
-    var els = document.querySelectorAll(".count-up");
-    if (!els.length || reducedMotion || !("IntersectionObserver" in window)) return;
+    var final = document.querySelector(".final");
+    var nav = document.getElementById("siteNav");
+    var footer = document.getElementById("footer");
+    if (!final || !nav || !footer) return;
+    function measure() {
+      document.documentElement.style.setProperty("--nav-h", nav.offsetHeight + "px");
+      document.documentElement.style.setProperty("--footer-h", footer.offsetHeight + "px");
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    // the nav's own height changes a beat after scrollUpdaters flips .compact
+    // (landing.css transitions nav-inner's padding over .3s), so this also
+    // rides the shared ticker rather than only firing once on load/resize
+    scrollUpdaters.push(measure);
+  })();
+
+  /* ---------------- hero count-up ---------------- */
+  (function () {
+    var nums = document.querySelectorAll(".hero-stat-row b");
+    if (!nums.length || reducedMotion || !("IntersectionObserver" in window)) return;
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
         var el = e.target;
         io.unobserve(el);
-        var target = parseInt(el.getAttribute("data-count-to"), 10);
-        if (isNaN(target)) return;
-        var start = performance.now(), dur = 900;
-        (function step(now) {
+        var text = el.textContent.trim();
+        var m = text.match(/^(\d+)(\D*)$/);
+        if (!m) return;
+        var target = parseInt(m[1], 10);
+        var suffix = m[2] || "";
+        var start = performance.now();
+        var dur = 900;
+        function step(now) {
           var p = clamp((now - start) / dur, 0, 1);
           var eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(target * eased);
+          el.textContent = Math.round(target * eased) + suffix;
           if (p < 1) requestAnimationFrame(step);
-        })(start);
+        }
+        requestAnimationFrame(step);
       });
     }, { threshold: 0.5 });
-    els.forEach(function (el) { io.observe(el); });
+    nums.forEach(function (n) { io.observe(n); });
   })();
 
-  /* ---------------- 2. Logo carousel — recycling marquee ----------------
-     Not a duplicate-and-reset loop: chips are physically moved from the head
-     of the track to its tail the moment they clear the left edge, and the
-     offset is credited back by exactly that chip's width. The strip therefore
-     never rewinds — it just keeps reintroducing what scrolled off. */
+  /* ---------------- logo carousel — recycling marquee ----------------
+     Chips move from the head of the track to the tail as they clear the left
+     edge, crediting the offset back by exactly that chip's width, so the
+     transform oscillates near zero forever instead of rewinding. */
   (function () {
     var track = document.getElementById("logoTrack");
     if (!track) return;
-
-    var GAP = parseFloat(getComputedStyle(track).gap) || 64;
-    var SPEED = 46; // px per second
-
-    // clone until the track is at least twice the viewport, so there is always
-    // something entering on the right no matter how wide the screen is
     var original = Array.prototype.slice.call(track.children);
     if (!original.length) return;
-    var guard = 0;
-    while (track.scrollWidth < window.innerWidth * 2 && guard < 40) {
-      original.forEach(function (n) { track.appendChild(n.cloneNode(true)); });
-      guard++;
-    }
-
-    if (reducedMotion) return; // static strip; all logos still visible
-
-    var offset = 0, last = null;
-    var onscreen = true, hovered = false;
-    function running() { return onscreen && !hovered; }
-
-    // pause while off-screen so we aren't animating in a background tab
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (entries) {
-        onscreen = entries[0].isIntersecting;
-        if (running()) { last = null; requestAnimationFrame(tick); }
-      }, { threshold: 0 }).observe(track.parentNode);
-    }
-
-    // pause on hover/focus so a curious visitor can actually read a name —
-    // it only paused off-screen before, with no way to stop it in view
-    track.parentNode.addEventListener("mouseenter", function () { hovered = true; });
-    track.parentNode.addEventListener("mouseleave", function () {
-      hovered = false;
-      if (running()) { last = null; requestAnimationFrame(tick); }
-    });
-    track.addEventListener("focusin", function () { hovered = true; });
-    track.addEventListener("focusout", function () {
-      hovered = false;
-      if (running()) { last = null; requestAnimationFrame(tick); }
-    });
-
-    function tick(now) {
-      if (!running()) return;
-      if (last === null) last = now;
-      var dt = Math.min((now - last) / 1000, 0.05); // clamp: tab-switch jumps
-      last = now;
-      offset -= SPEED * dt;
-
-      // recycle every chip that has fully left the left edge
-      var first = track.firstElementChild;
-      while (first && offset + first.offsetWidth + GAP <= 0) {
-        offset += first.offsetWidth + GAP;
-        track.appendChild(first);
-        first = track.firstElementChild;
-      }
-      track.style.transform = "translateX(" + offset + "px)";
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  })();
-
-  /* ---------------- 3+4. Spectrum split (light spectrum wave) ----------------
-     Same bar mechanic as the old audience chooser: the spectrum image sliced
-     into horizontal bars along the seam, shearing away from the active side
-     on a sine-curve amplitude with a per-index delay so it cascades.
-     Additions here: the white veil that dissolves on scroll-in (and returns on
-     scroll-out), and a default resting side rather than a neutral 50/50. */
-  (function () {
-    var wrap = document.getElementById("spectrumSplit");
-    var stage = document.getElementById("ssStage");
-    var barsBox = document.getElementById("ssBars");
-    var veil = document.getElementById("ssVeil");
-    if (!wrap || !stage) return;
-
-    var DEFAULT_SIDE = "challenges";
-    var pinned = DEFAULT_SIDE;
-
-    /* --- build the bars --- */
-    var BAR_COUNT = 14;
-    // spectrum.webp is mostly black margin either side of its diagonal
-    // colour band, and — being diagonal — the band's centre drifts by most
-    // of the image's width between the top bar and the bottom one. Squeezing
-    // the whole image into each bar (the original approach) therefore showed
-    // mostly flat black. [zoom, offsetK] per bar below was precomputed by
-    // sampling assets/spectrum.webp at each bar's row and solving for the
-    // scale + horizontal shift that re-centres that row's own band inside
-    // the bar — see the CSS comment on .ss-bar for how they're consumed.
-    // Regenerate this table (a small Python/Pillow script) if spectrum.webp
-    // is ever re-exported.
-    var BAND_ZOOM = [
-      [2.527, -1.262], [2.604, -1.232], [2.505, -1.144], [2.409, -1.023],
-      [2.292, -0.868], [2.087, -0.68], [1.979, -0.558], [1.841, -0.363],
-      [1.687, -0.212], [1.602, -0.11], [1.73, -0.11], [1.916, -0.11],
-      [1.977, -0.11], [2.276, -0.11]
-    ];
-    if (barsBox) {
-      barsBox.style.setProperty("--n", BAR_COUNT);
-      var frag = document.createDocumentFragment();
-      for (var i = 0; i < BAR_COUNT; i++) {
-        var bar = document.createElement("div");
-        bar.className = "ss-bar";
-        // amplitude bulges toward the middle bars so the shear reads as a
-        // wave rather than a flat block sliding sideways
-        var amp = 14 + Math.round(30 * Math.sin((i / (BAR_COUNT - 1)) * Math.PI));
-        var zoomPair = BAND_ZOOM[Math.min(i, BAND_ZOOM.length - 1)];
-        bar.style.setProperty("--i", i);
-        bar.style.setProperty("--amp", amp + "px");
-        bar.style.setProperty("--delay", i * 16 + "ms");
-        bar.style.setProperty("--zx", zoomPair[0]);
-        bar.style.setProperty("--ox", zoomPair[1]);
-        frag.appendChild(bar);
-      }
-      barsBox.appendChild(frag);
-    }
-
-    /* --- which side is active --- */
-    var tabs = stage.querySelectorAll(".ss-tab");
-    var hint = document.getElementById("ssHint");
-    function dismissHint() { if (hint) hint.classList.add("is-hidden"); }
-    function setSide(side, remember) {
-      stage.setAttribute("data-active", side);
-      if (remember) pinned = side;
-      tabs.forEach(function (t) {
-        t.setAttribute("aria-selected", t.getAttribute("data-side") === side ? "true" : "false");
-      });
-    }
-    setSide(DEFAULT_SIDE, true);
-
-    tabs.forEach(function (t) {
-      t.addEventListener("click", function () { dismissHint(); setSide(t.getAttribute("data-side"), true); });
-    });
-
-    // Hover previews the other side; leaving returns to whichever side is
-    // pinned (the tab choice, or the default). Desktop pointers only — touch
-    // has no hover, and the stacked mobile layout shows both sides outright.
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      stage.querySelectorAll(".ss-panel").forEach(function (panel) {
-        var side = panel.getAttribute("data-side");
-        panel.addEventListener("mouseenter", function () { dismissHint(); setSide(side, false); });
-        panel.addEventListener("focusin", function () { dismissHint(); setSide(side, false); });
-      });
-      stage.addEventListener("mouseleave", function () { setSide(pinned, false); });
-    }
-
-    /* --- the immersion veil ---
-       White at rest so the section starts flush with the page background,
-       dissolving to nothing as the stage pins, and fading back on the way out
-       so the return to the white page is a transition rather than a cut. */
-    if (veil && !reducedMotion) {
-      scrollUpdaters.push(function () {
-        if (window.innerWidth <= 900) { veil.style.opacity = 0; return; }
-        var r = wrap.getBoundingClientRect();
-        var vh = window.innerHeight;
-        // 0 when the section's top is at the bottom of the viewport, 1 once pinned
-        var enter = clamp((vh - r.top) / (vh * 0.75), 0, 1);
-        var o = 1 - enter;
-        // and back up as the tail of the section clears
-        if (r.bottom < vh) o = Math.max(o, clamp((vh - r.bottom) / (vh * 0.75), 0, 1));
-        veil.style.opacity = o;
-      });
-    } else if (veil) {
-      veil.style.opacity = 0;
-    }
-  })();
-
-  /* ---------------- Spectrum split mobile card reveal ----------------
-     Below 900px the hover/veil mechanic is dropped entirely (see landing.css)
-     and both panels render as plain stacked content, so without this the
-     challenge/stat cards would just appear flat with zero motion. Scoped to
-     mobile only via matchMedia so it never touches the desktop pin. */
-  (function () {
-    if (reducedMotion || !window.matchMedia("(max-width:900px)").matches) return;
-    var els = document.querySelectorAll(".ss-card, .ss-stat");
-    if (!els.length || !("IntersectionObserver" in window)) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("revealed");
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
-    els.forEach(function (el, i) {
-      el.style.transitionDelay = (i % 3) * 0.08 + "s";
-      io.observe(el);
-    });
-  })();
-
-  /* ---------------- 5. How it works — fluid flow scrub ----------------
-     Restored after briefly being a static grid — the user asked specifically
-     to bring this back for the current 4 steps. One continuous journey
-     through fluid-full.png: background-position tracks scroll progress
-     across the whole pinned block while the active step steps through in
-     four discrete stages. Collapses to a static stacked list under 900px /
-     reduced motion / no-js (see landing.css) — a scroll-gated step that
-     never activates would hide its content outright. */
-  (function () {
-    var wrap = document.getElementById("flow");
-    if (!wrap) return;
-    var fluid = wrap.querySelector(".flow-fluid");
-    var steps = [], dots = [];
-
-    function collapsed() { return reducedMotion || window.innerWidth <= 900; }
-
-    function queryEls() {
-      steps = wrap.querySelectorAll(".flow-step");
-      dots = wrap.querySelectorAll(".flow-dot");
-    }
-
-    function paint(idx) {
-      steps.forEach(function (s, i) { s.classList.toggle("is-active", i === idx); });
-      dots.forEach(function (d, i) { d.classList.toggle("is-active", i === idx); });
-    }
-
-    function tick() {
-      if (!steps.length) return;
-      if (collapsed()) {
-        steps.forEach(function (s) { s.classList.add("is-active"); });
-        return;
-      }
-      var r = wrap.getBoundingClientRect();
-      var total = wrap.offsetHeight - window.innerHeight;
-      if (total <= 0) return;
-      var p = clamp(-r.top / total, 0, 1);
-
-      if (fluid) fluid.style.backgroundPosition = (p * 100).toFixed(2) + "% " + (100 - p * 100).toFixed(2) + "%";
-
-      // 0.999 so the very last pixel of scroll doesn't index past the array
-      paint(Math.min(Math.floor(p * steps.length * 0.999), steps.length - 1));
-    }
-
-    queryEls();
-    if (!steps.length) return;
-
-    // A mode-copy swap (see the audience-toggle IIFE) replaces the whole
-    // .flow-steps subtree with the other mode's markup — the `steps`/`dots`
-    // NodeLists captured above would otherwise keep pointing at now-detached
-    // nodes. Exposed so that swap can force a re-query + repaint.
-    wrap.refreshFlow = function () { queryEls(); tick(); };
-
-    tick();
-    scrollUpdaters.push(tick);
-  })();
-
-  /* ---------------- 6. Testimonials wall — recycling marquee ----------------
-     Generalised twin of the logo carousel IIFE above (buildMarqueeRow takes
-     a direction so it can also run right-to-left), not a rewrite of it — the
-     logo marquee itself is untouched. Uses modular wraparound instead of the
-     logo marquee's move-node-to-the-tail technique: once the pre-cloned
-     track is at least 2x the viewport wide, `cycleWidth` (one full pass
-     through the original, un-cloned cards) is measured, and the offset just
-     wraps by exactly that amount whenever it crosses a cycle boundary. Since
-     the pattern repeats exactly every `cycleWidth`, the wrap is seamless by
-     construction — no DOM moves mid-animation, and the same technique works
-     for both directions symmetrically, which the node-shuffling approach
-     doesn't (see landing.js's own logo-carousel comment for why that one
-     works the way it does). */
-  function buildMarqueeRow(track, speed, direction) {
-    if (!track) return;
-    var original = Array.prototype.slice.call(track.children);
-    if (!original.length) return;
-    var gap = parseFloat(getComputedStyle(track).gap) || 0;
 
     var guard = 0;
     while (track.scrollWidth < window.innerWidth * 2 && guard < 40) {
       original.forEach(function (n) {
         var clone = n.cloneNode(true);
+        // Clones are visual filler. Unmarked they would double the strip's
+        // tab stops and make a screen reader read the list twice; aria-hidden
+        // alone is a violation if the node stays focusable.
         clone.setAttribute("aria-hidden", "true");
+        clone.setAttribute("tabindex", "-1");
         track.appendChild(clone);
       });
       guard++;
     }
 
-    if (reducedMotion) return; // static wrap grid; see landing.css
+    if (reducedMotion) return; // static strip; every logo still visible
 
-    var cycleWidth = 0;
-    original.forEach(function (n) { cycleWidth += n.offsetWidth + gap; });
-    if (cycleWidth <= 0) return;
-
-    var offset = direction === 1 ? -cycleWidth : 0;
-    var last = null;
-    var onscreen = true, hovered = false;
-    function running() { return onscreen && !hovered; }
+    var offset = 0, speed = 46, last = 0, running = true, paused = false;
 
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
-        onscreen = entries[0].isIntersecting;
-        if (running()) { last = null; requestAnimationFrame(tick); }
-      }, { threshold: 0 }).observe(track.parentNode);
+        running = entries[0].isIntersecting;
+        if (running) { last = 0; requestAnimationFrame(tick); }
+      }, { threshold: 0 }).observe(track.parentElement || track);
     }
-    track.parentNode.addEventListener("mouseenter", function () { hovered = true; });
-    track.parentNode.addEventListener("mouseleave", function () {
-      hovered = false;
-      if (running()) { last = null; requestAnimationFrame(tick); }
+    // pause on hover/focus so a curious visitor can actually read a name,
+    // and so a keyboard user is not fighting a moving target
+    ["mouseenter", "focusin"].forEach(function (ev) {
+      track.addEventListener(ev, function () { paused = true; });
     });
-    track.addEventListener("focusin", function () { hovered = true; });
-    track.addEventListener("focusout", function () {
-      hovered = false;
-      if (running()) { last = null; requestAnimationFrame(tick); }
+    ["mouseleave", "focusout"].forEach(function (ev) {
+      track.addEventListener(ev, function () { paused = false; last = 0; requestAnimationFrame(tick); });
     });
 
     function tick(now) {
-      if (!running()) return;
-      if (last === null) last = now;
-      var dt = Math.min((now - last) / 1000, 0.05);
+      if (!running) return;
+      if (!last) last = now;
+      var dt = (now - last) / 1000;
       last = now;
-      offset += direction * speed * dt;
-      if (direction === 1 && offset >= 0) offset -= cycleWidth;
-      if (direction === -1 && offset <= -cycleWidth) offset += cycleWidth;
-      track.style.transform = "translateX(" + offset + "px)";
+      if (!paused) {
+        offset -= speed * dt;
+        var first = track.firstElementChild;
+        while (first && offset + first.offsetWidth + 56 < 0) {
+          offset += first.offsetWidth + 56;
+          track.appendChild(first);
+          first = track.firstElementChild;
+        }
+        track.style.transform = "translateX(" + offset + "px)";
+      }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
-  }
-  buildMarqueeRow(document.getElementById("tWallTrack"), 32, -1);
+  })();
 
-  /* ---------------- Featured-challenge countdown ----------------
+  /* ---------------- testimonials — spotlight + strip ----------------
+     Option C: hovering or focusing a .t-chip in the strip promotes its
+     content into the #tSpot card above. Hover and focus are wired
+     identically (not just :hover in CSS) so keyboard users get the same
+     swap. Falls back to the default spotlight — chip[0]'s content, already
+     inline in the HTML — for no-js and for anyone who never interacts;
+     every chip's own full quote is always readable in the strip itself
+     regardless, so nothing is gated behind hover. */
+  (function () {
+    var spot = document.getElementById("tSpot");
+    var chips = document.querySelectorAll(".t-chip");
+    if (!spot || !chips.length) return;
+    var quoteEl = document.getElementById("tSpotQuote");
+    var avatarEl = document.getElementById("tSpotAvatar");
+    var nameEl = document.getElementById("tSpotName");
+    var roleEl = document.getElementById("tSpotRole");
+    var tagEl = document.getElementById("tSpotTag");
+
+    function activate(chip) {
+      if (!chip || chip.getAttribute("aria-current") === "true") return;
+      chips.forEach(function (c) { c.setAttribute("aria-current", c === chip ? "true" : "false"); });
+      spot.setAttribute("data-side", chip.getAttribute("data-side") || "business");
+      quoteEl.textContent = chip.getAttribute("data-quote") || "";
+      nameEl.textContent = chip.getAttribute("data-name") || "";
+      roleEl.textContent = chip.getAttribute("data-role") || "";
+      tagEl.textContent = chip.getAttribute("data-tag") || "";
+      var avatarId = chip.getAttribute("data-avatar");
+      var fill = avatarEl.querySelector("circle");
+      if (fill && avatarId) fill.setAttribute("fill", "url(#" + avatarId + ")");
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener("mouseenter", function () { activate(chip); });
+      chip.addEventListener("focus", function () { activate(chip); });
+    });
+
+    /* Quotes differ in length, so swapping which one is in the spotlight
+       used to change #tSpot's own height and jolt the whole section on
+       every hover. Measure every chip's FULL content (not just the quote —
+       see the bug note below) against the spotlight's real layout
+       (min-height cleared first, so a stale reservation can't skew the
+       measurement) and reserve the tallest as min-height — the swap only
+       ever changes content after that, never layout. Re-measured on
+       resize since wrapping depends on viewport width.
+
+       Real bug this had: the loop below used to swap only quoteEl's text,
+       leaving nameEl/roleEl/tagEl at whatever the currently-active chip's
+       values happened to be for the whole pass. Since activate() swaps all
+       four together, a chip whose NAME or ROLE (not just its quote) is
+       longer than the one active when this ran could push #tSpot taller
+       than the reserved min-height once it actually activated — the card
+       visibly growing exactly when a "too long" chip came up. Fixed by
+       setting all four fields per chip in the loop, so the measured max is
+       genuinely the tallest any real activate() call can ever produce,
+       not just the tallest quote in isolation. */
+    function stabilizeHeight() {
+      spot.style.minHeight = "";
+      var currentQuote = quoteEl.textContent;
+      var currentName = nameEl.textContent;
+      var currentRole = roleEl.textContent;
+      var currentTag = tagEl.textContent;
+      var max = 0;
+      chips.forEach(function (chip) {
+        quoteEl.textContent = chip.getAttribute("data-quote") || "";
+        nameEl.textContent = chip.getAttribute("data-name") || "";
+        roleEl.textContent = chip.getAttribute("data-role") || "";
+        tagEl.textContent = chip.getAttribute("data-tag") || "";
+        max = Math.max(max, spot.offsetHeight);
+      });
+      quoteEl.textContent = currentQuote;
+      nameEl.textContent = currentName;
+      roleEl.textContent = currentRole;
+      tagEl.textContent = currentTag;
+      spot.style.minHeight = max + "px";
+    }
+    stabilizeHeight();
+    var resizeTimer;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(stabilizeHeight, 150);
+    });
+    // Custom webfonts (Satoshi, via Fontshare) can still be loading when the
+    // measurement above first runs, using fallback-font metrics that don't
+    // match the real font's line height/character widths. Re-measuring once
+    // the real font is actually in is what makes this reservation trustworthy
+    // regardless of network timing, not just correct on a fast/cached load.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(stabilizeHeight);
+    }
+  })();
+
+  /* ---------------- featured-challenge ticket rail ----------------
+     Enhancement only. The rail itself is a native overflow-x:auto scroller,
+     so touch, trackpad and keyboard already work with none of this; all we
+     add is arrow buttons, a position bar, and disabled states at each end.
+     CSS hides the whole control row under .no-js rather than leaving dead
+     buttons on screen. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    var controls = document.getElementById("chRailControls");
+    var fill = document.getElementById("chRailFill");
+    if (!rail || !controls) return;
+    var btns = controls.querySelectorAll("[data-rail-dir]");
+
+    function maxScroll() { return rail.scrollWidth - rail.clientWidth; }
+
+    function sync() {
+      var max = maxScroll();
+      var x = rail.scrollLeft;
+      // a rail that doesn't overflow has nothing to drive: park the bar full
+      // and disable both arrows rather than dividing by zero
+      var p = max > 1 ? x / max : 1;
+      if (fill) fill.style.setProperty("--rail-progress", (max > 1 ? Math.max(p, .08) : 1).toFixed(3));
+      btns.forEach(function (b) {
+        var dir = Number(b.getAttribute("data-rail-dir"));
+        var atEnd = max <= 1 || (dir < 0 ? x <= 1 : x >= max - 1);
+        b.disabled = atEnd;
+      });
+    }
+
+    btns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        var dir = Number(b.getAttribute("data-rail-dir"));
+        var card = rail.querySelector(".ch-ticket");
+        // one card + one gap per press, so a click always lands the next
+        // ticket flush against the rail's padding edge
+        var step = card ? card.offsetWidth + 18 : rail.clientWidth * .8;
+        rail.scrollBy({ left: dir * step, behavior: reducedMotion ? "auto" : "smooth" });
+      });
+    });
+
+    rail.addEventListener("scroll", function () {
+      // passive read-only sync; cheap enough to run raw, and rAF-gating it
+      // would lag the bar behind the thumb on a trackpad flick
+      sync();
+    }, { passive: true });
+    window.addEventListener("resize", sync);
+    sync();
+  })();
+
+  /* ---------------- featured-challenge ticket rail: drag-to-scroll ----------------
+     Mouse-only click-and-drag panning, on top of the arrow buttons above.
+     Touch and trackpad already scroll the native overflow-x:auto container
+     for free (that's the whole point of it being a real scroller, see the
+     comment on .ch-rail in landing.css) and are untouched here — this only
+     reacts to pointerType:"mouse", which browsers don't pan on drag by
+     default. Setting scrollLeft directly (not scrollTo/scrollBy) is always
+     instant regardless of .ch-rail's own scroll-behavior:smooth, so the
+     drag tracks the cursor 1:1 with no lag. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    if (!rail) return;
+    var dragging = false, moved = false, startX = 0, startScroll = 0, pointerId = null;
+
+    rail.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      dragging = true; moved = false;
+      startX = e.clientX;
+      startScroll = rail.scrollLeft;
+      pointerId = e.pointerId;
+    });
+
+    rail.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      // capture (and the visual drag state) only start once the cursor has
+      // actually moved past a small threshold — capturing unconditionally
+      // on every pointerdown redirects the resulting "click" event's target
+      // to the rail itself even for an ordinary, un-dragged click (a real
+      // browser quirk), which broke opening the ticket modal on a plain
+      // click. Deferring capture until a real drag is confirmed keeps a
+      // plain click's hit-testing untouched.
+      if (!moved && Math.abs(dx) > 4) {
+        moved = true;
+        rail.classList.add("is-dragging");
+        rail.setPointerCapture(pointerId);
+      }
+      if (moved) rail.scrollLeft = startScroll - dx;
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      rail.classList.remove("is-dragging");
+    }
+    rail.addEventListener("pointerup", endDrag);
+    rail.addEventListener("pointercancel", endDrag);
+
+    // a drag that actually moved the rail shouldn't also open the ticket
+    // modal below — capture phase so this runs before that delegated
+    // click handler, which is registered directly on the same element
+    rail.addEventListener("click", function (e) {
+      if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+  })();
+
+  /* ---------------- featured-challenge ticket modal ----------------
+     Native <dialog> — same pattern as challenges.html's own brief modal
+     (assets/challenges.js). Each ticket carries its own brief as
+     data-brief-* attributes, read fresh on every open. One click handler on
+     #chRail (event delegation) covers both "click anywhere on the ticket"
+     and "click the View challenge button" — the button's click bubbles to
+     the same .ch-ticket ancestor, so there's nothing to double-wire. */
+  (function () {
+    var rail = document.getElementById("chRail");
+    var modal = document.getElementById("chModal");
+    if (!rail || !modal || typeof modal.showModal !== "function") return;
+
+    var closeBtn = document.getElementById("chmClose");
+    var tagEl = document.getElementById("chmTag");
+    var titleEl = document.getElementById("chmTitle");
+    var bodyEl = document.getElementById("chmBody");
+    var submittedEl = document.getElementById("chmSubmitted");
+    var deadlineEl = document.getElementById("chmDeadline");
+
+    // remembered so Escape can hand the ring back only to a keyboard opener
+    var lastTrigger = null, pointerOpened = false;
+
+    rail.addEventListener("click", function (e) {
+      var ticket = e.target.closest(".ch-ticket");
+      if (!ticket) return;
+      // e.detail is the click count: >0 for a real pointer click, 0 for the
+      // click a browser synthesises from Enter/Space on a focused button.
+      pointerOpened = e.detail > 0;
+      // document.activeElement RIGHT NOW, not e.target.closest(...) — this
+      // is the actual bug behind a second, wider version of the "black
+      // lines" report: a click on ticket content that ISN'T the "View
+      // challenge" button (the title, the description, the stub) doesn't
+      // land on any focusable element, so the browser walks up to the
+      // nearest focusable ANCESTOR instead — which is #chRail itself
+      // (tabindex="0", for keyboard scrolling), not the button or the
+      // ticket. <dialog> restores focus to whatever was actually focused
+      // at showModal() time, so on Escape the RAIL's own legitimate
+      // :focus-visible ring (a real feature, for a keyboard user tabbing
+      // onto it to scroll) painted around the entire row instead of a
+      // single button. Reading activeElement here, right before
+      // showModal() moves it, is what the dialog itself will restore focus
+      // to — so this is the one value guaranteed to match whatever needs
+      // suppressing, instead of assuming it's always the click target.
+      lastTrigger = document.activeElement;
+      var discipline = ticket.getAttribute("data-brief-discipline") || "";
+      var company = ticket.getAttribute("data-brief-company") || "";
+      tagEl.textContent = discipline + (company ? " · " + company : "");
+      titleEl.textContent = ticket.getAttribute("data-brief-title") || "";
+      bodyEl.textContent = ticket.getAttribute("data-brief-body") || "";
+      submittedEl.textContent = ticket.getAttribute("data-brief-submitted") || "";
+      deadlineEl.textContent = ticket.getAttribute("data-brief-deadline") || "";
+      modal.showModal();
+    });
+
+    closeBtn.addEventListener("click", function () { modal.close(); });
+    // a click landing on the ::backdrop itself (the dialog element, not any
+    // of its children) closes it too
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) modal.close();
+    });
+    // "cancel" is the Escape path specifically, and it fires BEFORE the
+    // dialog closes and restores focus — which is the only moment the
+    // attribute can be set early enough for the ring never to paint. The
+    // "close" event is too late; focus is already back on the trigger by
+    // then and the ring flashes for a frame.
+    modal.addEventListener("cancel", function () {
+      if (pointerOpened) suppressReturnRing(lastTrigger);
+    });
+  })();
+
+  /* ---------------- featured-challenge countdown ----------------
      A real ticking clock against a PLACEHOLDER deadline: hours-from-page-load
-     rather than a fixed calendar date, since there's no live challenge data
-     yet — see the HTML comment on .ss-countdown for what to change once there
-     is. Not gated by reducedMotion: this is a live data readout that updates
-     its own text, not a CSS/decorative animation, and the HTML already
-     pre-renders a sane starting value so no-js visitors see that and nothing
-     ever depends on this running. */
+     rather than a fixed calendar date, since there is no live challenge data
+     yet. Not gated by reducedMotion — this is a live data readout that
+     updates its own text, not a decorative animation, and the HTML
+     pre-renders a sane starting value for no-js visitors. */
   (function () {
     var el = document.querySelector("[data-countdown-hours]");
     if (!el) return;
@@ -593,6 +961,7 @@
     var hEl = el.querySelector('[data-cd="h"]');
     var mEl = el.querySelector('[data-cd="m"]');
     var sEl = el.querySelector('[data-cd="s"]');
+    if (!dEl || !hEl || !mEl || !sEl) return;
     function pad(n) { return n < 10 ? "0" + n : String(n); }
     function tick() {
       var diff = Math.max(0, deadline - Date.now());
@@ -605,22 +974,122 @@
     setInterval(tick, 1000);
   })();
 
-  /* Footer "get notified" capture — front end only, same honesty rule as
-     login.html/signup.html (see assets/site.js): an empty data-endpoint
-     means it says the wiring is pending instead of faking a success. */
+  /* ---------------- footer "get notified" capture ----------------
+     Front end only, same honesty rule as the auth forms: an empty
+     data-endpoint means it says the wiring is pending, never fakes success.
+
+     It REALLY POSTS once an endpoint is set. That is worth spelling out
+     because the first version of this did not: it printed "Thanks, you're
+     on the list." on the wired path without calling fetch at all, so
+     pointing data-endpoint at a real route would have thanked every
+     visitor for a signup that never left the browser. The unwired path was
+     honest and the wired path was not, which is exactly backwards. Same
+     failure class as the dashboard "seam" that a comment described and no
+     code implemented (see CLAUDE.md, v3.5) — check what the code sends,
+     not what the comment promises. */
   (function () {
     var form = document.getElementById("footerNotify");
     if (!form) return;
     var msg = form.querySelector(".footer-notify-msg");
+    var input = document.getElementById("footerNotifyEmail");
+    var busy = false;
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var endpoint = form.getAttribute("data-endpoint");
-      msg.classList.add("is-pending");
       if (!endpoint) {
-        msg.textContent = "Not connected yet — this form is the finished front end, waiting on the API.";
+        msg.textContent = "Not connected yet. This form is the finished front end, waiting on the API.";
         return;
       }
-      msg.textContent = "Thanks — you’re on the list.";
+      if (busy) return; // a double submit would send the address twice
+      busy = true;
+      msg.textContent = "One moment…";
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: input ? input.value.trim() : "" })
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            var e = new Error(res.status === 409
+              ? "That address is already on the list."
+              : "Something went wrong. Please try again.");
+            e.shown = true; // ours, safe to print; see the catch below
+            throw e;
+          }
+          // only now, with a real 2xx in hand, is the confirmation true
+          msg.textContent = "Thanks. You’re on the list.";
+          form.reset();
+        })
+        .catch(function (err) {
+          /* Only messages this code wrote get shown. A rejected fetch
+             carries the browser's own wording ("Failed to fetch", or a
+             CORS/DNS detail), which is noise to a visitor and leaks
+             internals — print the generic line for those instead. */
+          msg.textContent = err && err.shown
+            ? err.message
+            : "Couldn’t reach the server. Please try again.";
+        })
+        .then(function () { busy = false; });
+    });
+  })();
+
+  /* ---------------- FAQ expand/retract animation ----------------
+     Native <details> already works with zero JS: clicking summary toggles
+     [open], and pages.css's own height:0 -> height:auto rule already gives
+     a correct (if instant) end state either way. This intercepts the click
+     to make that height change smooth instead, driving .faq-a's own
+     height with plain inline styles rather than fighting it out with
+     Chrome's newer internal ::details-content box.
+
+     A pure grid-template-rows(0fr/1fr) CSS-only version was tried first —
+     see pages.css's comment on .faq-a for the full story — and had to be
+     dropped: opening animated fine, but that internal box silently stops
+     updating layout for its content the instant [open] is removed, so
+     closing just froze at full height with no way to reach it from outside
+     that box. Driving height directly here sidesteps it entirely:
+     <details>.open itself is only flipped once the visible animation is
+     already finished for closing (immediately for opening, since the
+     content has to actually be rendered before scrollHeight means
+     anything), so whatever that internal box does at the moment [open]
+     changes is never visible either way. */
+  (function () {
+    var items = document.querySelectorAll(".faq-item");
+    if (!items.length || reducedMotion) return; // CSS's own height:0/auto jump is correct without this
+    items.forEach(function (item) {
+      var summary = item.querySelector("summary");
+      var body = item.querySelector(".faq-a");
+      if (!summary || !body) return;
+      var animating = false;
+      summary.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (animating) return;
+        animating = true;
+        if (item.open) {
+          var startH = body.scrollHeight;
+          body.style.height = startH + "px";
+          body.getBoundingClientRect(); // force reflow so the browser registers startH before the next change
+          requestAnimationFrame(function () { body.style.height = "0px"; });
+          body.addEventListener("transitionend", function onEnd(ev) {
+            if (ev.target !== body || ev.propertyName !== "height") return;
+            body.removeEventListener("transitionend", onEnd);
+            item.open = false;
+            body.style.height = "";
+            animating = false;
+          });
+        } else {
+          item.open = true;
+          var targetH = body.scrollHeight;
+          body.style.height = "0px";
+          body.getBoundingClientRect();
+          requestAnimationFrame(function () { body.style.height = targetH + "px"; });
+          body.addEventListener("transitionend", function onEnd(ev) {
+            if (ev.target !== body || ev.propertyName !== "height") return;
+            body.removeEventListener("transitionend", onEnd);
+            body.style.height = "auto";
+            animating = false;
+          });
+        }
+      });
     });
   })();
 

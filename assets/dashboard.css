@@ -1,0 +1,569 @@
+/* ==========================================================================
+   Projet — dashboard page (dashboard.html)
+
+   Loaded AFTER assets/landing.css, which supplies the tokens, the gradient
+   system and the shared chrome (nav, footer, buttons, .wrap, .eyebrow).
+   This file adds only the dashboard surfaces, so the app view and the
+   marketing page cannot drift apart on brand.
+
+   FRONT END ONLY. Every number here is sample data; the real values arrive
+   from Andrei's API. See dashboard.js for the hooks and the expected shape.
+   ========================================================================== */
+
+body.dash-page{background:var(--paper-warm);}
+
+/* ---------- page header ---------- */
+/* ---------- layout ----------
+   No page-header block above this any more — asked for explicitly: the
+   dashboard should start at the actual dashboard, not a headline + lede
+   restating what the page obviously is. .dp-body carries the top padding
+   that used to come from .dp-head's own box, so the content still clears
+   the sticky nav by a sane amount. */
+.dp-body{padding:40px 0 80px;}
+.dp-grid{display:grid; grid-template-columns:300px 1fr; gap:26px; align-items:start;}
+
+/* ---------- left rail: profile ---------- */
+.dp-rail{
+  position:sticky; top:96px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:28px 24px; overflow:hidden;
+}
+.dp-avatar{
+  width:74px; height:74px; border-radius:50%; margin-bottom:16px;
+  background:var(--grad-accent); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:25px; font-weight:800;
+}
+/* #dpName is the page's <h1> (the only one on the page — there is no page
+   title above the dashboard), sized as a rail heading rather than a hero */
+.dp-rail h1{font-size:21px; margin-bottom:4px;}
+.dp-rail-sub{font-size:13px; color:var(--muted); margin-bottom:18px;}
+.dp-tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:22px;}
+.dp-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;
+  padding:5px 10px; border-radius:999px;
+  background:var(--paper-warm); border:1px solid var(--line); color:var(--ink-soft);
+}
+.dp-stat{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-top:1px solid var(--line); font-size:13.5px;}
+.dp-stat b{font-family:'JetBrains Mono',monospace; font-weight:700;}
+.dp-rail .btn{width:100%; margin-top:18px;}
+
+/* ---------- main column ---------- */
+.dp-main{min-width:0;}
+.dp-section{margin-bottom:30px;}
+.dp-section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:14px;}
+.dp-section-head h2{font-size:19px;}
+.dp-section-head .dp-count{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);}
+
+.dp-metrics{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;}
+.dp-metric{
+  position:relative; overflow:hidden;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px;
+}
+.dp-metric::after{
+  content:''; position:absolute; inset:auto -30% -60% auto; width:70%; height:130%;
+  background:var(--grad-glow); opacity:.7; pointer-events:none;
+}
+.dp-metric b{position:relative; z-index:1; display:block; font-family:'JetBrains Mono',monospace; font-size:29px; font-weight:700; line-height:1;}
+.dp-metric span{position:relative; z-index:1; display:block; margin-top:6px; font-size:12.5px; color:var(--muted);}
+
+/* ---------- history / candidate rows ---------- */
+.dp-list{display:flex; flex-direction:column; gap:12px;}
+.dp-card{
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:20px 22px; display:flex; align-items:center; gap:18px;
+  transition:transform .22s var(--ease), box-shadow .22s var(--ease);
+}
+.dp-card:hover{transform:translateY(-2px); box-shadow:0 18px 40px -26px rgba(20,19,15,.3);}
+.dp-rank{
+  flex:none; width:36px; height:36px; border-radius:11px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700; color:#fff;
+  background:var(--ink);
+}
+.dp-rank.is-top{background:var(--accent-deep);}
+/* ink-soft, not --muted: --muted only reaches ~4.0:1 on the --line fill at
+   this 12.5px size, under the 4.5:1 AA floor for small text */
+.dp-rank.is-rest{background:var(--line); color:var(--ink-soft);}
+.dp-card-body{flex:1; min-width:0;}
+/* overflow-wrap, because min-width:0 alone only lets the box shrink — it does
+   not let an unbroken RUN break. A pasted URL or email in a name field (or a
+   long single-token skill) stayed one atomic 70-char word, pushed the flex
+   row wider than its track and took the whole page into horizontal scroll:
+   308px of it at 390px wide. Ordinary long names were always fine; it takes
+   a string with no break opportunity in it. */
+.dp-card-title, .dp-card-meta, .dp-chip{overflow-wrap:anywhere;}
+.dp-card-title{font-size:15px; font-weight:700; margin-bottom:3px;}
+.dp-card-meta{font-size:12.5px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+/* flex:0 1 auto + min-width:0, not flex:none. overflow-wrap on the chip
+   itself cannot help while its container is locked to max-content — there
+   is no narrower width for the text to wrap into, so one 60-character
+   skill tag sized this box to 399px inside a 350px card and pushed the
+   page into horizontal scroll. Shrinking only ever engages when the row
+   actually overflows, so ordinary short chips lay out exactly as before. */
+.dp-chips{display:flex; gap:6px; flex-wrap:wrap; flex:0 1 auto; min-width:0;}
+.dp-chip{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:600;
+  padding:4px 9px; border-radius:999px;
+  background:var(--paper-warm); border:1px solid var(--line); color:var(--ink-soft);
+}
+.dp-pill{
+  flex:none; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  padding:4px 9px; border-radius:999px; white-space:nowrap;
+  background:var(--accent-wash); color:var(--accent-deep);
+}
+.dp-pill.is-quiet{background:var(--paper-warm); color:var(--muted);}
+.dp-score{flex:none; text-align:right; min-width:64px;}
+.dp-score b{display:block; font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; line-height:1;}
+.dp-score span{display:block; margin-top:3px; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+/* max-width caps what is meant to be a short percentage ("92%"). flex:none
+   alone let a malformed value grow the cell to 287px and shove the row past
+   the viewport edge — a number field should never be able to do that. */
+.dp-fit{flex:none; font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:var(--accent-deep); min-width:48px; max-width:72px; text-align:right; overflow:hidden; text-overflow:ellipsis;}
+.dp-card .btn{flex:none;}
+
+/* ---------- toolbar (company view) ---------- */
+.dp-toolbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+.dp-search{
+  flex:1; min-width:220px; display:flex; align-items:center; gap:9px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; font-size:13.5px; color:var(--muted);
+}
+.dp-search svg{width:15px; height:15px; flex:none;}
+.dp-search input{border:0; background:transparent; font:inherit; color:var(--ink); flex:1; min-width:0; outline:none;}
+.dp-filter{
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:600;
+  padding:12px 15px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--line); background:#fff; color:var(--ink-soft); white-space:nowrap;
+  transition:background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+}
+.dp-filter:hover{border-color:var(--ink);}
+.dp-filter[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:#fff;}
+.dp-filter:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper-warm), 0 0 0 4px var(--ink);}
+.dp-sort{margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); white-space:nowrap;}
+
+/* ---------- empty state ---------- */
+.dp-empty{
+  position:relative; overflow:hidden;
+  background:var(--grad-dark); color:#fff; border-radius:var(--radius-lg);
+  padding:34px; display:flex; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap; margin-bottom:16px;
+}
+.dp-empty::after{
+  content:''; position:absolute; inset:-40% -10% auto auto; width:70%; height:170%;
+  background:var(--grad-glow); pointer-events:none;
+}
+.dp-empty[hidden]{display:none;}
+.dp-empty > *{position:relative; z-index:1;}
+.dp-empty h3{font-size:21px; margin-bottom:7px; font-weight:800;}
+.dp-empty p{font-size:14.5px; color:rgba(255,255,255,.72); max-width:44ch; line-height:1.55;}
+.dp-placeholder-card{
+  background:#fff; border:1px dashed var(--line); border-radius:var(--radius-lg);
+  padding:20px 22px; display:flex; align-items:center; gap:18px; opacity:.6;
+}
+
+/* ---------- footer of the list ---------- */
+.dp-listfoot{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  margin-top:18px; padding-top:18px; border-top:1px solid var(--line);
+}
+.dp-listfoot-note{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);}
+.dp-listfoot-actions{display:flex; gap:10px; flex-wrap:wrap;}
+
+@media (max-width:1000px){
+  .dp-grid{grid-template-columns:1fr;}
+  .dp-rail{position:static;}
+}
+@media (max-width:760px){
+  .dp-metrics{grid-template-columns:1fr;}
+  .dp-card{flex-wrap:wrap;}
+  .dp-chips, .dp-score, .dp-fit{order:3;}
+  .dp-listfoot-actions .btn{flex:1;}
+}
+
+/* ==========================================================================
+   PROFILE COLUMN — GitHub-profile shape
+   Avatar, name, handle, bio, Edit profile, then details / skills / stats
+   blocks. The rail was already 300px wide; what changed is what goes in it
+   and the order, which now follows the reference the founder supplied.
+   ========================================================================== */
+.dp-handle{
+  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted);
+  margin:2px 0 12px;
+}
+.dp-bio{font-size:14px; line-height:1.6; color:var(--ink-soft); margin-bottom:16px;}
+.dp-edit{width:100%; justify-content:center; margin-bottom:20px;}
+
+.dp-details{list-style:none; margin:0 0 4px; padding:0; display:flex; flex-direction:column; gap:9px;}
+.dp-details li{display:flex; align-items:flex-start; gap:9px; font-size:13.5px; color:var(--ink-soft); line-height:1.45;}
+.dp-det-ic{flex:none; margin-top:1px; font-size:9px; line-height:1.6; color:var(--accent);}
+
+.dp-rail-block{margin-top:22px;}
+.dp-rail-h{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  margin:0 0 10px; line-height:1.4;
+}
+/* .dp-tags/.dp-stat keep their own existing rules; only the bottom margin
+   moves, since they now sit inside a labelled block rather than free in
+   the rail. */
+.dp-rail-block .dp-tags{margin-bottom:0;}
+
+/* ==========================================================================
+   TABS
+   ========================================================================== */
+.dp-tabs{
+  display:flex; gap:4px; margin-bottom:24px;
+  border-bottom:1px solid var(--line);
+}
+.dp-tabs button{
+  appearance:none; background:none; border:0; cursor:pointer;
+  padding:11px 16px; margin-bottom:-1px;
+  font-family:inherit; font-size:14px; font-weight:700; color:var(--muted);
+  border-bottom:2px solid transparent;
+  transition:color .2s var(--ease), border-color .2s var(--ease);
+}
+.dp-tabs button:hover{color:var(--ink);}
+.dp-tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent);}
+.dp-tabs button:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink); border-radius:6px;}
+/* the panel itself is a focus target (tabindex=0) for the tab pattern, but
+   it is a container, not a control — no ring wanted on a mouse click */
+.dp-tabpanel:focus{outline:none;}
+.dp-tabpanel[hidden]{display:none;}
+
+/* ==========================================================================
+   CONTRIBUTION HEATMAP
+   53 weeks x 7 days, built by dashboard.js. Columns are weeks, so the grid
+   flows top-to-bottom then left-to-right — grid-auto-flow:column with 7
+   explicit rows is what gives that without positioning every cell.
+   ========================================================================== */
+.dp-heat-card{
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  background:var(--paper); padding:18px 20px 16px;
+}
+.dp-heat-card .dp-section-head{margin-bottom:14px;}
+.dp-heat-card h2{font-size:15px;}
+.dp-heat-legend{
+  display:flex; align-items:center; gap:3px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted);
+}
+/* horizontal scroll rather than squeezing the cells: a year of weeks has a
+   real minimum width, and a squashed heatmap stops being readable long
+   before it stops fitting */
+.dp-heat-scroll{overflow-x:auto; padding-bottom:4px;}
+.dp-heat-body{display:flex; gap:6px;}
+.dp-heat-days{
+  display:flex; flex-direction:column; justify-content:space-around;
+  flex:none; width:26px; padding:1px 0;
+  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted);
+}
+.dp-heat-months{
+  display:flex; margin-left:32px; margin-bottom:5px;
+  font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--muted);
+}
+.dp-heat-months span{flex:none;}
+.dp-heat{
+  display:grid; grid-template-rows:repeat(7, 11px); grid-auto-flow:column;
+  grid-auto-columns:11px; gap:3px;
+}
+.dp-heat i, .dp-heat-legend i{display:block; width:11px; height:11px; border-radius:2px; background:var(--line);}
+.dp-heat-legend i{width:9px; height:9px;}
+/* Four steps of the mode accent, same ladder as challenges.html's own brief
+   heatmap so the two read as one idiom. Colour-only and aria-hidden by
+   design: the total is stated in the heading above it, so the grid is never
+   the only route to the number. */
+.dp-heat i[data-lv="1"], .dp-heat-legend i[data-lv="1"]{background:var(--accent-wash);}
+.dp-heat i[data-lv="2"], .dp-heat-legend i[data-lv="2"]{background:var(--accent-edge);}
+.dp-heat i[data-lv="3"], .dp-heat-legend i[data-lv="3"]{background:var(--accent);}
+.dp-heat i[data-lv="4"], .dp-heat-legend i[data-lv="4"]{background:var(--accent-deep);}
+
+/* Hover tooltip. position:fixed + a transform computed in JS (not CSS
+   :hover, which cannot know per-cell content) because the heatmap scrolls
+   horizontally inside .dp-heat-scroll — an absolutely positioned tooltip
+   anchored to a scrolling ancestor would need its own scroll-offset math,
+   while fixed positioned against real getBoundingClientRect() values just
+   works regardless of how far the grid has scrolled. pointer-events:none so
+   the tooltip itself can never intercept the mouseout that is meant to hide
+   it. */
+.dp-heat-tip{
+  position:fixed; top:0; left:0; z-index:400; pointer-events:none;
+  background:var(--ink); color:#fff; font-size:11.5px; font-weight:600;
+  padding:6px 10px; border-radius:6px; white-space:nowrap;
+  box-shadow:0 10px 24px -10px rgba(20,19,15,.45);
+}
+.dp-heat-tip[hidden]{display:none;}
+.dp-heat-note{margin-top:12px; font-size:12.5px; color:var(--muted);}
+
+/* ==========================================================================
+   ACTIVITY FEED
+   ========================================================================== */
+.dp-feed{list-style:none; margin:0; padding:0;}
+.dp-feed-item{
+  position:relative; display:flex; align-items:flex-start; gap:14px;
+  padding:14px 0 14px 4px; border-top:1px solid var(--line);
+}
+.dp-feed-item:first-child{border-top:0;}
+.dp-feed-item div{flex:1; min-width:0;}
+.dp-feed-item b{display:block; font-size:14.5px; margin-bottom:2px;}
+.dp-feed-item span{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);}
+.dp-feed-item time{
+  flex:none; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted);
+  white-space:nowrap; padding-top:2px;
+}
+.dp-feed-dot{
+  flex:none; width:9px; height:9px; border-radius:50%; margin-top:6px;
+  background:var(--line); border:2px solid var(--paper); box-shadow:0 0 0 1.5px var(--line);
+}
+.dp-feed-dot[data-kind="score"]{background:var(--accent); box-shadow:0 0 0 1.5px var(--accent);}
+.dp-feed-dot[data-kind="win"]{background:var(--accent-deep); box-shadow:0 0 0 1.5px var(--accent-deep);}
+
+/* ==========================================================================
+   HACKATHON ROWS AS BUTTONS
+   The rows are <button> now so the detail modal is keyboard-reachable.
+   Buttons bring UA styling that has to be undone, and text-align/font are
+   the two that bite: a button centres its text and does NOT inherit the
+   page font.
+   ========================================================================== */
+button.dp-card{
+  width:100%; text-align:left; font-family:inherit; font-size:inherit; color:inherit;
+  cursor:pointer;
+  transition:border-color .18s var(--ease), box-shadow .18s var(--ease), transform .18s var(--ease);
+}
+button.dp-card:hover{border-color:var(--accent); box-shadow:0 12px 26px -20px rgba(20,19,15,.4); transform:translateY(-1px);}
+button.dp-card:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+button.dp-card .dp-card-title{display:block;}
+button.dp-card .dp-card-meta{display:block;}
+button.dp-card .dp-card-body{flex:1; min-width:0;}
+button.dp-card .dp-score{display:block;}
+button.dp-card .dp-score b{display:block;}
+button.dp-card .dp-score span{display:block;}
+
+/* ==========================================================================
+   MODALS — entry detail and profile editor
+   ========================================================================== */
+.dp-modal{
+  border:0; border-radius:var(--radius-xl); padding:0;
+  width:min(560px, calc(100vw - 40px)); max-height:min(86vh, 760px);
+  box-shadow:0 40px 90px -30px rgba(20,19,15,.5);
+}
+.dp-modal::backdrop{background:rgba(20,19,15,.6); backdrop-filter:blur(2px);}
+.dp-modal-inner{position:relative; padding:32px 30px 28px; display:flex; flex-direction:column; gap:12px;}
+.dp-modal-close{
+  position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--line); background:#fff; cursor:pointer;
+  font-size:18px; line-height:1; color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center;
+}
+.dp-modal-close:hover{border-color:var(--ink); color:var(--ink);}
+.dp-modal-close:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.dp-modal-top{display:flex; align-items:center; gap:10px; padding-right:36px;}
+.dp-modal-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--accent-deep);
+}
+.dp-modal-top .dp-pill{margin-left:auto;}
+.dp-modal h2{font-size:22px; line-height:1.25; padding-right:36px; margin:0;}
+.dp-modal-sub{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted); margin:0;}
+.dp-modal-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:4px;}
+.dp-modal-stats div{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
+.dp-modal-stats b{display:block; font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
+.dp-modal-stats span{display:block; margin-top:4px; font-size:11px; color:var(--muted);}
+.dp-modal-h{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  margin:10px 0 0; line-height:1.4;
+}
+.dp-modal-inner > p{font-size:14.5px; line-height:1.6; color:var(--ink-soft); margin:0;}
+.dp-modal-quote{
+  border-left:2px solid var(--accent); padding-left:14px; font-style:italic;
+}
+.dp-bars{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.dp-bars li{display:grid; grid-template-columns:1fr auto; gap:4px 12px; align-items:center;}
+.dp-bars span{font-size:13px; color:var(--ink-soft);}
+.dp-bars b{font-family:'JetBrains Mono',monospace; font-size:13px;}
+.dp-bars .dp-bar{
+  grid-column:1 / -1; height:5px; border-radius:99px; background:var(--line); overflow:hidden;
+}
+.dp-bars .dp-bar i{display:block; height:100%; border-radius:99px; background:var(--grad-accent);}
+.dp-modal-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+.dp-modal-actions .btn{flex:1; justify-content:center; white-space:nowrap;}
+
+/* ---------- profile editor ---------- */
+.dp-modal-note{font-size:12.5px; color:var(--muted); margin:0;}
+.dp-field{display:block;}
+.dp-field span{
+  display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:var(--ink);
+}
+.dp-field input, .dp-field textarea{
+  width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--line);
+  background:#fff; font-family:inherit; font-size:14px; color:var(--ink); resize:vertical;
+}
+.dp-field input:hover, .dp-field textarea:hover{border-color:var(--ink-soft);}
+.dp-field input:focus-visible, .dp-field textarea:focus-visible{
+  outline:none; border-color:transparent; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+}
+/* The status line must not move the dialog when it appears: this modal is
+   centred, so anything that changes its height re-centres the whole thing
+   rather than just growing it downward.
+
+   The auth forms solve that by animating max-height, and this started as a
+   copy of that. It is better here to reserve the line permanently and
+   animate opacity ALONE — max-height is a layout property, so animating it
+   runs layout every frame, and reserving the space fixes the re-centring
+   more completely anyway: with a constant height the dialog cannot shift
+   even on the frame the message swaps. One line is enough for every string
+   this shows (the longest, "Applied, but this browser blocked saving it.",
+   is ~300px against a ~500px content column). */
+/* Selector deliberately outranks `.dp-modal-inner > p` (0,1,1) above, which
+   would otherwise win on specificity and hand this element 14.5px/1.6 body
+   metrics. That mismatch is not cosmetic here: min-height is reserved in em
+   against the element's OWN font-size, so if the font-size came from
+   somewhere else the reserved box and the rendered line disagreed and the
+   dialog still shifted 6px the first time a message appeared. Measured
+   before this: 17px empty vs 23px with text. */
+.dp-modal-inner > p.dp-modal-status{
+  min-height:1.2em; opacity:0; margin:0;
+  font-size:12.5px; font-weight:700; line-height:1.2; color:var(--accent-deep);
+  transition:opacity .22s var(--ease);
+}
+.dp-modal-inner > p.dp-modal-status.is-shown{opacity:1;}
+
+@media (max-width:900px){
+  .dp-grid{grid-template-columns:1fr;}
+  .dp-modal-actions .btn{flex:1 1 100%;}
+}
+@media (max-width:640px){
+  .dp-modal-inner{padding:28px 20px 22px;}
+  .dp-modal-stats{grid-template-columns:1fr 1fr;}
+}
+/* ---------- no-js ----------
+   Without JS the rows cannot open anything (showModal() is a JS call), so
+   they stop pretending to be controls — same contract as .no-js
+   .cl-view-brief on challenges.html and .ch-view-btn on the home page.
+   The row keeps all its inline data either way. */
+.no-js button.dp-card{cursor:default;}
+.no-js button.dp-card:hover{border-color:var(--line); box-shadow:none; transform:none;}
+.no-js .dp-edit{display:none;}
+
+/* The tab strip cannot switch panels without JS, so it goes and BOTH panels
+   render stacked instead. This is the load-bearing one: leaving the tabs on
+   screen would strand the whole activity feed behind a control that does
+   nothing, which is exactly the "content gated behind an effect that might
+   not run" case this site does not allow anywhere else. */
+.no-js .dp-tabs{display:none;}
+.no-js .dp-tabpanel[hidden]{display:block;}
+.no-js .dp-tabpanel + .dp-tabpanel{margin-top:8px;}
+
+/* The heatmap's cells are generated, so with no JS this card is a heading,
+   a legend and an empty box — and its heading would state a total nothing
+   on the page can back up. Hidden outright rather than left as a hollow
+   frame. Nothing is lost: it visualises the same history the entries list
+   below it already states row by row. */
+.no-js .dp-heat-card{display:none;}
+
+/* ==========================================================================
+   COMPANY DASHBOARD
+   The company account tracks a pipeline across several briefs, so its
+   overview carries more numbers and more charts than the student view's
+   personal record. Everything below is drawn with plain elements sized by
+   percentage — no charting library, same dependency-free rule as the rest
+   of the site — and every bar states its own figure as real text beside it,
+   which is why the bars themselves are aria-hidden rather than announced.
+   ========================================================================== */
+
+/* Six metrics as a clean 3x2, reusing the student row's own 3-column rhythm
+   rather than squeezing six across. auto-fit was tried first and orphaned the
+   sixth card on a row of its own at desktop widths, which read as a mistake
+   rather than a grid. */
+.dp-metrics--six{grid-template-columns:repeat(3,1fr);}
+@media (max-width:760px){ .dp-metrics--six{grid-template-columns:1fr 1fr;} }
+.dp-metric{position:relative;}
+.dp-delta{
+  position:absolute; top:12px; right:13px;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  font-style:normal; color:var(--muted);
+}
+/* Direction is carried by the +/-/0 sign in the text itself, not by colour
+   alone — the tint is a reinforcement, not the message. */
+.dp-delta.is-up{color:var(--accent-deep);}
+.dp-delta.is-flat{color:var(--muted);}
+
+.dp-chart-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:30px;}
+.dp-chart-card{
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  background:var(--paper); padding:18px 20px 16px; margin-bottom:0;
+}
+.dp-chart-card .dp-section-head{margin-bottom:16px;}
+.dp-chart-card h2{font-size:15px;}
+.dp-chart-note{margin-top:14px; font-size:12.5px; line-height:1.5; color:var(--muted);}
+
+/* ---------- funnel ---------- */
+.dp-funnel{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.dp-funnel li{display:grid; grid-template-columns:88px 1fr auto; gap:12px; align-items:center;}
+.dp-funnel-label{font-size:12.5px; color:var(--ink-soft);}
+.dp-funnel-bar{display:block; height:10px; border-radius:99px; background:var(--line); overflow:hidden;}
+.dp-funnel-bar i{display:block; height:100%; border-radius:99px; background:var(--grad-accent);}
+.dp-funnel b{font-family:'JetBrains Mono',monospace; font-size:13px; min-width:26px; text-align:right;}
+
+/* ---------- monthly columns ---------- */
+.dp-cols{display:flex; align-items:flex-end; gap:6px; height:132px;}
+.dp-cols i{
+  flex:1; display:flex; align-items:flex-end; justify-content:center;
+  height:var(--h); min-height:4px; border-radius:4px 4px 0 0;
+  background:var(--accent-edge); position:relative;
+}
+/* the current month reads as the point of the chart, so it gets the solid
+   accent while the history behind it stays as a wash */
+.dp-cols i.is-now{background:var(--accent-deep);}
+.dp-cols i span{
+  position:absolute; bottom:-18px; font-family:'JetBrains Mono',monospace;
+  font-size:9px; color:var(--muted);
+}
+.dp-cols{margin-bottom:22px;}
+
+/* ---------- brief table ---------- */
+.dp-table-scroll{overflow-x:auto;}
+.dp-table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+.dp-table th, .dp-table td{text-align:left; padding:12px 10px; border-bottom:1px solid var(--line);}
+.dp-table th{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+}
+.dp-table tbody tr:last-child td{border-bottom:0;}
+.dp-table td b{display:block; font-size:14px;}
+.dp-table td span{
+  display:block; margin-top:2px; font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:var(--muted);
+}
+.dp-table td:first-child{min-width:180px;}
+/* the numeric columns read as data, not prose */
+.dp-table td:not(:first-child):not(:nth-child(2)){font-family:'JetBrains Mono',monospace; font-weight:700;}
+/* a fifth status the challenges page does not need: a brief that has closed
+   to new entries. Neutral by design — it is the absence of urgency. */
+.cl-pill[data-status="closed"]{background:var(--paper-warm); border-color:var(--line); color:var(--muted);}
+
+/* ---------- discipline split ---------- */
+.dp-split{display:flex; height:14px; border-radius:99px; overflow:hidden; gap:2px;}
+.dp-split i{display:block; height:100%;}
+.dp-split-key{
+  list-style:none; margin:14px 0 0; padding:0;
+  display:flex; flex-wrap:wrap; gap:8px 20px;
+}
+.dp-split-key li{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-soft);}
+.dp-split-key i{width:10px; height:10px; border-radius:3px; flex:none;}
+.dp-split-key b{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--ink);}
+/* Four steps down the mode accent, the same ladder the heatmap uses, so the
+   two charts read as one family rather than introducing a second palette. */
+[data-seg="product"]{background:var(--accent-deep);}
+[data-seg="engineering"]{background:var(--accent);}
+[data-seg="design"]{background:var(--accent-edge);}
+[data-seg="data"]{background:var(--accent-wash);}
+/* Fallback for a discipline outside the site's own four-category taxonomy —
+   see renderDisciplineSplit() in dashboard.js. Neutral rather than reusing
+   one of the four above, which would visually merge an unrelated real
+   discipline into an existing segment's colour. */
+[data-seg="other"]{background:var(--ink-soft);}
+
+@media (max-width:900px){
+  .dp-chart-row{grid-template-columns:1fr;}
+}

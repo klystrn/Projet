@@ -1,0 +1,399 @@
+/* ==========================================================================
+   Projet — the full-bleed auth stage (login.html / signup.html)
+
+   Loaded AFTER site.css, which still owns the form internals this file
+   reuses wholesale: .field, .role-toggle, .auth-submit, .auth-status,
+   .auth-alt, .auth-fineprint, .sr-only. Only the shell — the stage, the
+   background, the sliding panel — is new.
+
+   THE MECHANIC, asked for explicitly (Aug 2026): "I want the fluid
+   background to be the full size of the page, with the form overlaid.
+   When a user chooses a mode, the form and background slide over to the
+   other side as an animation." Then refined, same round: "The card should
+   stretch the full half of the page, same look as v2, just a different
+   structure." So: a full-viewport fluid-texture background runs edge to
+   edge, and a solid, opaque, full-height panel exactly half the stage's
+   width sits over ONE half of it — the same proportions and flat,
+   undecorated edge as v2's own two-column grid, just built as a sliding
+   overlay instead of a static grid track. Switching mode slides that
+   panel to the opposite half (transform only, no layout thrash) and pans
+   the background a smaller amount in the same direction, so the whole
+   scene reads as shifting together rather than the panel moving alone.
+
+   THE BACKDROP IS DRAWN IN CSS (Aug 2026) — no image and no video. See
+   the Signal Field comment below for why both raster attempts (the
+   fluid-full stills, then a 4K-container video) were dead ends, and what
+   replaced them. It also animates: the whole field parallaxes across on a
+   mode swap, and the scene assembles itself on arrival.
+
+   This is the FOURTH shell for these two pages (v2 image-aside grid ->
+   split-spectrum stage -> v2 grid again, briefly -> this). Both the
+   split-spectrum stage and the original v2 markup are archived, not
+   deleted — archive/split-spectrum-auth/ and archive/v2/ — in case
+   either is wanted again. login.html and signup.html carry byte-identical
+   stage markup and differ only in which mode .auth-stage ships with
+   (data-mode="login" / "signup"), same "one page shape, two entry points"
+   convention this project has used for every prior version of this
+   mechanic. If you edit one of these two pages, edit the other to match.
+   ========================================================================== */
+
+/* ---------- the stage ---------- */
+.auth-stage{
+  --stage-h:100vh;
+  --stage-h:100svh;
+  position:relative; height:var(--stage-h); overflow:hidden;
+  background:var(--ink);
+}
+/* auth.js adds this for the single frame it takes to honour a ?mode= on
+   load, so a reload lands on that face instead of replaying the slide.
+   Transitions only — the entrance keyframes are untouched by design. */
+.auth-stage.is-instant, .auth-stage.is-instant *{transition:none !important;}
+
+/* ==========================================================================
+   THE SIGNAL FIELD — the backdrop, drawn entirely in CSS (Aug 2026)
+
+   This replaces a <video> background, which replaced a still image before
+   that. Both raster attempts failed the same way and it is worth not
+   relearning: fluid-full.webp/.avif is 2048x1159 and is ITSELF already an
+   upscale of a true 1080x611 master, and assets/fluid_animation_3500ms.mp4
+   — despite being a genuine 3840x2160 file — carries no real detail past
+   ~720p either (measured: downscale a frame to 1080p and back up and you
+   lose almost nothing, 48dB PSNR; even 720p round-trips at 45dB, about the
+   same delta as a good re-encode). It was an AI upscale: more pixels, no
+   more detail. Reported blurry three times running, correctly.
+
+   On top of that, the panel covers half the stage, so a 16:9 source only
+   ever showed as a narrow portrait sliver — arbitrary framing, no
+   compositional control over what landed in the visible strip.
+
+   So the field is CSS now: radial blooms, outlined rings and the brand
+   mark. Nothing here is a raster except the mark itself (a 180px PNG shown
+   at 180px), so it is pin-sharp at any resolution and DPI by construction,
+   crops cleanly at any width, and costs ~20KB instead of 6MB.
+   ========================================================================== */
+.auth-field{position:absolute; inset:0; z-index:0; overflow:hidden;}
+
+/* Every layer rides one shared --field-x / --field-y pair, scaled per
+   layer, so the whole scene parallaxes as one thing on a mode swap rather
+   than sliding as a flat sheet. --field-x is in vw because the stage IS
+   the viewport: 25vw is exactly a quarter of it, which lands each layer on
+   the centre of whichever half the panel is NOT covering — the same
+   distance the panel travels, in the opposite direction.
+
+   The +100px / +85px on top of that quarter is the deliberate off-centre
+   ask: dead-centre in the exposed half is the most default placement
+   there is, and the scene reads as a stock hero graphic sitting in a box.
+   Nudged outward and down it sits off the optical centre on BOTH axes,
+   ring 1 crops off the outer edge (which reads as intentional framing
+   rather than a shape that happens to fit), and the composition runs on a
+   diagonal against the form in the panel instead of squaring up with it.
+   Pushed further on both axes than the first pass (was +64px / +40px) —
+   asked for explicitly, once the whole group had already been sized down
+   (see .af-ring-1/.af-ring-2/.af-mark below), which is what gives this
+   larger a nudge room to move without the smaller rings running fully off
+   the visible half.
+
+   Deliberately a FIXED px nudge rather than a bigger vw figure: the vw
+   part is "centre of the exposed half" and has to keep tracking the
+   viewport, while the nudge is a constant visual amount that should not
+   scale into a huge displacement on a wide monitor. --field-y stays the
+   same sign in both modes, so the swap stays a pure horizontal sweep and
+   only the anchor point is off-centre. */
+.auth-stage[data-mode="login"]  {--field-x:calc(25vw + 100px);  --field-y:85px;}
+.auth-stage[data-mode="signup"] {--field-x:calc(-25vw - 100px); --field-y:85px;}
+
+.af-bloom{
+  position:absolute; inset:-20%;
+  transform:translate(calc(var(--field-x, 0) * .55), calc(var(--field-y, 0) * .55));
+  transition:transform 1.15s var(--ease);
+  will-change:transform;
+}
+/* Positioned around the stage's CENTRE, not off to one side, and sized
+   large. The panel hides half the stage, so a bloom centred in one half is
+   simply switched off half the time — the first pass did exactly that and
+   the exposed side came out nearly black. Centred and oversized, each one
+   lights whichever half is showing, and the parallax reads as the light
+   shifting rather than leaving the frame. */
+.af-bloom-warm{background:radial-gradient(820px 700px at 50% 26%, rgba(255,91,36,.50), rgba(255,91,36,0) 66%);}
+.af-bloom-cool{background:radial-gradient(720px 640px at 32% 84%, rgba(47,107,255,.42), rgba(47,107,255,0) 68%);}
+.af-bloom-violet{background:radial-gradient(620px 560px at 66% 58%, rgba(122,63,143,.36), rgba(122,63,143,0) 70%);}
+
+/* concentric rings, centred on the mark and travelling WITH it — same
+   translateX expression as .af-mark below, no multiplier of its own. A
+   real bug, caught by measuring rendered centre points rather than just
+   reading the CSS: this used to ride at .82 of --field-x while the mark
+   rode at the full amount, so the two only ever coincided when
+   --field-x was 0 — which it never is, since the mode is always either
+   +25vw or -25vw. At rest the mark measured 65px off from the rings'
+   own centre, which is exactly the "not centralised in the echo circles"
+   report. Rings and mark are one rigid group now; only the blooms behind
+   them keep an independent, slower drift, since they're loose atmosphere
+   rather than something visually attached to the mark. */
+.af-ring{
+  position:absolute; left:50%; top:50%; border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.18);
+  transform:translate(-50%,-50%) translate(var(--field-x, 0), var(--field-y, 0));
+  transition:transform 1.05s var(--ease);
+  will-change:transform;
+}
+/* Whole group scaled down again — asked for explicitly alongside the
+   bigger off-centre push above, both rings ~81% of their previous size
+   (620->500, 400->320) so the larger displacement still reads as
+   composition rather than the group running off the edge of its half. */
+.af-ring-1{width:500px; height:500px;}
+.af-ring-2{width:320px; height:320px; border-color:rgba(255,255,255,.13);}
+
+/* THE MARK. Sized down three times on request now — 200px, 160px, 136px,
+   now 108px. Against the 320px inner ring that holds the same roughly-a-
+   third ratio the previous sizes kept, so it still reads as an accent
+   sitting inside the ring rather than something competing with it for
+   focus. Three nested elements on purpose — each owns ONE transform, so
+   they can never fight: .af-mark carries the mode travel, .af-mark-in
+   carries the entrance pop, and (previously) the image carried an endless
+   spin. Put any two of those on one element and the last wins silently. */
+.af-mark{
+  position:absolute; left:50%; top:50%;
+  width:108px; height:108px; margin:-54px 0 0 -54px;
+  transform:translate(var(--field-x, 0), var(--field-y, 0));
+  transition:transform 1.05s var(--ease);
+  will-change:transform;
+}
+.af-mark-in{width:100%; height:100%;}
+.af-mark img{width:100%; height:100%; display:block; opacity:.92;}
+/* THE SPIN IS GONE — asked for explicitly. A continuous rotation on a
+   mark that is not radially symmetric (it reads as a fixed "C", not an
+   abstract disc) looks like a loading spinner more than an ambient
+   flourish, and it fights the mode-swap parallax for attention rather
+   than complementing it. In its place: the mark itself stays perfectly
+   still (legible at every moment, not just twice a rotation), and the
+   glow behind it breathes instead — a slow, low-amplitude opacity/scale
+   pulse on .af-mark::before only. It reads as ambient light, never as
+   the brand mark itself moving, and there is no shape to make it look
+   wrong from any angle. */
+/* scale() alone, no translate — the box is already centred by its own
+   negative margin below, and scale()'s default transform-origin is the
+   element's own centre, so it breathes in place with nothing else to
+   combine or fight with. */
+@keyframes af-pulse{
+  0%, 100%{opacity:.85; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.08);}
+}
+/* the glow that replaces the old hard-edged orange disc — same brand
+   colour, no solid edge to grab the eye. */
+.af-mark::before{
+  content:""; position:absolute; left:50%; top:50%;
+  /* scaled down alongside the mark each time it shrank (640px at 160px,
+     560px at 136px, now 440px at 108px) so the glow stays ambient light
+     around it rather than swallowing it. */
+  width:440px; height:440px; margin:-220px 0 0 -220px;
+  border-radius:50%; pointer-events:none;
+  /* the focal light. It rides .af-mark, so it travels with the rings and
+     mark as one group and is always centred on the exposed half. */
+  background:radial-gradient(circle, rgba(255,91,36,.34), rgba(255,91,36,.11) 40%, rgba(255,91,36,0) 68%);
+  animation:af-pulse 7s var(--ease) infinite;
+  will-change:transform, opacity;
+}
+
+/* Light, not a heavy contrast-protecting scrim — the panel is a fully
+   opaque surface, not text over the field, so this is purely depth on the
+   half that stays visible. */
+.auth-scrim{
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(180deg, rgba(6,6,10,.20), rgba(6,6,10,.06) 32%, rgba(6,6,10,.24));
+}
+
+/* ---------- the entrance ----------
+   Visitors arrive here from another page, so the scene assembles itself
+   instead of being there already, back to front: field, rings, then the
+   mark and the form landing last.
+
+   KEYFRAMES, not transitions, and the split matters. A transition-based
+   entrance needs its stagger expressed as transition-delay, which would
+   then ALSO delay the mode-swap transitions on the same elements (the
+   mark would lag ~.22s behind the panel every switch, reading as lag
+   rather than depth). Animations run on their own timeline, so the two
+   never interfere.
+
+   The second rule: any element that carries a mode transform animates
+   OPACITY ONLY. An animated transform overrides the element's own
+   transform for the animation's whole duration, which would strand the
+   blooms and rings at the wrong side of the stage. Scale and rise go on
+   nested elements that own no mode transform (.af-mark-in, .auth-card).
+
+   animation-fill-mode:backwards holds the from-state during the delay, so
+   nothing flashes in at full opacity before its turn. No JS and no class
+   involved: this runs on load for everyone, and the reduced-motion guard
+   in site.css collapses it to its end state. */
+@keyframes af-fade{from{opacity:0;} to{opacity:1;}}
+@keyframes af-pop{from{opacity:0; transform:scale(.82);} to{opacity:1; transform:scale(1);}}
+@keyframes af-rise{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
+
+.af-bloom{animation:af-fade .9s var(--ease) both;}
+.af-ring-1{animation:af-fade .8s var(--ease) .10s backwards;}
+.af-ring-2{animation:af-fade .8s var(--ease) .16s backwards;}
+.af-mark-in{animation:af-pop .85s var(--ease) .22s backwards;}
+.auth-logo{animation:af-fade .7s var(--ease) .30s backwards;}
+.auth-card{animation:af-rise .8s var(--ease) .16s backwards;}
+
+/* The logo sits at a fixed screen position, but which half is the white
+   panel and which is the image swaps with the mode — so a single white
+   logo would go invisible against the panel in login mode (panel on the
+   left, same side as the logo). Two stacked images crossfade instead: dark
+   for whichever mode puts the panel under the logo, white for whichever
+   puts the image there. Caught by screenshot, not by eye — the earlier
+   single-white-logo version looked fine in signup mode and only broke in
+   login mode, easy to miss without comparing both. */
+.auth-logo{position:absolute; top:28px; left:32px; z-index:5; display:block; width:134px; height:24px;}
+.auth-logo img{
+  position:absolute; top:0; left:0; height:24px; width:auto; display:block;
+  transition:opacity .5s var(--ease);
+}
+.auth-logo-dark{opacity:0;}
+.auth-logo-white{opacity:1;}
+.auth-stage[data-mode="login"] .auth-logo-dark{opacity:1;}
+.auth-stage[data-mode="login"] .auth-logo-white{opacity:0;}
+.auth-logo:focus-visible{outline:2px solid #fff; outline-offset:6px; border-radius:4px;}
+
+/* ---------- the panel, and its slide ----------
+   Exactly half the stage, full height, flush to the left edge by default.
+   translateX(100%) is relative to the ELEMENT's own box — since that box
+   is 50% of the stage, 100% of it is exactly 50% of the stage, so this
+   lands the panel precisely on the opposite half with nothing but a
+   transform (no width/left recalculation, no layout thrash). */
+.auth-panel{
+  position:absolute; top:0; left:0; z-index:3;
+  width:50%; height:100%;
+  background:var(--paper);
+  transform:translateX(var(--panel-x, 0%));
+  transition:transform .9s var(--ease);
+}
+.auth-stage[data-mode="login"]  .auth-panel{--panel-x:0%;}
+.auth-stage[data-mode="signup"] .auth-panel{--panel-x:100%;}
+
+/* Both faces live in the same panel, stacked — visibility/opacity swap
+   rather than display:none so the crossfade can animate and a keyboard
+   user's focus move (auth.js) always lands on a real, laid-out element.
+   The panel itself is always opaque (see above), so — unlike an earlier
+   version of this that faded the whole card — the crossfade never lets
+   the background bleed through mid-transition. overflow-y:auto is the
+   same "a form taller than a short window scrolls inside its own panel"
+   fix the split-spectrum stage used, not new here. */
+.auth-face{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:48px 40px; overflow-y:auto;
+  opacity:1; visibility:visible;
+  transition:opacity .4s var(--ease) .12s, visibility 0s;
+}
+.auth-stage:not([data-mode="login"])  .auth-face--login,
+.auth-stage:not([data-mode="signup"]) .auth-face--signup{
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .22s var(--ease), visibility 0s linear .22s;
+}
+
+/* the inner content wrapper — same name, same max-width, as v2's own
+   .auth-card, for the "same look as v2" ask */
+.auth-card{width:100%; max-width:420px;}
+
+/* A small mono eyebrow above the headline — asked for explicitly ("fix
+   the form design"), the plain black-button-on-white form had nothing
+   tying it back to the brand. JetBrains Mono / uppercase / accent colour
+   is the same kicker convention used everywhere else on the site. */
+.auth-eyebrow{
+  font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep);
+  display:block; margin-bottom:12px;
+}
+.auth-card h1{font-size:clamp(28px,3.4vw,38px); margin-bottom:10px;}
+.auth-lede{font-size:15.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:28px;}
+
+/* .field/.auth-submit/.role-opt themselves stay exactly as site.css
+   defines them (shared with the footer capture form) — these are
+   auth-page-only refinements layered on top, not changes to the shared
+   base rules. */
+.auth-card .field input{
+  border-color:var(--line); box-shadow:0 1px 2px rgba(20,19,15,.04);
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.auth-card .field input:hover{border-color:var(--line-strong);}
+
+/* The mode-switch prompt ("New to Projet? Create an account") is a
+   <button>, not an <a> — it has to be, since it drives the JS slide
+   rather than navigating — but site.css only ever styled .auth-alt A,
+   never .auth-alt BUTTON. That left it rendering with the browser's own
+   default button chrome (a grey bordered box) sitting oddly next to
+   plain text, which was a real, visible part of what read as "ugly."
+   Matched to .auth-alt a's own treatment so the two are indistinguishable
+   as links, whichever element either page happens to use. */
+.auth-card .auth-alt button{
+  background:none; border:none; padding:0; margin:0; cursor:pointer;
+  font:inherit; font-weight:700; color:var(--ink);
+  text-decoration:underline; text-underline-offset:3px;
+}
+.auth-card .auth-alt button:hover{color:var(--accent-deep);}
+.auth-card .auth-alt button:focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:3px;}
+
+/* ==========================================================================
+   Fallbacks. Written three times over (narrow / reduced-motion / no-js),
+   same convention as every other effect on the site.
+
+   The no-js case is the load-bearing one: with no JS the mode can never
+   change, so both faces expand into a plain stacked column and BOTH forms
+   render in full, rather than one workable form and one permanently
+   opacity:0 dead end.
+   ========================================================================== */
+@media (max-width:900px){
+  /* Same breakpoint v2's own .auth-page grid collapsed at. A half-width
+     panel sliding across a full-bleed background has no room to mean
+     anything on a phone-width screen, so the panel takes the FULL stage
+     instead and the two faces just crossfade in place — the background
+     is fully covered either way at this width, so nothing is lost by not
+     also carrying over v2's short mobile image band (there's no aside
+     copy left to justify keeping a sliver of image around it). */
+  .auth-panel{width:100%; transform:none !important;}
+  /* the panel is full-width white at this breakpoint regardless of mode,
+     so the logo always sits over it, not the image — always dark */
+  .auth-logo-dark{opacity:1 !important;}
+  .auth-logo-white{opacity:0 !important;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  /* site.css's global guard (a bare *{animation-duration:...!important})
+     flattens every animation on a real element, which lands the entrance
+     on its end state for free. It does NOT reach .af-mark::before, though
+     — confirmed by measuring its computed animation-duration under this
+     same media query and finding it still 7s, not 0.001ms. The universal
+     selector only matches real elements; ::before/::after need their own
+     explicit selector to be targeted at all, inherited properties aside.
+     Worth remembering for any future animation put on a pseudo-element on
+     this site — the global guard will not catch it, this pattern will. */
+  .af-mark::before{animation:none; opacity:.85; transform:scale(1);}
+  .af-bloom, .af-ring, .af-mark, .af-mark::before{will-change:auto;}
+}
+
+.no-js .auth-stage{height:auto; min-height:100vh; overflow:visible;}
+.no-js .auth-field{position:fixed;}
+/* position:relative, not :static — a real bug caught by screenshot, not
+   just reasoned about. z-index has no effect on a statically positioned
+   box, and a positioned element (.auth-field, forced to position:fixed
+   right above) always paints above a static one regardless of source order —
+   so with the panel forced static, the fixed background painted straight
+   over its white surface, and only individually-opaque bits inside it
+   (.role-opt's own span background, .field input's own white fill) still
+   showed; everything else (h1, plain paragraph text) rendered directly
+   against the image with no backdrop at all. position:relative keeps the
+   exact same layout as static (no offsets set) but re-enables z-index, so
+   the panel can actually out-rank the fixed image again. */
+.no-js .auth-panel{position:relative !important; z-index:2; width:100%; transform:none !important;}
+/* full-width white panel regardless of mode here too — always dark */
+.no-js .auth-logo-dark{opacity:1 !important;}
+.no-js .auth-logo-white{opacity:0 !important;}
+.no-js .auth-face{
+  position:static !important; display:block; padding:56px 32px;
+  opacity:1 !important; visibility:visible !important; pointer-events:auto !important;
+}
+.no-js .auth-face .auth-card{margin:0 auto;}
+/* both faces stacked in one panel now — a divider between them since
+   nothing else marks where "log in" ends and "sign up" begins once both
+   are simply flowing one after another */
+.no-js .auth-face + .auth-face{border-top:1px solid var(--line);}

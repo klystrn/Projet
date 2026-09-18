@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found | Projet</title>
+<meta name="description" content="This page doesn't exist. Here's where to go instead.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/landing.css">
+<link rel="stylesheet" href="assets/notfound.css">
+<meta name="theme-color" content="#14130f">
+<script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body>
+
+<a class="skip-link" href="#top">Skip to main content</a>
+
+<!-- ============================ NAV (shared with about.html/faq.html) ============================ -->
+<header class="nav" id="siteNav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="logo" aria-label="Projet home">
+        <img class="logo-img" src="assets/logo-dark.png" alt="Projet" width="267" height="88">
+      </a>
+      <div class="mode-switch" id="modeSwitch" role="group" aria-label="Switch audience">
+        <span class="mode-indicator" aria-hidden="true"></span>
+        <button class="mode-opt" data-audience="builder" aria-current="true">For students</button>
+        <button class="mode-opt" data-audience="business" aria-current="false">For companies</button>
+      </div>
+    </div>
+    <nav class="links">
+      <a href="challenges.html">Challenges</a>
+      <a href="about.html">About us</a>
+      <a href="faq.html">FAQs</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="signup.html" class="btn btn-primary btn-sm">Sign up</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mode-switch mode-switch--mobile" role="group" aria-label="Switch audience">
+      <span class="mode-indicator" aria-hidden="true"></span>
+      <button class="mode-opt" data-audience="builder" aria-current="true">For students</button>
+      <button class="mode-opt" data-audience="business" aria-current="false">For companies</button>
+    </div>
+    <a class="m-link" href="challenges.html">Challenges</a>
+    <a class="m-link" href="about.html">About us</a>
+    <a class="m-link" href="faq.html">FAQs</a>
+    <div class="mobile-menu-ctas">
+      <a href="signup.html" class="btn btn-primary">Sign up</a>
+    </div>
+  </div>
+</header>
+
+<main id="top" tabindex="-1">
+
+  <!-- ======================= 404 ========================
+       Signal Field background (assets/auth.css's blooms + rings), reused
+       for its gradient/design language only — no brand mark here, asked
+       for explicitly, and no --field-x mode travel either since there's
+       no login/signup duality on this page to swap between. See
+       assets/notfound.css for the full mechanic. "Quiet but useful": one
+       headline, one line, a primary way home, and the handful of links a
+       lost visitor actually wants — not a full redesign of the error. -->
+  <section class="nf-hero">
+    <div class="nf-field" aria-hidden="true">
+      <div class="nf-bloom nf-bloom-warm"></div>
+      <div class="nf-bloom nf-bloom-cool"></div>
+      <div class="nf-bloom nf-bloom-violet"></div>
+      <div class="nf-ring nf-ring-1"></div>
+      <div class="nf-ring nf-ring-2"></div>
+    </div>
+
+    <div class="nf-panel">
+      <span class="nf-code" data-reveal>404 / NOT FOUND</span>
+      <h1 data-reveal style="transition-delay:.06s">This page has no proof of work.</h1>
+      <p data-reveal style="transition-delay:.12s">
+        The link's broken, or the page moved. Here's where you probably meant to go.
+      </p>
+      <div class="nf-actions" data-reveal style="transition-delay:.18s">
+        <a href="index.html" class="btn btn-accent">Back to home</a>
+      </div>
+      <!-- h2, not another span: keeps the page's heading order valid (h1 ->
+           h2 -> the footer's own h3 columns) without adding a visible
+           heading the "quiet" layout doesn't need — sized down to nothing
+           via .sr-only rather than skipped outright. -->
+      <h2 class="sr-only">More pages</h2>
+      <ul class="nf-links" data-reveal style="transition-delay:.24s">
+        <li><a href="challenges.html">Challenges</a></li>
+        <li><a href="about.html">About us</a></li>
+        <li><a href="faq.html">FAQs</a></li>
+        <li><a href="login.html">Log in</a></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer id="footer" data-after-cta>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img class="logo-img" src="assets/logo-white.png" alt="Projet" width="267" height="88">
+        <p>Proof-based hiring. Companies post real challenges, builders ship real work.</p>
+        <!-- FRONT END ONLY: empty data-endpoint makes this say the wiring is
+             pending rather than fake a success. Point it at a real route. -->
+        <form id="footerNotify" data-endpoint="">
+          <label for="footerNotifyEmail" class="footer-notify-label">Get notified about new challenges</label>
+          <div class="footer-notify-row">
+            <input type="email" id="footerNotifyEmail" name="email" autocomplete="email" placeholder="you@email.com" required>
+            <button type="submit" class="btn btn-accent">Notify me</button>
+          </div>
+          <p class="footer-notify-msg" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="footer-col">
+        <h3>Product</h3>
+        <a href="challenges.html">Challenges</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#testimonials">Testimonials</a>
+        <a href="dashboard.html?view=student">Dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h3>Company</h3>
+        <a href="about.html">About us</a>
+        <a href="faq.html">FAQs</a>
+        <span class="footer-pending">Careers</span>
+        <span class="footer-pending">Contact</span>
+      </div>
+      <div class="footer-col">
+        <h3>Account</h3>
+        <a href="login.html">Log in</a>
+        <a href="signup.html">Sign up</a>
+        <span class="footer-pending">Privacy</span>
+        <span class="footer-pending">Terms</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Projet. All rights reserved.</span>
+      <span>Singapore</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/landing.js"></script>
+</body>
+</html>

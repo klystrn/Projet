@@ -1,0 +1,267 @@
+/* ==========================================================================
+   Projet — challenges listing page (challenges.html)
+
+   Loaded AFTER assets/landing.css, which supplies the design tokens and the
+   shared chrome (nav, footer, buttons, .wrap, .eyebrow). This file only adds
+   what the listing itself needs, so the two pages can't drift apart on brand.
+
+   Class prefix is .cl- (not .ch-, which landing.css already owns for the
+   homepage's own Featured Challenges section — .ch-head/.ch-item/.ch-spot
+   etc). Since this page loads landing.css too, reusing .ch- would have let
+   those rules leak onto this page's markup by accident.
+
+   The listings here are SAMPLE BRIEFS, not live data — labelled as such in the
+   markup, same convention the landing page uses for its placeholder logos and
+   testimonials. See CLAUDE.md "Known issues".
+   ========================================================================== */
+
+.cl-head{padding:56px 0 34px;}
+.cl-head h1{font-size:clamp(34px,4.6vw,54px); margin:14px 0 16px;}
+.cl-lede{font-size:17px; line-height:1.6; color:var(--ink-soft); max-width:56ch;}
+
+/* ---------- filter bar ---------- */
+.cl-filters{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:8px 0 30px;
+}
+/* needed for challenges.js to hide this group on an empty listing — an
+   author display declaration outranks the UA's [hidden]{display:none} */
+.cl-filters[hidden]{display:none;}
+.cl-filter{
+  padding:14px 16px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--line); background:transparent;
+  font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
+  letter-spacing:.03em; color:var(--ink-soft);
+  transition:border-color .2s var(--ease), color .2s var(--ease),
+             background .2s var(--ease), transform .2s var(--ease);
+}
+.cl-filter:hover{border-color:var(--ink); color:var(--ink); transform:translateY(-1px);}
+.cl-filter:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+.cl-filter[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:#fff;}
+.cl-count{
+  margin-left:auto; font-family:'JetBrains Mono', monospace;
+  font-size:12px; color:var(--muted);
+}
+@media (max-width:640px){ .cl-count{margin-left:0; width:100%;} }
+
+/* ---------- "nothing open at all" state ----------
+   Deliberately NOT .cl-empty, which is already taken further down this file
+   by the filter's "no challenges in that discipline" note. The two say
+   different things: .cl-empty means the current filter matched nothing,
+   .cl-none means the API returned an empty list, so there is no filter to
+   change and the filter row is hidden with it.
+
+   The explicit [hidden] rule is load-bearing, not tidiness: this block sets
+   its own display, and an author `display` declaration beats the UA's
+   [hidden]{display:none} regardless of specificity — the same trap
+   #dpNoMatch hit on the dashboard. */
+.cl-none{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap;
+  padding:34px; margin-bottom:24px;
+  background:var(--grad-dark); color:#fff; border-radius:var(--radius-lg);
+}
+.cl-none[hidden]{display:none;}
+.cl-none h2{font-size:21px; margin-bottom:7px; font-weight:800;}
+.cl-none p{font-size:14.5px; color:rgba(255,255,255,.72); max-width:46ch; line-height:1.55;}
+
+/* ---------- the grid ---------- */
+.cl-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap:18px; padding-bottom:20px;
+}
+.cl-card{
+  position:relative; display:flex; flex-direction:column; gap:12px;
+  padding:22px 22px 20px;
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:0 14px 40px -28px rgba(20,19,15,.28);
+  transition:transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+/* .cl-card's own display:flex above beats the UA [hidden]{display:none}
+   rule regardless of specificity once the filter sets .hidden on a card
+   (same trap as dashboard.html's .dp-empty — see CLAUDE.md). */
+.cl-card[hidden]{display:none;}
+/* No hover animation on the card itself (asked for explicitly) — only
+   .cl-view-brief, the button inside it, reacts to hover now. */
+.cl-card-top{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+/* Discipline and company are two separate fields now, not one string
+   joined by a middot (asked for explicitly). Deliberately given different
+   treatments rather than two identical chips: the discipline is a
+   category, so it keeps the outlined chip; the company is a name, so it
+   reads as plain type. Two chips side by side would have implied they were
+   the same kind of value. */
+.cl-tag{
+  font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px;
+  background:var(--paper-warm); border:1px solid var(--line); color:var(--muted);
+}
+.cl-co{
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:700;
+  color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* Status pills. Four states rather than a hardcoded OPEN on every card,
+   asked for directly. They escalate within the brand palette instead of
+   reaching for a red/amber/green traffic-light set the site does not own:
+   New is calm ink, Open is the resting accent wash, Filling fast tightens
+   that wash, Closing soon goes solid. So the ladder reads by weight, which
+   also means it survives the audience toggle (every accent below is a mode
+   token, so company mode renders the same ladder in blue). */
+.cl-pill{
+  margin-left:auto;
+  font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.06em; padding:4px 10px; border-radius:999px; white-space:nowrap;
+  background:var(--accent-wash); border:1px solid var(--accent-edge); color:var(--accent-deep);
+}
+.cl-pill[data-status="new"]{background:var(--ink); border-color:var(--ink); color:#fff;}
+.cl-pill[data-status="filling"]{background:var(--accent-wash); border-color:var(--accent); color:var(--accent-deep);}
+.cl-pill[data-status="closing"]{background:var(--accent-deep); border-color:transparent; color:#fff;}
+.cl-card h2{font-size:18.5px; line-height:1.25; letter-spacing:-.01em;}
+.cl-card p{font-size:14.5px; line-height:1.6; color:var(--ink-soft);}
+
+/* the progress fill — how much of the challenge's open window has elapsed,
+   the "timeline progress bar" from the chosen canvas direction. Not tied to
+   a submission cap (there isn't one) — just a read on how close a brief is
+   to closing, at a glance. */
+.cl-fill{height:5px; border-radius:99px; background:var(--line); overflow:hidden;}
+/* A gradient rather than the flat --accent-deep it used to be (asked for).
+   --grad-accent, not --grad-accent-deep: on a 5px bar the brighter sweep is
+   what makes the gradient legible at all, and unlike the buttons there is
+   only ever one of these per card, so it cannot stack into glare. Still a
+   mode token, so it re-tints with the audience toggle. */
+.cl-fill-in{height:100%; background:var(--grad-accent); border-radius:99px;}
+
+.cl-meta{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--muted);
+}
+.cl-meta .cl-deadline{color:var(--accent-deep); font-weight:700;}
+
+/* pinned to the bottom of the card regardless of how much the title/body/
+   meta above it wraps: .cl-grid's items stretch to the row's tallest card
+   (grid's default align-items:stretch), and margin-top:auto on the last
+   flex child in a column absorbs all of that extra height, rather than
+   leaving it as blank space below a button that's floated wherever its own
+   card's shorter content happened to end. Without this the button's
+   position visibly jumped between cards in the same row. */
+/* Was a flat --ink (near-black) fill — read as too heavy/generic next to
+   the brand's own orange identity. Same accent-gradient + glow treatment
+   as .btn-accent elsewhere on the site (re-tints blue in company mode). */
+.cl-view-brief{
+  margin-top:auto; padding:12px; border-radius:999px; border:0; cursor:pointer;
+  background:var(--grad-accent-deep); color:#fff; font-family:'Satoshi',sans-serif;
+  font-size:13.5px; font-weight:700; box-shadow:var(--accent-glow-shadow);
+  transition:filter .2s var(--ease), transform .2s var(--ease);
+}
+.cl-view-brief:hover{filter:saturate(1.12) brightness(1.03); transform:translateY(-2px);}
+.cl-view-brief:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+
+/* Shown by challenges.js when a filter matches nothing */
+.cl-empty{
+  display:none; padding:56px 24px; text-align:center;
+  border:1px dashed var(--line); border-radius:var(--radius);
+  color:var(--ink-soft);
+}
+.cl-empty.is-shown{display:block;}
+.cl-empty b{display:block; font-size:17px; color:var(--ink); margin-bottom:6px;}
+
+/* ---------- closing CTA ---------- */
+/* Bottom margin was 96px, and the footer right after it already carries
+   its own 56px of top padding — combined that read as a large dead gap
+   between the card and the page's actual end. Cut to 32px so the two
+   paddings together land closer to one normal section gap. */
+.cl-cta{
+  margin:16px 0 32px; padding:clamp(34px,5vw,54px) clamp(24px,4vw,48px);
+  /* same --grad-cta spectrum as index's full-bleed .final, so the two read
+     as one family — but this stays a rounded card with page margin around
+     it, which is this page's own established treatment (see CLAUDE.md). */
+  background:var(--grad-cta), var(--ink); color:#fff; border-radius:26px; text-align:center;
+}
+.cl-cta h2{font-size:clamp(24px,3.2vw,36px); margin-bottom:12px;}
+.cl-cta p{font-size:16px; color:rgba(255,255,255,.78); margin-bottom:26px;}
+.cl-cta-btns{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+@media (max-width:640px){
+  .cl-head{padding:38px 0 26px;}
+  .cl-cta-btns{flex-direction:column;}
+  .cl-cta-btns .btn{width:100%;}
+}
+
+/* ---------- brief modal ---------- */
+.cl-modal{
+  border:0; border-radius:var(--radius-xl); padding:0;
+  width:min(560px, calc(100vw - 48px)); max-height:min(720px, calc(100vh - 48px));
+  box-shadow:0 40px 90px -30px rgba(20,19,15,.5);
+}
+.cl-modal::backdrop{background:rgba(20,19,15,.6); backdrop-filter:blur(2px);}
+.cl-modal-inner{position:relative; padding:34px 30px 30px; display:flex; flex-direction:column; gap:14px;}
+.cl-modal-close{
+  position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--line); background:#fff; cursor:pointer;
+  font-size:18px; line-height:1; color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center;
+}
+.cl-modal-close:hover{border-color:var(--ink); color:var(--ink);}
+.cl-modal-close:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ink);}
+/* the close button is absolutely positioned top:16/right:16 over the modal's
+   padded content, so anything sitting in that top-right corner needs room
+   cleared for it — h2 already had this, but .cl-card-top's OPEN pill (the
+   only other thing at the very top of the modal) didn't, so it sat directly
+   underneath the close button. */
+.cl-modal .cl-card-top{padding-right:36px;}
+.cl-modal h2{font-size:23px; line-height:1.25; padding-right:36px;}
+.cl-modal-inner > p{font-size:15px; line-height:1.65; color:var(--ink-soft);}
+.cl-modal-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:2px;}
+.cl-modal-stats div{background:var(--paper-warm); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
+.cl-modal-stats b{display:block; font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700;}
+.cl-modal-stats span{display:block; margin-top:4px; font-size:11px; color:var(--muted);}
+/* ---------- expanded brief detail ----------
+   A real table for the label/value pairs, and a 14-cell activity grid.
+   Both sit between the stats row and the submit button, so the dialog
+   reads top to bottom as: what it is, how far along, the particulars,
+   how busy it has been, then the action. */
+.cl-modal-table{width:100%; border-collapse:collapse; margin-top:4px; font-size:13.5px;}
+.cl-modal-table th, .cl-modal-table td{
+  text-align:left; padding:9px 0; border-bottom:1px solid var(--line); vertical-align:top;
+}
+.cl-modal-table tr:last-child th, .cl-modal-table tr:last-child td{border-bottom:0;}
+.cl-modal-table th{
+  width:38%; font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+}
+.cl-modal-table td{color:var(--ink); font-weight:600;}
+
+.cl-activity{margin-top:6px;}
+.cl-activity-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:9px;
+  font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+}
+.cl-activity-scale{display:flex; align-items:center; gap:3px; font-size:10px; letter-spacing:0; text-transform:none;}
+/* the grid itself: fixed 14 columns so a cell is never wider than it is
+   tall, which is what keeps it reading as a heatmap rather than a bar row */
+.cl-heat{display:grid; grid-template-columns:repeat(14, 1fr); gap:4px;}
+.cl-heat i, .cl-activity-scale i{
+  display:block; aspect-ratio:1; border-radius:3px; background:var(--line);
+}
+.cl-activity-scale i{width:9px; height:9px; aspect-ratio:auto;}
+/* Four steps of the mode accent over the empty-cell colour. Uses colour
+   alone by design and that is fine here: the same numbers are stated in
+   .cl-activity-note underneath, and the grid is aria-hidden, so nothing is
+   only available to someone who can tell the shades apart. */
+.cl-heat i[data-lv="0"], .cl-activity-scale i[data-lv="0"]{background:var(--line);}
+.cl-heat i[data-lv="1"], .cl-activity-scale i[data-lv="1"]{background:var(--accent-wash);}
+.cl-heat i[data-lv="2"], .cl-activity-scale i[data-lv="2"]{background:var(--accent-edge);}
+.cl-heat i[data-lv="3"], .cl-activity-scale i[data-lv="3"]{background:var(--accent);}
+.cl-heat i[data-lv="4"], .cl-activity-scale i[data-lv="4"]{background:var(--accent-deep);}
+.cl-activity-note{margin-top:9px; font-size:12px; color:var(--muted); line-height:1.5;}
+
+.cl-modal-submit{width:100%; text-align:center; margin-top:4px;}
+@media (max-width:640px){
+  .cl-modal-inner{padding:30px 22px 24px;}
+}
+
+/* No-JS: the filter bar and "View brief" buttons can't work without JS, so
+   don't present controls that do nothing — every card already shows its
+   fill bar, counts and short description without either. */
+.no-js .cl-filters{display:none;}
+.no-js .cl-view-brief{display:none;}

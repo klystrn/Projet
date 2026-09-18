@@ -1,0 +1,302 @@
+{
+  "role": "company",
+  "profile": {
+    "initials": "NW",
+    "name": "Nordwave",
+    "handle": "@nordwave",
+    "bio": "Series A team in Singapore. We post briefs straight off our own backlog.",
+    "org": "Nordwave \u00b7 Product & Platform",
+    "loc": "Singapore",
+    "joined": "Joined January 2026",
+    "tagsLabel": "Hiring for",
+    "tags": [
+      "Product",
+      "Front-end"
+    ],
+    "stats": [
+      {
+        "label": "Open briefs",
+        "value": "3"
+      },
+      {
+        "label": "Submissions",
+        "value": "96"
+      },
+      {
+        "label": "Hires made",
+        "value": "2"
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "name": "Tan Wei Jie",
+      "meta": "NUS \u00b7 Year 3 Computer Science",
+      "skills": [
+        "React",
+        "TypeScript"
+      ],
+      "score": 94,
+      "fit": 92,
+      "rank": 1
+    },
+    {
+      "name": "Nur Aisyah Rahman",
+      "meta": "NTU \u00b7 Year 4 Information Systems",
+      "skills": [
+        "A11y",
+        "React"
+      ],
+      "score": 91,
+      "fit": 88,
+      "rank": 2
+    },
+    {
+      "name": "Rajesh Kumar",
+      "meta": "SMU \u00b7 Year 2 Software Engineering",
+      "skills": [
+        "Node",
+        "Postgres"
+      ],
+      "score": 88,
+      "fit": 79,
+      "rank": 3
+    },
+    {
+      "name": "Chloe Lim",
+      "meta": "SUTD \u00b7 Year 3 Design & AI",
+      "skills": [
+        "Figma",
+        "Front-end"
+      ],
+      "score": 85,
+      "fit": 83,
+      "rank": 4
+    },
+    {
+      "name": "Muhammad Farhan",
+      "meta": "NUS \u00b7 Year 4 Business Analytics",
+      "skills": [
+        "Python",
+        "SQL"
+      ],
+      "score": 82,
+      "fit": 76,
+      "rank": 5
+    }
+  ],
+  "activity": [
+    {
+      "kind": "win",
+      "title": "Hired Tan Wei Jie",
+      "sub": "Rebuild the pricing page conversion flow",
+      "date": "12 Sep 2026"
+    },
+    {
+      "kind": "score",
+      "title": "8 submissions cleared your bar",
+      "sub": "Ship a data pipeline for churn signals",
+      "date": "9 Sep 2026"
+    },
+    {
+      "kind": null,
+      "title": "Brief opened",
+      "sub": "Model retention cohorts from raw events",
+      "date": "5 Sep 2026"
+    },
+    {
+      "kind": "score",
+      "title": "Shortlist ready",
+      "sub": "Rebuild the pricing page conversion flow",
+      "date": "1 Sep 2026"
+    },
+    {
+      "kind": null,
+      "title": "Brief closed",
+      "sub": "Redesign the onboarding checklist",
+      "date": "28 Aug 2026"
+    },
+    {
+      "kind": "win",
+      "title": "Hired Priya Nair",
+      "sub": "Cut drop-off in the mobile signup flow",
+      "date": "20 Aug 2026"
+    }
+  ],
+  "company": {
+    "metrics": [
+      {
+        "value": "3",
+        "label": "Open briefs",
+        "delta": "+1",
+        "direction": "up"
+      },
+      {
+        "value": "96",
+        "label": "Submissions",
+        "delta": "+18",
+        "direction": "up"
+      },
+      {
+        "value": "31",
+        "label": "Above bar",
+        "delta": "+6",
+        "direction": "up"
+      },
+      {
+        "value": "78",
+        "label": "Avg. score",
+        "delta": "+3",
+        "direction": "up"
+      },
+      {
+        "value": "8",
+        "label": "Interviews",
+        "delta": "+2",
+        "direction": "up"
+      },
+      {
+        "value": "2",
+        "label": "Hires",
+        "delta": "0",
+        "direction": "flat"
+      }
+    ],
+    "funnel": [
+      {
+        "label": "Submissions",
+        "count": 96,
+        "pctOfTop": 100
+      },
+      {
+        "label": "Above bar",
+        "count": 31,
+        "pctOfTop": 32
+      },
+      {
+        "label": "Interviewed",
+        "count": 8,
+        "pctOfTop": 8
+      },
+      {
+        "label": "Hired",
+        "count": 2,
+        "pctOfTop": 2
+      }
+    ],
+    "monthly": [
+      {
+        "month": "Oct",
+        "count": 2,
+        "pctOfPeak": 12
+      },
+      {
+        "month": "Nov",
+        "count": 4,
+        "pctOfPeak": 24
+      },
+      {
+        "month": "Dec",
+        "count": 3,
+        "pctOfPeak": 18
+      },
+      {
+        "month": "Jan",
+        "count": 5,
+        "pctOfPeak": 29
+      },
+      {
+        "month": "Feb",
+        "count": 6,
+        "pctOfPeak": 35
+      },
+      {
+        "month": "Mar",
+        "count": 8,
+        "pctOfPeak": 47
+      },
+      {
+        "month": "Apr",
+        "count": 7,
+        "pctOfPeak": 41
+      },
+      {
+        "month": "May",
+        "count": 9,
+        "pctOfPeak": 53
+      },
+      {
+        "month": "Jun",
+        "count": 11,
+        "pctOfPeak": 65
+      },
+      {
+        "month": "Jul",
+        "count": 12,
+        "pctOfPeak": 71
+      },
+      {
+        "month": "Aug",
+        "count": 12,
+        "pctOfPeak": 71
+      },
+      {
+        "month": "Sep",
+        "count": 17,
+        "pctOfPeak": 100
+      }
+    ],
+    "briefs": [
+      {
+        "title": "Rebuild the pricing page conversion flow",
+        "discipline": "Product",
+        "status": "open",
+        "statusLabel": "Open",
+        "submitted": 28,
+        "aboveBar": 9,
+        "topScore": 94,
+        "closesIn": "6 days"
+      },
+      {
+        "title": "Ship a data pipeline for churn signals",
+        "discipline": "Engineering",
+        "status": "open",
+        "statusLabel": "Filling fast",
+        "submitted": 22,
+        "aboveBar": 7,
+        "topScore": 91,
+        "closesIn": "4 days"
+      },
+      {
+        "title": "Model retention cohorts from raw events",
+        "discipline": "Data",
+        "status": "open",
+        "statusLabel": "Closing soon",
+        "submitted": 19,
+        "aboveBar": 6,
+        "topScore": 89,
+        "closesIn": "2 days"
+      },
+      {
+        "title": "Redesign the onboarding checklist",
+        "discipline": "Design",
+        "status": "closed",
+        "statusLabel": "Closed",
+        "submitted": 15,
+        "aboveBar": 5,
+        "topScore": 87,
+        "closesIn": "\u2014"
+      },
+      {
+        "title": "Cut drop-off in the mobile signup flow",
+        "discipline": "Product",
+        "status": "closed",
+        "statusLabel": "Closed",
+        "submitted": 12,
+        "aboveBar": 4,
+        "topScore": 85,
+        "closesIn": "\u2014"
+      }
+    ]
+  }
+}

@@ -152,14 +152,7 @@
   }
 
   document.querySelectorAll('[data-auth-form]').forEach(function (form) {
-    // Scoped to the form's own container first. The split-spectrum auth page
-    // carries BOTH forms at once (login and signup in one document), so a
-    // bare getElementById('authStatus') would route every message from both
-    // forms into whichever status banner happened to be first in the DOM —
-    // the signup form reporting its errors inside the login panel. The
-    // global lookup stays as the fallback for any single-form page.
-    var status = form.parentElement.querySelector('.auth-status') ||
-                 document.getElementById('authStatus');
+    var status = document.getElementById('authStatus');
     var submit = form.querySelector('[type="submit"]');
     var inputs = Array.prototype.slice.call(form.querySelectorAll('input:not([type="radio"])'));
 
@@ -179,14 +172,11 @@
       });
     });
 
-    // carry a role passed on the URL (e.g. signup.html?role=business) into the
-    // signup role picker. Used to read a localStorage['projet:mode'] fallback
-    // left over from the old split-hero chooser; that key has had no writer
-    // anywhere in the codebase since the chooser was archived, so a stale
-    // value from an old visit was silently re-checking a radio on every
-    // load. Removed outright rather than fixed, since nothing legitimate
-    // writes it any more.
-    var role = new URLSearchParams(location.search).get('role');
+    // carry the side chosen on the split-hero into the signup role picker
+    var stored = null;
+    try { stored = localStorage.getItem('projet:mode'); } catch (e) {}
+    var param = new URLSearchParams(location.search).get('role');
+    var role = param || stored;
     if (role) {
       var pick = form.querySelector('input[name="role"][value="' + role + '"]');
       if (pick) pick.checked = true;
@@ -231,38 +221,12 @@
           });
         })
         .then(function (data) {
-          // The dashboard is home for a signed-in visitor, so a real
-          // signup/login success marks the same seam landing.js reads to
-          // hide the landing page's own closing CTA and to bounce a
-          // returning member straight past the pitch page.
-          try { localStorage.setItem('projet:loggedIn', '1'); } catch (e) { /* private mode */ }
-          // business.html was archived with the rest of the dual-audience
-          // pages; this fallback had been pointing at a 404 ever since.
-          window.location.href = data.redirect || 'dashboard.html';
+          window.location.href = data.redirect || 'business.html';
         })
         .catch(function (err) {
           submit.removeAttribute('aria-busy');
           say('err', err.message || 'Something went wrong. Please try again.');
         });
-    });
-  });
-
-  /* ------------------------------------------------------------------
-     GOOGLE SIGN-IN — front end only, same honesty rule as the forms above.
-     A real button, not a real integration: no OAuth client, no redirect,
-     no popup. Clicking it reports through the SAME .auth-status region the
-     email form above it uses, with the same "not connected yet" framing,
-     rather than silently doing nothing. This is the entire seam — replace
-     this one handler with the real flow (redirect to the backend's OAuth
-     endpoint, or a Google Identity Services popup/One Tap init) and every
-     button on the page starts working with no markup changes.
-     ------------------------------------------------------------------ */
-  document.querySelectorAll('[data-oauth="google"]').forEach(function (btn) {
-    var status = btn.parentElement.querySelector('.auth-status');
-    btn.addEventListener('click', function () {
-      if (!status) return;
-      status.className = 'auth-status show pending';
-      status.textContent = 'Google sign-in isn’t connected yet. This button is the finished front end, waiting on the OAuth flow.';
     });
   });
 

@@ -1,0 +1,113 @@
+{
+  "role": "company",
+  "profile": {
+    "initials": "LW",
+    "name": "Lumen Works",
+    "handle": "@lumenworks",
+    "bio": "Just posted our first brief.",
+    "org": "Lumen Works",
+    "loc": "Singapore",
+    "joined": "Joined September 2026",
+    "tagsLabel": "Hiring for",
+    "tags": [
+      "Engineering"
+    ],
+    "stats": [
+      {
+        "label": "Open briefs",
+        "value": "1"
+      },
+      {
+        "label": "Submissions",
+        "value": "0"
+      },
+      {
+        "label": "Hires made",
+        "value": "0"
+      }
+    ]
+  },
+  "candidates": [],
+  "activity": [],
+  "company": {
+    "metrics": [
+      {
+        "value": "1",
+        "label": "Open briefs",
+        "delta": "+1",
+        "direction": "up"
+      },
+      {
+        "value": "0",
+        "label": "Submissions",
+        "delta": "0",
+        "direction": "flat"
+      },
+      {
+        "value": "0",
+        "label": "Above bar",
+        "delta": "0",
+        "direction": "flat"
+      },
+      {
+        "value": "\u2014",
+        "label": "Avg. score",
+        "delta": "0",
+        "direction": "flat"
+      },
+      {
+        "value": "0",
+        "label": "Interviews",
+        "delta": "0",
+        "direction": "flat"
+      },
+      {
+        "value": "0",
+        "label": "Hires",
+        "delta": "0",
+        "direction": "flat"
+      }
+    ],
+    "funnel": [
+      {
+        "label": "Submissions",
+        "count": 0,
+        "pctOfTop": 0
+      },
+      {
+        "label": "Above bar",
+        "count": 0,
+        "pctOfTop": 0
+      },
+      {
+        "label": "Interviewed",
+        "count": 0,
+        "pctOfTop": 0
+      },
+      {
+        "label": "Hired",
+        "count": 0,
+        "pctOfTop": 0
+      }
+    ],
+    "monthly": [
+      {
+        "month": "Sep",
+        "count": 0,
+        "pctOfPeak": 0
+      }
+    ],
+    "briefs": [
+      {
+        "title": "Instrument the checkout funnel",
+        "discipline": "Engineering",
+        "status": "open",
+        "statusLabel": "New",
+        "submitted": 0,
+        "aboveBar": 0,
+        "topScore": 0,
+        "closesIn": "9 days"
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Only the landing page is listed. challenges.html, login.html and signup.html
+  all carry <meta name="robots" content="noindex"> (the challenge listing is
+  still sample data, the auth pages are front-end only), and listing a noindex
+  URL in a sitemap sends search engines a contradictory signal.
+
+  Add challenges.html here at the same time its noindex is removed, which is
+  when the API starts serving real briefs.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://myprojet.co/</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

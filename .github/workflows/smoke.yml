@@ -1,0 +1,37 @@
+# Runs the committed smoke test on every push and PR.
+#
+# There is no build step and no npm install — test/smoke.mjs is dependency-free
+# and drives the Chrome already present on the runner image. Node is pinned to
+# 22 because the script talks to Chrome over the global WebSocket, which is only
+# stable from 22 onward.
+name: smoke
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Locate Chrome
+        run: |
+          BIN="$(command -v google-chrome || command -v chromium-browser || command -v chromium || true)"
+          if [ -z "$BIN" ]; then
+            echo "No Chrome on the runner image; installing chromium-browser."
+            sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
+            BIN="$(command -v chromium-browser || command -v chromium)"
+          fi
+          echo "Using $BIN"
+          echo "CHROME_PATH=$BIN" >> "$GITHUB_ENV"
+
+      - name: Smoke test
+        run: node test/smoke.mjs

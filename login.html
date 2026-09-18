@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,64 +10,174 @@
 <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/auth.css">
 <meta name="theme-color" content="#14130f">
+<script>document.documentElement.classList.remove("no-js");</script>
 </head>
 <body>
 
-<div class="auth-page">
+<!--
+  THE FULL-BLEED AUTH STAGE. login.html and signup.html carry identical
+  markup and differ ONLY in the data-mode below — switching modes is a
+  transition inside one page, not a navigation, so both forms have to be
+  present in both files. If you edit one of these two pages, edit the
+  other to match.
 
-  <aside class="auth-aside">
-    <img class="texture" src="assets/fluid.webp" alt="">
-    <a href="index.html" class="logo">
-      <img class="logo-img" src="assets/logo-white.png" alt="Projet" width="267" height="88">
-    </a>
-    <p class="auth-quote">Where businesses with problems meet builders with potential.</p>
-    <div class="auth-stats">
-      <span>Post a challenge</span>
-      <span>Compete on real work</span>
-      <span>Get hired</span>
+  .auth-panel is a full-height column exactly half the stage's width
+  (same proportions as v2's own two-column grid) that slides to the
+  opposite half on a mode switch; .auth-field behind it is the CSS-drawn
+  backdrop, parallaxing across in the same direction.
+-->
+<div class="auth-stage" id="authStage" data-mode="login">
+
+  <div class="auth-field" aria-hidden="true">
+    <div class="af-bloom af-bloom-warm"></div>
+    <div class="af-bloom af-bloom-cool"></div>
+    <div class="af-bloom af-bloom-violet"></div>
+    <div class="af-ring af-ring-1"></div>
+    <div class="af-ring af-ring-2"></div>
+    <div class="af-mark">
+      <div class="af-mark-in">
+        <img src="assets/apple-touch-icon.png" alt="" width="180" height="180">
+      </div>
     </div>
-  </aside>
+  </div>
+  <div class="auth-scrim" aria-hidden="true"></div>
 
-  <main class="auth-main">
-    <div class="auth-card">
-      <h1>Welcome back</h1>
-      <p class="auth-lede">Pick up where your challenges left off.</p>
+  <a href="index.html" class="auth-logo" aria-label="Projet home">
+    <img class="auth-logo-dark" src="assets/logo-dark.png" alt="" width="267" height="88">
+    <img class="auth-logo-white" src="assets/logo-white.png" alt="" width="267" height="88">
+  </a>
 
-      <div class="auth-status" id="authStatus" role="status" aria-live="polite"></div>
+  <div class="auth-panel" id="authPanel">
 
-      <!--
-        FRONT-END ONLY. No credentials are sent anywhere yet.
-        Backend hook: site.js reads data-endpoint and POSTs JSON
-        {email, password} to it. Point it at the real route
-        (e.g. /api/auth/login) and the form starts working as-is.
-      -->
-      <form id="loginForm" data-auth-form data-endpoint="" novalidate>
+    <div class="auth-face auth-face--login" aria-label="Log in">
+      <div class="auth-card">
+        <span class="auth-eyebrow">Log in</span>
+        <h1>Welcome back</h1>
+        <p class="auth-lede">Pick up where your challenges left off.</p>
 
-        <div class="field">
-          <label for="li-email">Email</label>
-          <input id="li-email" name="email" type="email" autocomplete="email" required>
-          <span class="err">Please enter a valid email address.</span>
-        </div>
+        <div class="auth-status" role="status" aria-live="polite"></div>
 
-        <div class="field">
-          <label for="li-password">Password</label>
-          <input id="li-password" name="password" type="password" autocomplete="current-password" required>
-          <span class="err">Please enter your password.</span>
-        </div>
+        <!--
+          FRONT-END ONLY, same as the form below: no OAuth flow is wired up.
+          site.js's [data-oauth="google"] handler shows the shared
+          .auth-status message above on click, using the same region and
+          the same honesty convention the email form uses on an empty
+          data-endpoint. Andrei: replace that one handler with the real
+          redirect/popup flow; the button and its markup need no changes.
+        -->
+        <button type="button" class="auth-google" data-oauth="google">
+          <svg class="auth-google-icon" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
 
-        <button type="submit" class="btn btn-primary auth-submit">Log in</button>
-      </form>
+        <!--
+          FRONT-END ONLY. No credentials are sent anywhere yet.
+          Backend hook: site.js reads data-endpoint and POSTs JSON
+          {email, password} to it. Point it at the real route
+          (e.g. /api/auth/login) and the form starts working as-is.
+        -->
+        <form id="loginForm" data-auth-form data-endpoint="" novalidate>
 
-      <p class="auth-alt">New to Projet? <a href="signup.html">Create an account</a></p>
+          <div class="field">
+            <label for="li-email">Email</label>
+            <input id="li-email" name="email" type="email" autocomplete="email" required>
+            <span class="err">Please enter a valid email address.</span>
+          </div>
+
+          <div class="field">
+            <label for="li-password">Password</label>
+            <input id="li-password" name="password" type="password" autocomplete="current-password" required>
+            <span class="err">Please enter your password.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit">Log in</button>
+        </form>
+
+        <p class="auth-alt">New to Projet?
+          <button type="button" data-goto-mode="signup">Create an account</button>
+        </p>
+      </div>
     </div>
-  </main>
+
+    <div class="auth-face auth-face--signup" aria-label="Sign up">
+      <div class="auth-card">
+        <span class="auth-eyebrow">Sign up</span>
+        <h1>Create your account</h1>
+        <p class="auth-lede">One account, whichever side of the challenge you're on.</p>
+
+        <!-- Populated by site.js from the API response (or a network failure). -->
+        <div class="auth-status" role="status" aria-live="polite"></div>
+
+        <!-- FRONT-END ONLY, same as the form below — see the login face's
+             own comment above for the full explanation of this handler. -->
+        <button type="button" class="auth-google" data-oauth="google">
+          <svg class="auth-google-icon" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
+
+        <!--
+          FRONT-END ONLY. No credentials are sent anywhere yet.
+          Backend hook: site.js reads data-endpoint and POSTs JSON
+          {role, name, email, password} to it. Point it at the real route
+          (e.g. /api/auth/signup) and the form starts working as-is.
+        -->
+        <form id="signupForm" data-auth-form data-endpoint="" novalidate>
+
+          <fieldset class="role-toggle">
+            <legend>I am</legend>
+            <label class="role-opt">
+              <input type="radio" name="role" value="business">
+              <span>A business<small>I want to hire</small></span>
+            </label>
+            <label class="role-opt">
+              <input type="radio" name="role" value="builder">
+              <span>A builder<small>I want to build</small></span>
+            </label>
+          </fieldset>
+
+          <div class="field">
+            <label for="su-name">Full name</label>
+            <input id="su-name" name="name" type="text" autocomplete="name" required>
+            <span class="err">Please enter your name.</span>
+          </div>
+
+          <div class="field">
+            <label for="su-email">Email</label>
+            <input id="su-email" name="email" type="email" autocomplete="email" required>
+            <span class="err">Please enter a valid email address.</span>
+          </div>
+
+          <div class="field">
+            <label for="su-password">Password</label>
+            <input id="su-password" name="password" type="password" autocomplete="new-password" required minlength="8">
+            <span class="err">Use at least 8 characters.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit">Create account</button>
+        </form>
+
+        <p class="auth-alt">Already have an account?
+          <button type="button" data-goto-mode="login">Log in</button>
+        </p>
+        <p class="auth-fineprint">By creating an account you agree to Projet's terms and privacy policy.</p>
+      </div>
+    </div>
+
+  </div>
 
 </div>
 
 <script src="assets/site.js"></script>
+<script src="assets/auth.js"></script>
 </body>
 </html>

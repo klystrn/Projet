@@ -1,0 +1,45 @@
+{
+  "role": "student",
+  "profile": {
+    "initials": "AB",
+    "name": "Amir Bakar",
+    "handle": "@amirbakar",
+    "bio": "Just signed up.",
+    "org": "NUS \u00b7 Year 1 Computer Science",
+    "loc": "Singapore",
+    "joined": "Joined September 2026",
+    "tagsLabel": "Skills",
+    "tags": [],
+    "stats": [
+      {
+        "label": "Challenges done",
+        "value": "0"
+      },
+      {
+        "label": "Avg. score",
+        "value": "\u2014"
+      },
+      {
+        "label": "Best rank",
+        "value": "\u2014"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "value": "\u2014",
+      "label": "Latest score"
+    },
+    {
+      "value": "\u2014",
+      "label": "Latest fit"
+    },
+    {
+      "value": "\u2014",
+      "label": "Latest rank"
+    }
+  ],
+  "entries": [],
+  "activity": [],
+  "heatTotal": 0
+}
