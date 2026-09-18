@@ -618,7 +618,41 @@ already showing the edit.
 
 ---
 
-## 3b. Fixtures and the smoke test
+## 3.1. Sending data this front end won't choke on
+
+From the second, deeper bugs pass (Sep 2026), which drove malformed,
+empty, hostile and oversized payloads through every render function.
+Nothing below throws any more, but two of these produce *wrong* output
+rather than an error, so they are worth knowing before you build the API:
+
+- **Send numbers as numbers.** `"submitted": "40"` (a string) used to be
+  concatenated rather than added — two briefs summed to `"04030"`, which
+  then drove the brief-table note, the discipline percentages and the
+  heatmap total. Every figure is coerced with a `num()` helper now, so a
+  string won't break it, but numeric JSON types are still what to send.
+- **Zero is a real value and is honoured.** A company with briefs posted
+  and no submissions yet correctly renders 0 everywhere, including the
+  heatmap heading. (It used to fall back to the sample 96 there, because
+  the guard was a truthiness test.)
+- **Disciplines outside Product / Engineering / Data / Design** all fall
+  into one shared "Other" segment, labelled "Other". Two unknown
+  disciplines will be summed together, so if Marketing and Legal both
+  matter as separate lines, add them to `DISCIPLINE_SEGS` in
+  `assets/dashboard.js` (and give each a colour in `dashboard.css`).
+- **Array lengths are not clamped.** The six-metric row, the 12-month
+  chart and the funnel render exactly what you send; sending 14 metrics
+  lays out 14. Stick to the documented counts.
+- **Every string is escaped** (`textContent` throughout, verified with
+  script payloads in every field), so markup in a name or title renders
+  as visible text rather than executing. It will still look wrong, so
+  sanitise server-side.
+- **Long unbroken strings** (a pasted URL in a name field, a 60-character
+  skill tag) now wrap instead of pushing the page into horizontal scroll,
+  but they are ugly. Validate lengths on input.
+
+---
+
+## 3.2. Fixtures and the smoke test
 
 Two things in the repo exist to make wiring the API a shorter conversation
 than reading §2.
@@ -668,40 +702,6 @@ asserts the rendered result.
 and a short fixture was caught as seven failures with exit code 1 — worth
 re-checking if you ever change the harness, since a smoke test that cannot
 fail is worse than none.
-
----
-
-## 3a. Sending data this front end won't choke on
-
-From the second, deeper bugs pass (Sep 2026), which drove malformed,
-empty, hostile and oversized payloads through every render function.
-Nothing below throws any more, but two of these produce *wrong* output
-rather than an error, so they are worth knowing before you build the API:
-
-- **Send numbers as numbers.** `"submitted": "40"` (a string) used to be
-  concatenated rather than added — two briefs summed to `"04030"`, which
-  then drove the brief-table note, the discipline percentages and the
-  heatmap total. Every figure is coerced with a `num()` helper now, so a
-  string won't break it, but numeric JSON types are still what to send.
-- **Zero is a real value and is honoured.** A company with briefs posted
-  and no submissions yet correctly renders 0 everywhere, including the
-  heatmap heading. (It used to fall back to the sample 96 there, because
-  the guard was a truthiness test.)
-- **Disciplines outside Product / Engineering / Data / Design** all fall
-  into one shared "Other" segment, labelled "Other". Two unknown
-  disciplines will be summed together, so if Marketing and Legal both
-  matter as separate lines, add them to `DISCIPLINE_SEGS` in
-  `assets/dashboard.js` (and give each a colour in `dashboard.css`).
-- **Array lengths are not clamped.** The six-metric row, the 12-month
-  chart and the funnel render exactly what you send; sending 14 metrics
-  lays out 14. Stick to the documented counts.
-- **Every string is escaped** (`textContent` throughout, verified with
-  script payloads in every field), so markup in a name or title renders
-  as visible text rather than executing. It will still look wrong, so
-  sanitise server-side.
-- **Long unbroken strings** (a pasted URL in a name field, a 60-character
-  skill tag) now wrap instead of pushing the page into horizontal scroll,
-  but they are ugly. Validate lengths on input.
 
 ---
 
