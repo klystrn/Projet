@@ -355,6 +355,20 @@
      so the logo always sits over it, not the image — always dark */
   .auth-logo-dark{opacity:1 !important;}
   .auth-logo-white{opacity:0 !important;}
+  /* .auth-face centers its content vertically, which is fine on desktop
+     where the card is always shorter than the viewport, but this form
+     (Google button + role toggle + 3 fields + submit + fineprint) is
+     regularly taller than a real phone viewport — confirmed by
+     screenshotting at 390x844, not just reasoning about it. Centering then
+     pushes the card's own top edge up underneath .auth-logo, which is
+     separately position:absolute at a fixed top:28px — a real, visible
+     overlap (the wordmark landing directly behind "SIGN UP"/"Create your
+     account"), not a hypothetical one. Top-aligning instead, with enough
+     padding-top to clear the logo's own bottom edge (28px + 24px tall) plus
+     a real gap, fixes it regardless of how tall the form gets or how short
+     the viewport is — the existing overflow-y:auto on .auth-face already
+     handles the resulting scroll. */
+  .auth-face{align-items:flex-start; padding-top:92px;}
 }
 
 @media (prefers-reduced-motion:reduce){
