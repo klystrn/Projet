@@ -1304,17 +1304,28 @@ footer[data-after-cta]{background:var(--ink);}
   .hero{min-height:0; padding-top:48px; padding-bottom:56px;}
 }
 @media (max-width:900px){
-  .nav .links, .nav-cta, .nav-left .mode-switch{display:none;}
+  .nav .links, .nav-cta{display:none;}
   .nav-toggle{display:flex;}
-  .nav-inner{justify-content:space-between; gap:14px;}
+  .nav-inner{justify-content:space-between; gap:10px;}
+  /* The audience toggle used to live only inside the hamburger menu on
+     mobile — asked to move it into the bar itself instead, next to the
+     logo, so it's reachable without opening the menu at all. It's the
+     same #modeSwitch element that already exists for desktop (no markup
+     duplicated, no second listener needed — landing.js already wires
+     every .mode-switch on the page generically), just shown here instead
+     of hidden, and shrunk to actually fit: at full desktop size it
+     doesn't leave enough room next to the logo and the 44px hamburger
+     button on a 360-428px-wide phone. The old duplicate copy that used
+     to live inside .mobile-menu for this exact reason is deleted from
+     every page's markup — this one now covers both. */
+  .nav-left{gap:10px;}
+  .nav-left .mode-switch{padding:2px; gap:1px;}
+  .nav-left .mode-opt{padding:9px 10px; font-size:10px;}
   .mobile-menu{
     display:none; flex-direction:column; gap:2px;
     padding:14px 32px 22px; border-top:1px solid var(--line); background:#fff;
   }
   .mobile-menu.open{display:flex;}
-  .mobile-menu .mode-switch{display:flex; width:100%; margin-bottom:10px;}
-  .mobile-menu .mode-opt{flex:1; padding:15px 10px;}
-  .mobile-menu .mode-indicator{width:calc(50% - 3px);}
   .m-link{padding:14px 0; font-size:16px; font-weight:600; border-bottom:1px solid var(--line);}
   .mobile-menu .nav-dash{margin:12px 0 4px; justify-content:center; padding:14px;}
   .mobile-menu-ctas{display:flex; gap:10px; margin-top:16px;}
