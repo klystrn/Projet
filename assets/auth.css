@@ -363,15 +363,15 @@
      scrolled.
 
      A first attempt fixed only the unscrolled resting position with
-     padding-top on .auth-face's CONTENT (top-aligned instead of centred,
-     enough padding to clear the logo). That's not enough: the padding
-     scrolls away with the rest of the content the instant the reader
-     scrolls the form at all, so anything that scrolls up to where that
-     padding used to be — confirmed live, "One account, whichever side of
-     the challenge you're on." sliding up under the wordmark after the
-     page had scrolled a little — passes back under the logo's fixed
-     on-screen position. Padding inside a scrolling box can never protect
-     a region outside that box's own edges.
+     padding-top on .auth-face's CONTENT (also top-aligned at the time,
+     see below for why that part didn't need to stick). That's not
+     enough: the padding scrolls away with the rest of the content the
+     instant the reader scrolls the form at all, so anything that scrolls
+     up to where that padding used to be — confirmed live, "One account,
+     whichever side of the challenge you're on." sliding up under the
+     wordmark after the page had scrolled a little — passes back under
+     the logo's fixed on-screen position. Padding inside a scrolling box
+     can never protect a region outside that box's own edges.
 
      The actual fix: shrink .auth-face's own box so its scrollable
      viewport starts BELOW the logo's bottom edge (28px + 24px tall + a
@@ -392,14 +392,25 @@
      padding-bottom:24px (was the base rule's 48px) for the same reason —
      asked for directly: this form has to fit one mobile screen without
      scrolling, so every px of pure whitespace here is one the fields
-     don't get. */
+     don't get.
+
+     align-items went to flex-start alongside that first attempt and
+     then, wrongly, stayed there through the real fix above — leaving all
+     the leftover space (once the form actually fit) dumped at the
+     bottom, cramped at the top. That was never load-bearing: the CLIP
+     boundary is `top` on the box itself, which holds regardless of how
+     content is distributed inside it. base's own align-items:center is
+     safe again once the box can't extend up into the logo's area in the
+     first place — reverted to it below so the leftover space (there
+     usually is some, now that the form fits) splits evenly instead of
+     collecting at one end. */
   /* logo nudged closer to the corner on mobile too (top:28->16px) — every
      px of its own clearance is a px the form doesn't get, and the brand
      mark reads fine tighter to the edge at this width. Bottom edge is now
      16+24=40px, so top:48px still clears it with the same 8px buffer as
      before. */
   .auth-logo{top:16px;}
-  .auth-face{top:48px; align-items:flex-start; padding:12px 40px 20px;}
+  .auth-face{top:48px; padding:12px 40px 20px;}
   /* Tightened alongside .auth-face, same ask, same reasoning: this is
      shared with .auth-card's every other spacing rule below, so it
      applies identically to both login's and signup's forms — the two
