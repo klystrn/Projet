@@ -758,7 +758,16 @@ html[data-audience="business"] .mode-indicator{transform:translateX(100%);}
    artwork / cover-then-zoom math as the old full-width version (see
    CLAUDE.md "Known issues #3"), just measured against the column's own box
    (100%) instead of 100vw. */
-.flow-right{position:relative; overflow:hidden; background:var(--ink);}
+/* Asked for directly: brighten the section's background — 3.5% here for
+   desktop/tablet, a further-boosted 10% on mobile (see the mobile pin
+   block below). filter:brightness() on the container rather than tuning
+   .flow-fluid's own opacity or .flow-scrim's alpha stops: it brightens
+   the actual COMPOSITED result (artwork + scrim together, which is what
+   a viewer perceives as "the background"), applies identically in both
+   audience modes without needing to touch the two different opacity
+   values sitting behind them (.5 builder / .78 business), and stays
+   correct automatically if either of those is retuned later. */
+.flow-right{position:relative; overflow:hidden; background:var(--ink); filter:brightness(1.035);}
 /* Zoom retuned against a 2048px-wide source (was 1080px — the artwork was
    being upscaled 2.06x at 1440x900, which is what made it look pixelated).
    At --fluid-zoom:1.2 the painted width is ~1908px at that viewport, so
@@ -1280,7 +1289,11 @@ footer[data-after-cta]{background:var(--ink);}
   .flow-rail-item::before{display:none;}
   .flow-rail-label{display:none;}
   .flow-rail-dot{width:28px; height:28px; font-size:9.5px;}
-  .flow-right{padding:0;}
+  /* 10% here, not the base rule's 3.5% — asked for separately, and mobile's
+     panel is the smaller of the two (a stacked row under the title band
+     instead of the full-height desktop column), so it reads dimmer at a
+     glance and gets the bigger boost. */
+  .flow-right{padding:0; filter:brightness(1.10);}
   .flow-steps{padding:0 22px;}
   .flow-step{left:22px; right:22px; gap:10px;}
   /* the number lives in the rail dots directly above now */
