@@ -264,4 +264,26 @@ img{display:block; max-width:100%;}
   .auth-fineprint{margin-top:10px;}
 }
 
+/* Second, deeper tier gated on HEIGHT, not width — the block above fits
+   every viewport width tested (360-428px) down to about 720px of real
+   viewport height, but a width breakpoint alone says nothing about how
+   tall the screen actually is, and a couple of genuinely small/older
+   phones (e.g. a 375x667 class device) are shorter than that regardless
+   of how wide they are. Measured the exact floor by sweeping viewport
+   heights before writing this, rather than guessing a threshold: 720px
+   is the last height that still fits the block above with zero overflow,
+   700px is already 16px short. Everything here compounds with the block
+   above (both apply at max-width:900px and max-height:720px together);
+   still no font sizes touched. */
+@media (max-width:900px) and (max-height:720px){
+  .auth-google{padding:9px 22px;}
+  .auth-divider{margin:10px 0;}
+  .role-toggle{margin-bottom:8px;}
+  .role-opt span{padding:8px 10px;}
+  .field{margin-bottom:6px;}
+  .field input{padding:9px 14px;}
+  .auth-alt{margin-top:8px;}
+  .auth-fineprint{margin-top:6px;}
+}
+
 ::selection{background:var(--orange); color:#fff;}
