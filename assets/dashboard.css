@@ -177,7 +177,28 @@ body.dash-page{background:var(--paper-warm);}
 @media (max-width:760px){
   .dp-metrics{grid-template-columns:1fr;}
   .dp-card{flex-wrap:wrap;}
-  .dp-chips, .dp-score, .dp-fit{order:3;}
+  /* .dp-card-body's flex-basis is 0% (the `flex:1` shorthand), so the line-
+     wrap decision sees it as contributing ~0px and never wraps its fixed-
+     width siblings — it just gets squeezed by flex-shrink instead, with
+     nothing stopping it short of min-width:0. A real, short, ordinary title
+     ("Onboarding conversion") measured at 75px wide here and broke mid-word
+     ("Onboardi-ng") even though overflow-wrap:anywhere had plenty of space
+     to break at the actual word gap instead — the box was just too narrow
+     for either word alone. min-width gives it a floor a real word can fit
+     in, which is what actually forces the now-overflowing pill/score onto
+     their own line instead. .dp-pill (the entries' status pill, e.g.
+     "Interview") joins .dp-chips/.dp-score/.dp-fit here for the same reason
+     — it wasn't being pushed down either, confirmed by measuring its
+     rendered rect before this fix (still on line 1, beside the squeezed
+     title). Verified after: title's box grows from 75px to the card's full
+     width once these move to their own line. */
+  /* !important: button.dp-card .dp-card-body further down (higher
+     specificity, button element + 2 classes vs this rule's 1) sets
+     min-width:0 with no media query of its own, and would otherwise win
+     regardless of source order — confirmed the plain version of this rule
+     had zero effect by re-measuring before reaching for !important here. */
+  .dp-card-body{min-width:140px !important;}
+  .dp-chips, .dp-score, .dp-fit, .dp-pill{order:3;}
   .dp-listfoot-actions .btn{flex:1;}
 }
 
