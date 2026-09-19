@@ -409,6 +409,18 @@
   .auth-lede{margin-bottom:16px;}
 }
 
+/* Second tier gated on viewport HEIGHT, not width — see the matching
+   comment in site.css's own max-height:720px block for why a width
+   breakpoint alone isn't enough here and how 720px was measured, not
+   guessed. Compounds with the block above. */
+@media (max-width:900px) and (max-height:720px){
+  .auth-logo{top:10px;}
+  .auth-face{top:40px; padding:8px 40px 12px;}
+  .auth-eyebrow{margin-bottom:4px;}
+  .auth-card h1{margin-bottom:6px;}
+  .auth-lede{margin-bottom:8px;}
+}
+
 @media (prefers-reduced-motion:reduce){
   /* site.css's global guard (a bare *{animation-duration:...!important})
      flattens every animation on a real element, which lands the entrance
