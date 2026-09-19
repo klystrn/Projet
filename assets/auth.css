@@ -382,8 +382,31 @@
      right/bottom/left at 0 from the base rule. Whatever the reader
      scrolls to inside that now-shorter box can never reach a screen
      region the box itself doesn't extend into, which is what padding
-     alone could not guarantee. */
-  .auth-face{top:92px; align-items:flex-start; padding-top:24px;}
+     alone could not guarantee.
+
+     top:60px (was 92px) — the logo's bottom edge is at 52px (28px top +
+     24px tall), so 60px is the tightest clip boundary that still clears
+     it with a real 8px buffer; padding-top:16px (was 24px) is pure visual
+     breathing room on top of that, for the same 24px gap as before
+     between the logo and the eyebrow, just spent more efficiently.
+     padding-bottom:24px (was the base rule's 48px) for the same reason —
+     asked for directly: this form has to fit one mobile screen without
+     scrolling, so every px of pure whitespace here is one the fields
+     don't get. */
+  /* logo nudged closer to the corner on mobile too (top:28->16px) — every
+     px of its own clearance is a px the form doesn't get, and the brand
+     mark reads fine tighter to the edge at this width. Bottom edge is now
+     16+24=40px, so top:48px still clears it with the same 8px buffer as
+     before. */
+  .auth-logo{top:16px;}
+  .auth-face{top:48px; align-items:flex-start; padding:12px 40px 20px;}
+  /* Tightened alongside .auth-face, same ask, same reasoning: this is
+     shared with .auth-card's every other spacing rule below, so it
+     applies identically to both login's and signup's forms — the two
+     stay visually consistent with each other, just both more compact. */
+  .auth-eyebrow{margin-bottom:8px;}
+  .auth-card h1{margin-bottom:8px;}
+  .auth-lede{margin-bottom:16px;}
 }
 
 @media (prefers-reduced-motion:reduce){
