@@ -196,14 +196,25 @@ img{display:block; max-width:100%;}
 
 /* form-level status message (also the seam where the API result surfaces).
    max-height/opacity, not display:none/block — see .field .err above, same
-   fix for the same "snaps everything below it down" jump. */
+   fix for the same "snaps everything below it down" jump.
+
+   padding-top/bottom are 0 at rest, not the full 13px, animated in
+   alongside max-height on .show. Measured a real bug this was causing on
+   every load of this form: with border-box sizing, max-height:0 collapses
+   the CONTENT to zero, but vertical padding still rendered in full,
+   costing 28px (13+13+1+1 border) of dead layout space even on an empty,
+   invisible status box — confirmed via getComputedStyle showing height:
+   28px against a max-height of 0px. Harmless on desktop, where there's
+   room to spare, but a real cost on a mobile form that already has to fit
+   in one screen. */
 .auth-status{
   display:block; max-height:0; overflow:hidden; opacity:0; margin-bottom:0; pointer-events:none;
-  padding:13px 15px; border-radius:12px; border:1px solid transparent;
+  padding:0 15px; border-radius:12px; border:1px solid transparent;
   font-size:13.5px; line-height:1.5; font-weight:600;
-  transition:max-height .3s var(--ease), opacity .22s var(--ease), margin-bottom .3s var(--ease);
+  transition:max-height .3s var(--ease), opacity .22s var(--ease), margin-bottom .3s var(--ease),
+             padding-top .3s var(--ease), padding-bottom .3s var(--ease);
 }
-.auth-status.show{max-height:120px; opacity:1; margin-bottom:18px; pointer-events:auto;}
+.auth-status.show{max-height:120px; opacity:1; margin-bottom:18px; pointer-events:auto; padding-top:13px; padding-bottom:13px;}
 .auth-status.err{background:rgba(199,62,16,.08); border-color:rgba(199,62,16,.35); color:var(--orange-deep);}
 .auth-status.pending{background:var(--paper-warm); border-color:var(--line); color:var(--ink-soft);}
 .btn[aria-busy="true"]{opacity:.65; pointer-events:none;}
@@ -224,5 +235,33 @@ img{display:block; max-width:100%;}
 .btn-primary{background:var(--ink); color:#fff;}
 .btn-primary:hover{background:var(--orange);}
 
+/* ==========================================================================
+   MOBILE: fit the form in one screen, no scroll
+
+   Asked for directly: signup's form (Google button + role toggle + 3
+   fields + submit + fineprint) is the taller of the two and was
+   overflowing a real 390x844 viewport by ~76px, forcing a scroll a login
+   page has no business asking for. Measured every gap in the stack before
+   touching anything (getBoundingClientRect on each child) rather than
+   guessing which margins to cut. These are pure vertical-rhythm trims —
+   no font sizes changed, so legibility and the 44px .auth-submit touch
+   target are untouched — applied to every shared form class here
+   (.role-toggle/.field/.auth-google/.auth-divider/.auth-alt/
+   .auth-fineprint), so login's and signup's forms stay visually
+   consistent with each other, just both more compact. Paired with the
+   .auth-face/.auth-eyebrow/h1/.auth-lede trims in auth.css's own
+   max-width:900px block and the .auth-status padding fix above (that one
+   alone was worth 28px of genuinely dead space). Verified after: signup's
+   full form fits inside .auth-face's own box with no scroll at 390x844. */
+@media (max-width:900px){
+  .auth-google{padding:11px 22px;}
+  .auth-divider{margin:14px 0;}
+  .role-toggle{margin-bottom:14px;}
+  .role-opt span{padding:10px;}
+  .field{margin-bottom:10px;}
+  .field input{padding:11px 14px;}
+  .auth-alt{margin-top:12px;}
+  .auth-fineprint{margin-top:10px;}
+}
 
 ::selection{background:var(--orange); color:#fff;}
