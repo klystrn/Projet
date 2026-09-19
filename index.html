@@ -512,6 +512,22 @@
           <div class="flow-fluid" id="flowFluid" aria-hidden="true"></div>
           <div class="flow-scrim" aria-hidden="true"></div>
 
+          <!-- Mobile only (see assets/landing.css's mobile pin block) — the
+               same 01-04 count the desktop rail shows, as a small icon row
+               pinned to the artwork's corner instead of a row in the title
+               band. Fixed text, not data-mode-copy: the numbers themselves
+               never differ between business/builder mode, only the rail's
+               labels did, and those aren't repeated here. aria-hidden since
+               the step name is already a real, visible heading below
+               (.flow-step h3, un-hidden on mobile). landing.js drives
+               .is-active/.is-done on these in lockstep with .flow-step. -->
+          <div class="flow-mobile-progress" id="flowMobileProgress" aria-hidden="true">
+            <span class="flow-mobile-dot">01</span>
+            <span class="flow-mobile-dot">02</span>
+            <span class="flow-mobile-dot">03</span>
+            <span class="flow-mobile-dot">04</span>
+          </div>
+
           <!-- Each step's NAME lives in the left rail; these h3s are the
                same names kept as real headings for assistive tech only
                (.sr-only), since the rail is aria-hidden. They un-hide

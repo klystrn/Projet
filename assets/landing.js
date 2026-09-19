@@ -191,6 +191,12 @@
     var stepsWrap = document.getElementById("flowSteps");
     var rail = document.getElementById("flowRail");
     var fluid = document.getElementById("flowFluid");
+    // Mobile's corner icon-row replacement for the rail (see landing.css's
+    // mobile pin block). Static markup, not data-mode-copy — its dots are
+    // never rebuilt, so unlike railItems this can be queried once here
+    // rather than every tick.
+    var mobileProgress = document.getElementById("flowMobileProgress");
+    var mobileDots = mobileProgress ? mobileProgress.querySelectorAll(".flow-mobile-dot") : [];
     if (!scrollWrap || !stepsWrap) return;
     /* Reduced motion still opts out entirely — that fallback renders the
        flat stacked list from CSS alone and has nothing for this to drive.
@@ -283,6 +289,10 @@
       for (var j = 0; j < railItems.length; j++) {
         railItems[j].classList.toggle("is-active", j === stepIdx);
         railItems[j].classList.toggle("is-done", j < stepIdx);
+      }
+      for (var k = 0; k < mobileDots.length; k++) {
+        mobileDots[k].classList.toggle("is-active", k === stepIdx);
+        mobileDots[k].classList.toggle("is-done", k < stepIdx);
       }
       // mirrors the old background-position:0%->100% horizontal / 100%->0%
       // vertical pan, just expressed as a compositor-only translate instead

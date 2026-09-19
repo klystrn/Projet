@@ -844,6 +844,15 @@ html[data-audience="business"] .flow-fluid{
     radial-gradient(ellipse 80% 70% at 40% 50%, rgba(20,19,15,.5) 0%, rgba(20,19,15,.28) 55%, rgba(20,19,15,.5) 100%),
     linear-gradient(180deg, rgba(20,19,15,.38), rgba(20,19,15,.16) 45%, rgba(20,19,15,.42));
 }
+/* Mobile-only step counter, hidden here and built out under the mobile pin
+   block further down. Desktop keeps the numbers where they've always been
+   (.flow-num, inside each crossfading step) — this is a second, small
+   readout that only exists so mobile can drop the .flow-rail list (a light,
+   static UI strip that sat between the title and the artwork) without
+   losing the 01-04 count entirely. Hidden by default so it never renders
+   on desktop or inside the reduced-motion/no-js flat lists, neither of
+   which reference it. */
+.flow-mobile-progress{display:none;}
 .flow-steps{position:relative; z-index:2; height:100%; display:flex; align-items:center; padding:0 clamp(28px,4vw,56px); transition:opacity .35s var(--ease);}
 /* asymmetric crossfade: outgoing clears fast, incoming waits a beat, so a
    symmetric fade never renders two blocks of copy legibly on top of each other */
@@ -1279,21 +1288,37 @@ footer[data-after-cta]{background:var(--ink);}
   /* the intro paragraph is desktop breathing room. On a phone it costs
      vertical space the image panel needs more than the title band does. */
   .flow-left p{display:none;}
-  /* the rail turns into a horizontal row of the same four numbered dots.
-     Labels are dropped (they are what needed a vertical column) because the
-     panel below un-hides each step's own name as it becomes active, so
-     nothing is stated twice — the same division of labour the desktop rail
-     and panel already have, just re-flowed. */
-  .flow-rail{margin-top:0; flex-direction:row; align-items:center; gap:10px;}
-  .flow-rail-item{flex-direction:row; padding-bottom:0; gap:0;}
-  .flow-rail-item::before{display:none;}
-  .flow-rail-label{display:none;}
-  .flow-rail-dot{width:28px; height:28px; font-size:9.5px;}
+  /* The horizontal row of numbered dots that used to sit here (between the
+     title and the artwork) is gone — asked for explicitly: it read as a
+     flat UI strip wedged into the light title band, breaking up the panel
+     below right where the immersive image should start. The count moved
+     into the dark panel itself instead, see .flow-mobile-progress below.
+     Removing the row also shrinks .flow-left's own height (it's now just
+     eyebrow + h2), which hands that space straight to .flow-right's `1fr`
+     track — a bigger image panel is the other half of "more immersive". */
+  .flow-rail{display:none;}
   /* 10% here, not the base rule's 3.5% — asked for separately, and mobile's
      panel is the smaller of the two (a stacked row under the title band
      instead of the full-height desktop column), so it reads dimmer at a
      glance and gets the bigger boost. */
   .flow-right{padding:0; filter:brightness(1.10);}
+  /* The 01-04 count, relocated: a small icon-badge row pinned to the
+     artwork's top-left corner rather than the title band. Absolute against
+     .flow-right (which is already position:relative) — a plain corner
+     anchor, no dependency on .flow-left's own height, which varies with
+     which audience-mode copy is showing. z-index puts it above .flow-fluid
+     /.flow-scrim, which have no z-index of their own (auto, i.e. 0). */
+  .flow-mobile-progress{display:flex; position:absolute; top:14px; left:14px; z-index:3; gap:6px;}
+  .flow-mobile-dot{
+    width:22px; height:22px; border-radius:50%; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:.02em;
+    color:var(--accent-lift); border:1px solid rgba(255,255,255,.32); background:rgba(255,255,255,.14);
+    backdrop-filter:blur(6px);
+    transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
+  }
+  .flow-mobile-dot.is-active{background:var(--accent-deep); border-color:transparent; color:#fff;}
+  .flow-mobile-dot.is-done{border-color:var(--accent); color:var(--accent-lift);}
   .flow-steps{padding:0 22px;}
   .flow-step{left:22px; right:22px; gap:10px;}
   /* the number lives in the rail dots directly above now */
