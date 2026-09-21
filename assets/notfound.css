@@ -69,7 +69,10 @@
   list-style:none; margin:0; padding-top:26px; border-top:1px solid rgba(255,255,255,.14);
   font-family:'JetBrains Mono',monospace; font-size:13px;
 }
-.nf-links a{color:rgba(255,255,255,.72); text-decoration:none; padding:4px 2px; display:inline-block;}
+/* 6px block padding, not 4px: at 4px these measured 23px tall, one pixel
+   under the 24px target floor this project holds itself to. The row's own
+   `gap` absorbs the extra height, so nothing below it moves. */
+.nf-links a{color:rgba(255,255,255,.72); text-decoration:none; padding:6px 2px; display:inline-block;}
 .nf-links a:hover{color:#fff; text-decoration:underline;}
 /* Same white outline .flow-step-link already uses for a link on a dark
    surface — .btn's own two-tone ring (landing.css) covers the CTA button

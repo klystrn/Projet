@@ -98,6 +98,32 @@ documented shape.
 | 2.8 | `dashboard.html` company view | 6-metric row, funnel, monthly chart, brief table, discipline split | GET (via 2.5, `data.company`) | **Wired (Sep 2026)** — send the four arrays, get all five sections and their notes |
 | 2.9 | `dashboard.html` | `window.ProjetDashboard.setView()` / `.showEmpty()` | — | JS hooks, call directly once real auth exists |
 | 2.10 | `dashboard.html` | `#editForm[data-endpoint]` | PATCH | Wired, needs a URL |
+| 2.11 | site-wide | `localStorage["projet:loggedIn"]` | — | Wired end to end already; **replace it if you use cookies/JWT** — see §2.11 and §3 "Sessions" |
+
+### 2.11. The signed-in flag (`projet:loggedIn`) — no URL to set, but read this
+
+Not a `data-endpoint`, which is exactly why it is easy to miss when
+skimming the table above: it is the one piece of *session* state the
+front end keeps, and it is already wired end to end. Full lifecycle:
+
+| | Where | What happens |
+|---|---|---|
+| Set | `assets/site.js` (auth success path) | `"1"` on any 2xx from §2.1 / §2.2 |
+| Cleared | `assets/landing.js` (log-out control) | `removeItem` |
+| Read | `index.html` inline head script | `"1"` redirects straight to `dashboard.html`, so a signed-in visitor never sees the marketing page |
+| Read | `assets/landing.js` | hides the final CTA on `index` / `about` / `faq` |
+| Override | `?loggedin=1` / `?loggedin=0` on `index.html` | testing seam — flips the stored value, then behaves normally |
+
+It is a **hint, not an auth check** — anyone can set it in devtools, and
+nothing on the front end treats it as proof of anything. Real
+authorisation is the API's, on every request. If you move to an httpOnly
+cookie or a JWT, this is the single place the front end decides "signed
+in", so either keep writing it alongside the real session or tell me and
+it gets swapped for whatever you land on (§3, "Sessions").
+
+`?loggedin=1` left in a browser will make `index.html` look broken
+("it keeps bouncing me to the dashboard") — that is this flag, not a bug.
+Clear it with `?loggedin=0`.
 
 ### 2.1. Signup
 
@@ -555,6 +581,16 @@ Content-Type: application/json
 
 { "name": "...", "org": "...", "loc": "...", "bio": "...", "tags": "Figma, Front-end, A11y" }
 ```
+
+> **`tags` is not symmetric between this PATCH and the §2.5 GET, on
+> purpose — read this before wiring either one.** It goes OUT of this
+> form as a single comma-separated **string**, because that is literally
+> what the one text input in the dialog contains and the front end does
+> not guess at how you want it split. It comes back IN, on §2.5's
+> `profile.tags`, as an **array of strings** (`["Figma", "Front-end",
+> "A11y"]`), because the profile rail renders one chip per entry. So the
+> API owns the split/join: parse the string on write, return an array on
+> read. Everything else in this body maps one-to-one.
 
 - The dialog's own note switches to "Saved to your account." (read once
   at page load, from whether the attribute is set — see
